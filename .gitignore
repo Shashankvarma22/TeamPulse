@@ -45,3 +45,6 @@ Thumbs.db
 *.tmp
 *.bak
 *.backup
+
+# Android Studio / IntelliJ IDE files
+/.idea/
