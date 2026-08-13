@@ -1,0 +1,18 @@
+package com.cutm.TeamPulse.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.cutm.TeamPulse.data.local.entity.TeamEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface TeamDao {
+
+    @Query("SELECT * FROM teams WHERE projectId = :projectId ORDER BY createdAt ASC")
+    fun observeByProject(projectId: String): Flow<List<TeamEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(team: TeamEntity)
+}

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/auth_graph">
+
+    <navigation
+        android:id="@+id/auth_graph"
+        app:startDestination="@id/signInFragment">
+
+        <fragment
+            android:id="@+id/signInFragment"
+            android:name="com.cutm.TeamPulse.ui.auth.SignInFragment"
+            android:label="@string/sign_in_title"
+            tools:layout="@layout/fragment_sign_in" />
+    </navigation>
+
+    <navigation
+        android:id="@+id/teacher_graph"
+        app:startDestination="@id/teacherHomeFragment">
+
+        <fragment
+            android:id="@+id/teacherHomeFragment"
+            android:name="com.cutm.TeamPulse.ui.teacher.TeacherHomeFragment"
+            android:label="@string/teacher_home_title"
+            tools:layout="@layout/fragment_teacher_home" />
+    </navigation>
+
+    <navigation
+        android:id="@+id/student_graph"
+        app:startDestination="@id/studentHomeFragment">
+
+        <fragment
+            android:id="@+id/studentHomeFragment"
+            android:name="com.cutm.TeamPulse.ui.student.StudentHomeFragment"
+            android:label="@string/student_home_title"
+            tools:layout="@layout/fragment_student_home" />
+    </navigation>
+
+    <fragment
+        android:id="@+id/rolePendingFragment"
+        android:name="com.cutm.TeamPulse.ui.rolepending.RolePendingFragment"
+        android:label="@string/role_pending_title"
+        tools:layout="@layout/fragment_role_pending" />
+
+</navigation>

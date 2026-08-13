@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">TeamPulse</string>
+    <string name="sign_in_title">Sign In</string>
+    <string name="sign_in_subtitle">Sign in with your Google account to continue.</string>
+    <string name="sign_in_google_button">Sign in with Google</string>
+    <string name="sign_in_success_placeholder">Signed in successfully. Role-based routing will be implemented in a later task.</string>
+
+    <!-- Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs
+         → the "Web application" client ID (NOT the Android client ID). -->
+    <string name="default_web_client_id">973824891796-i5gddskacq0gfsntsotn2pk41er301k4.apps.googleusercontent.com</string>
+
+    <string name="sign_in_error_cancelled">Sign-in was cancelled.</string>
+    <string name="sign_in_error_no_google_account">No Google account found on this device. Add one in Settings and try again.</string>
+    <string name="sign_in_error_generic">Something went wrong signing in. Please try again.</string>
+    <string name="sign_in_error_unexpected_credential">Unexpected credential type returned. Please try again.</string>
+    <string name="teacher_home_title">Teacher Home</string>
+    <string name="teacher_home_subtitle">Teacher workspace foundation. Project setup will be implemented in a later task.</string>
+    <string name="student_home_title">Student Home</string>
+    <string name="student_home_subtitle">Student workspace foundation. Task views will be implemented in a later task.</string>
+    <string name="role_pending_title">Account Pending</string>
+    <string name="role_pending_message">Your account has not been enrolled yet. Please contact your teacher.</string>
+</resources>

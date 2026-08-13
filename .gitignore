@@ -1,0 +1,47 @@
+﻿# Android / Gradle
+.gradle/
+build/
+*/build/
+captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# APK / AAB
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Signing / Keystores
+*.jks
+*.keystore
+*.keystore.properties
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# Google / Cloud credentials
+service-account*.json
+*-service-account*.json
+google-credentials*.json
+credentials*.json
+google-services.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary / backup files
+*.log
+*.tmp
+*.bak
+*.backup
