@@ -4,6 +4,7 @@ import com.cutm.TeamPulse.core.auth.GoogleAuthClient
 import com.cutm.TeamPulse.core.network.ApiResult
 import com.cutm.TeamPulse.data.local.dao.UserSessionDao
 import com.cutm.TeamPulse.data.mapper.toDomain
+import com.cutm.TeamPulse.data.mapper.toEntity
 import com.cutm.TeamPulse.domain.model.UserSession
 import com.cutm.TeamPulse.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,10 @@ class AuthRepositoryImpl @Inject constructor(
         return userSessionDao.observeCurrentSession().map { entity ->
             entity?.toDomain()
         }
+    }
+
+    override suspend fun saveSession(session: UserSession) {
+        userSessionDao.upsert(session.toEntity())
     }
 
     override suspend fun signOut() {

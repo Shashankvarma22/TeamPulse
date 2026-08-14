@@ -1,5 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Primary palette - Deep Blue (trust, professionalism, academia) -->
+    <color name="primary">#1565C0</color>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="primary_light">#2196F3</color>
+    <color name="on_primary">#FFFFFF</color>
+
+    <!-- Secondary palette - Vibrant Teal (collaboration, energy, gamification) -->
+    <color name="secondary">#00897B</color>
+    <color name="secondary_dark">#00695C</color>
+    <color name="secondary_light">#26A69A</color>
+    <color name="on_secondary">#FFFFFF</color>
+
+    <!-- Tertiary palette - Warm Amber (achievement, rewards) -->
+    <color name="tertiary">#F57C00</color>
+    <color name="tertiary_dark">#E65100</color>
+    <color name="tertiary_light">#FF9800</color>
+    <color name="on_tertiary">#FFFFFF</color>
+
+    <!-- Semantic colors -->
+    <color name="error">#D32F2F</color>
+    <color name="error_light">#EF5350</color>
+    <color name="on_error">#FFFFFF</color>
+
+    <color name="success">#388E3C</color>
+    <color name="success_light">#4CAF50</color>
+    <color name="on_success">#FFFFFF</color>
+
+    <color name="warning">#F57C00</color>
+    <color name="warning_light">#FF9800</color>
+    <color name="on_warning">#FFFFFF</color>
+
+    <!-- Surface and background colors -->
+    <color name="background">#F5F7FA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#E8EEF4</color>
+    <color name="on_background">#1A1C1E</color>
+    <color name="on_surface">#1A1C1E</color>
+    <color name="on_surface_variant">#42474E</color>
+
+    <!-- Outline and divider colors -->
+    <color name="outline">#C4C7CC</color>
+    <color name="outline_variant">#E1E3E8</color>
+
+    <!-- Specific UI element colors -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_stroke">#E1E3E8</color>
+    
+    <!-- Status colors for tasks -->
+    <color name="status_todo">#757575</color>
+    <color name="status_in_progress">#1976D2</color>
+    <color name="status_done">#388E3C</color>
+
+    <!-- Role-specific accents -->
+    <color name="teacher_accent">#5E35B1</color>
+    <color name="student_accent">#1565C0</color>
+
+    <!-- Shadow and overlay -->
+    <color name="scrim">#80000000</color>
+    <color name="shadow">#1A000000</color>
+
+    <!-- Text colors -->
+    <color name="text_primary">#1A1C1E</color>
+    <color name="text_secondary">#42474E</color>
+    <color name="text_tertiary">#6B7178</color>
+    <color name="text_disabled">#9BA1A8</color>
 </resources>

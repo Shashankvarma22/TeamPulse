@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spacing scale (4dp base unit) -->
+    <dimen name="spacing_xxs">2dp</dimen>
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">12dp</dimen>
+    <dimen name="spacing_base">16dp</dimen>
+    <dimen name="spacing_lg">20dp</dimen>
+    <dimen name="spacing_xl">24dp</dimen>
+    <dimen name="spacing_xxl">32dp</dimen>
+    <dimen name="spacing_xxxl">48dp</dimen>
+
+    <!-- Screen padding -->
+    <dimen name="screen_padding_horizontal">20dp</dimen>
+    <dimen name="screen_padding_vertical">24dp</dimen>
+
+    <!-- Card and container properties -->
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="card_margin">12dp</dimen>
+    <dimen name="card_stroke_width">1dp</dimen>
+
+    <!-- Button properties -->
+    <dimen name="button_corner_radius">8dp</dimen>
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="button_padding_horizontal">24dp</dimen>
+    <dimen name="button_min_width">88dp</dimen>
+
+    <!-- Icon sizes -->
+    <dimen name="icon_size_xs">16dp</dimen>
+    <dimen name="icon_size_sm">20dp</dimen>
+    <dimen name="icon_size_md">24dp</dimen>
+    <dimen name="icon_size_lg">32dp</dimen>
+    <dimen name="icon_size_xl">48dp</dimen>
+    <dimen name="icon_size_xxl">64dp</dimen>
+
+    <!-- Avatar sizes -->
+    <dimen name="avatar_size_sm">32dp</dimen>
+    <dimen name="avatar_size_md">40dp</dimen>
+    <dimen name="avatar_size_lg">56dp</dimen>
+
+    <!-- Touch target minimum -->
+    <dimen name="touch_target_min">48dp</dimen>
+
+    <!-- Progress indicator -->
+    <dimen name="progress_indicator_size">48dp</dimen>
+    <dimen name="progress_indicator_size_sm">32dp</dimen>
+
+    <!-- Divider -->
+    <dimen name="divider_height">1dp</dimen>
+
+    <!-- Chip properties -->
+    <dimen name="chip_corner_radius">16dp</dimen>
+    <dimen name="chip_height">32dp</dimen>
+
+    <!-- Empty state illustration -->
+    <dimen name="empty_state_icon_size">96dp</dimen>
+
+    <!-- Badge and indicator -->
+    <dimen name="badge_size">8dp</dimen>
+    <dimen name="badge_size_with_text">20dp</dimen>
+</resources>

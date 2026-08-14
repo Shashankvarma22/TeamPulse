@@ -8,6 +8,8 @@ interface AuthRepository {
 
     fun observeSession(): Flow<UserSession?>
 
+    suspend fun saveSession(session: UserSession)
+
     suspend fun signOut()
 
     suspend fun refreshTokenIfNeeded(): ApiResult<Unit>

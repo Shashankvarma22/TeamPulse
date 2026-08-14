@@ -1,20 +1,22 @@
 ﻿package com.cutm.TeamPulse.ui.auth
 
-import com.cutm.TeamPulse.domain.model.UserSession
+import com.cutm.TeamPulse.core.auth.GoogleIdentity
 import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import com.cutm.TeamPulse.R
 import com.cutm.TeamPulse.core.auth.AuthorizationManager
 import com.cutm.TeamPulse.core.auth.AuthorizationOutcome
+import com.cutm.TeamPulse.core.auth.SessionRole
 import com.cutm.TeamPulse.databinding.FragmentSignInBinding
 import com.cutm.TeamPulse.ui.common.BaseFragment
 import com.cutm.TeamPulse.ui.common.UiState
@@ -90,9 +92,6 @@ class SignInFragment :
     ) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.subtitleText.text =
-            getString(R.string.sign_in_subtitle)
-
         binding.googleSignInButton.setOnClickListener {
             viewModel.onGoogleSignInClicked(requireActivity())
         }
@@ -113,9 +112,8 @@ class SignInFragment :
                 }
 
                 launch {
-                    viewModel.sheetsProof.collect { message ->
-                        binding.statusText.visibility = View.VISIBLE
-                        binding.statusText.text = message
+                    viewModel.navigateToHome.collect { role ->
+                        navigateToHome(role)
                     }
                 }
             }
@@ -153,32 +151,69 @@ class SignInFragment :
         }
     }
 
-    private fun render(state: UiState<UserSession>) {
-        binding.signInProgress.visibility =
-            if (state is UiState.Loading) {
-                View.VISIBLE
-            } else {
-                View.GONE
+    private fun navigateToHome(role: SessionRole) {
+        val navController = findNavController()
+        
+        // Navigate to appropriate home based on role, clearing auth back stack
+        when (role) {
+            SessionRole.TEACHER -> {
+                navController.navigate(R.id.action_signIn_to_teacher_graph)
             }
+            SessionRole.STUDENT -> {
+                navController.navigate(R.id.action_signIn_to_student_graph)
+            }
+        }
+    }
 
-        binding.googleSignInButton.isEnabled =
-            state !is UiState.Loading
+    private fun render(state: UiState<GoogleIdentity>) {
+        // Update button state
+        binding.googleSignInButton.isEnabled = state !is UiState.Loading
 
+        // Update loading visibility
+        binding.loadingLayout.visibility = if (state is UiState.Loading) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+
+        // Update status card
         when (state) {
             is UiState.Error -> {
-                binding.statusText.visibility = View.VISIBLE
-                binding.statusText.text = state.message
+                showStatus(
+                    message = state.message,
+                    isError = true
+                )
             }
 
             is UiState.Success -> {
-                binding.statusText.visibility = View.VISIBLE
-                binding.statusText.text =
-                    getString(R.string.sign_in_success_placeholder)
+                showStatus(
+                    message = getString(R.string.sign_in_success),
+                    isError = false
+                )
             }
 
             else -> {
-                binding.statusText.visibility = View.GONE
+                binding.statusCard.visibility = View.GONE
             }
+        }
+    }
+
+    private fun showStatus(message: String, isError: Boolean) {
+        binding.statusCard.visibility = View.VISIBLE
+        binding.statusText.text = message
+
+        if (isError) {
+            binding.statusIcon.setImageResource(R.drawable.ic_alert)
+            binding.statusIcon.setColorFilter(
+                ContextCompat.getColor(requireContext(), R.color.error)
+            )
+            binding.statusCard.strokeColor = ContextCompat.getColor(requireContext(), R.color.error)
+        } else {
+            binding.statusIcon.setImageResource(R.drawable.ic_progress)
+            binding.statusIcon.setColorFilter(
+                ContextCompat.getColor(requireContext(), R.color.success)
+            )
+            binding.statusCard.strokeColor = ContextCompat.getColor(requireContext(), R.color.success)
         }
     }
 }

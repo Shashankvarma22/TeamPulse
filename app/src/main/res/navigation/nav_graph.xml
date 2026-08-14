@@ -5,6 +5,7 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/auth_graph">
 
+    <!-- Authentication Flow -->
     <navigation
         android:id="@+id/auth_graph"
         app:startDestination="@id/signInFragment">
@@ -13,9 +14,26 @@
             android:id="@+id/signInFragment"
             android:name="com.cutm.TeamPulse.ui.auth.SignInFragment"
             android:label="@string/sign_in_title"
-            tools:layout="@layout/fragment_sign_in" />
+            tools:layout="@layout/fragment_sign_in">
+
+            <!-- Navigate to teacher graph after successful teacher sign-in -->
+            <action
+                android:id="@+id/action_signIn_to_teacher_graph"
+                app:destination="@id/teacher_graph"
+                app:popUpTo="@id/auth_graph"
+                app:popUpToInclusive="true" />
+
+            <!-- Navigate to student graph after successful student sign-in -->
+            <action
+                android:id="@+id/action_signIn_to_student_graph"
+                app:destination="@id/student_graph"
+                app:popUpTo="@id/auth_graph"
+                app:popUpToInclusive="true" />
+
+        </fragment>
     </navigation>
 
+    <!-- Teacher Flow -->
     <navigation
         android:id="@+id/teacher_graph"
         app:startDestination="@id/teacherHomeFragment">
@@ -27,6 +45,7 @@
             tools:layout="@layout/fragment_teacher_home" />
     </navigation>
 
+    <!-- Student Flow -->
     <navigation
         android:id="@+id/student_graph"
         app:startDestination="@id/studentHomeFragment">
@@ -38,6 +57,7 @@
             tools:layout="@layout/fragment_student_home" />
     </navigation>
 
+    <!-- Role Pending State (for users not yet enrolled) -->
     <fragment
         android:id="@+id/rolePendingFragment"
         android:name="com.cutm.TeamPulse.ui.rolepending.RolePendingFragment"
