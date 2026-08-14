@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <ImageView
+        android:id="@+id/emptyIcon"
+        android:layout_width="@dimen/empty_state_icon_size"
+        android:layout_height="@dimen/empty_state_icon_size"
+        android:contentDescription="@null"
+        app:tint="@color/on_surface_variant"
+        tools:src="@drawable/ic_empty_team" />
+
+    <TextView
+        android:id="@+id/emptyTitle"
+        style="@style/TextAppearance.TeamPulse.TitleMedium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_base"
+        android:gravity="center"
+        tools:text="No Teams Yet" />
+
+    <TextView
+        android:id="@+id/emptyMessage"
+        style="@style/TextAppearance.TeamPulse.BodyMedium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_xs"
+        android:gravity="center"
+        android:textColor="@color/text_secondary"
+        tools:text="You haven't been assigned to any teams yet." />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/emptyActionButton"
+        style="@style/Widget.TeamPulse.Button.Outlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_base"
+        android:visibility="gone"
+        tools:text="Refresh"
+        tools:visibility="visible" />
+
+</merge>

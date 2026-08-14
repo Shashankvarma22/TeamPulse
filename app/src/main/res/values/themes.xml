@@ -131,6 +131,25 @@
         <item name="android:fontWeight" tools:targetApi="p">500</item>
     </style>
 
+    <!-- Data-focused typography -->
+    <style name="TextAppearance.TeamPulse.NumericLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">32sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontWeight" tools:targetApi="p">400</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+
+    <style name="TextAppearance.TeamPulse.DataLabel" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textColor">@color/text_tertiary</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontWeight" tools:targetApi="p">500</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.08</item>
+    </style>
+
     <!-- Button styles -->
     <style name="Widget.TeamPulse.Button" parent="Widget.Material3.Button">
         <item name="cornerRadius">@dimen/button_corner_radius</item>
@@ -183,5 +202,27 @@
         <item name="indicatorSize">@dimen/progress_indicator_size</item>
         <item name="indicatorColor">@color/primary</item>
         <item name="trackColor">@color/surface_variant</item>
+    </style>
+
+    <!-- Status chip styles -->
+    <style name="Widget.TeamPulse.Chip.Status" parent="Widget.Material3.Chip.Assist">
+        <item name="chipCornerRadius">@dimen/chip_corner_radius</item>
+        <item name="chipMinHeight">@dimen/chip_height</item>
+        <item name="android:textAppearance">@style/TextAppearance.TeamPulse.LabelMedium</item>
+    </style>
+
+    <style name="Widget.TeamPulse.Chip.Status.Todo">
+        <item name="chipBackgroundColor">@color/status_todo</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="Widget.TeamPulse.Chip.Status.InProgress">
+        <item name="chipBackgroundColor">@color/status_in_progress</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="Widget.TeamPulse.Chip.Status.Done">
+        <item name="chipBackgroundColor">@color/status_done</item>
+        <item name="android:textColor">@color/white</item>
     </style>
 </resources>

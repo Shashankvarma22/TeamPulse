@@ -61,4 +61,8 @@
     <!-- Badge and indicator -->
     <dimen name="badge_size">8dp</dimen>
     <dimen name="badge_size_with_text">20dp</dimen>
+
+    <!-- Content density -->
+    <dimen name="section_spacing">24dp</dimen>
+    <dimen name="section_spacing_compact">20dp</dimen>
 </resources>

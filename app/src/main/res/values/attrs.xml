@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- EmptyStateView custom attributes -->
+    <declare-styleable name="EmptyStateView">
+        <attr name="emptyIcon" format="reference" />
+        <attr name="emptyTitle" format="string" />
+        <attr name="emptyMessage" format="string" />
+        <attr name="emptyActionText" format="string" />
+        <attr name="emptyActionVisible" format="boolean" />
+    </declare-styleable>
+
+    <!-- SectionHeaderView custom attributes -->
+    <declare-styleable name="SectionHeaderView">
+        <attr name="sectionTitle" format="string" />
+        <attr name="sectionSubtitle" format="string" />
+        <attr name="sectionActionText" format="string" />
+        <attr name="sectionActionVisible" format="boolean" />
+    </declare-styleable>
+</resources>

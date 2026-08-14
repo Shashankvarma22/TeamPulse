@@ -4,10 +4,10 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Primary palette - Deep Blue (trust, professionalism, academia) -->
-    <color name="primary">#1565C0</color>
-    <color name="primary_dark">#0D47A1</color>
-    <color name="primary_light">#2196F3</color>
+    <!-- Primary palette - Deep Slate (grounded, academic, instrument panel) -->
+    <color name="primary">#3D5A80</color>
+    <color name="primary_dark">#293241</color>
+    <color name="primary_light">#5E7FA3</color>
     <color name="on_primary">#FFFFFF</color>
 
     <!-- Secondary palette - Vibrant Teal (collaboration, energy, gamification) -->
