@@ -1,8 +1,11 @@
 package com.cutm.TeamPulse.ui.teacher
 
+import android.animation.ObjectAnimator
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.isVisible
@@ -22,9 +25,13 @@ import kotlinx.coroutines.launch
 class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTeacherHomeBinding::inflate) {
 
     private val viewModel: TeacherHomeViewModel by viewModels()
+    private var hasAnimatedEntrance = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Light entrance animation for information-dense teacher view
+        animateEntrance()
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -57,15 +64,65 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
         }
     }
 
+    private fun animateEntrance() {
+        if (hasAnimatedEntrance) return
+        hasAnimatedEntrance = true
+
+        // Check if animations are disabled
+        val animationScale = Settings.Global.getFloat(
+            requireContext().contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f
+        )
+
+        if (animationScale == 0f) {
+            // Immediately show all content
+            binding.greetingText.alpha = 1f
+            binding.attentionEmptyState.alpha = 1f
+            binding.projectsSectionHeader.alpha = 1f
+            binding.projectsContainer.alpha = 1f
+            binding.projectsEmptyState.alpha = 1f
+            binding.deadlinesSectionHeader.alpha = 1f
+            binding.deadlinesContainer.alpha = 1f
+            binding.deadlinesEmptyState.alpha = 1f
+            return
+        }
+
+        // Very subtle fade-in for dense content
+        // No translation - just alpha for minimal distraction
+        val views = listOf(
+            binding.greetingText,
+            binding.attentionEmptyState,
+            binding.projectsSectionHeader,
+            binding.projectsContainer,
+            binding.projectsEmptyState,
+            binding.deadlinesSectionHeader,
+            binding.deadlinesContainer,
+            binding.deadlinesEmptyState
+        )
+
+        views.forEach { it.alpha = 0f }
+
+        val duration = 250L
+        val interpolator = DecelerateInterpolator()
+
+        views.forEachIndexed { index, view ->
+            ObjectAnimator.ofFloat(view, View.ALPHA, 0f, 1f).apply {
+                this.duration = duration
+                this.interpolator = interpolator
+                this.startDelay = index * 30L  // Very short stagger
+                start()
+            }
+        }
+    }
+
     private fun renderProjects(projects: List<ProjectWithProgress>) {
         binding.projectsContainer.removeAllViews()
 
         if (projects.isEmpty()) {
-            binding.projectsContainer.isVisible = false
-            binding.projectsEmptyState.isVisible = true
+            crossFade(binding.projectsContainer, binding.projectsEmptyState)
         } else {
-            binding.projectsContainer.isVisible = true
-            binding.projectsEmptyState.isVisible = false
+            crossFade(binding.projectsEmptyState, binding.projectsContainer)
 
             projects.forEach { projectData ->
                 val card = ProjectProgressCard(requireContext()).apply {
@@ -102,11 +159,9 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
         binding.deadlinesContainer.removeAllViews()
 
         if (deadlines.isEmpty()) {
-            binding.deadlinesContainer.isVisible = false
-            binding.deadlinesEmptyState.isVisible = true
+            crossFade(binding.deadlinesContainer, binding.deadlinesEmptyState)
         } else {
-            binding.deadlinesContainer.isVisible = true
-            binding.deadlinesEmptyState.isVisible = false
+            crossFade(binding.deadlinesEmptyState, binding.deadlinesContainer)
 
             deadlines.forEach { deadline ->
                 val deadlineCard = createDeadlineCard(deadline)
@@ -152,5 +207,54 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
 
         card.addView(contentView)
         return card
+    }
+
+    private fun crossFade(fromView: View, toView: View) {
+        // Check if animations are disabled
+        val animationScale = Settings.Global.getFloat(
+            requireContext().contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f
+        )
+
+        if (animationScale == 0f) {
+            fromView.isVisible = false
+            toView.isVisible = true
+            return
+        }
+
+        // Don't animate if already in correct state
+        if (fromView.isVisible && toView.isVisible) return
+        if (!fromView.isVisible && !toView.isVisible) return
+
+        val duration = 200L
+
+        if (fromView.isVisible) {
+            ObjectAnimator.ofFloat(fromView, View.ALPHA, 1f, 0f).apply {
+                this.duration = duration
+                start()
+                doOnEnd { fromView.isVisible = false }
+            }
+        }
+
+        if (!toView.isVisible) {
+            toView.alpha = 0f
+            toView.isVisible = true
+            ObjectAnimator.ofFloat(toView, View.ALPHA, 0f, 1f).apply {
+                this.duration = duration
+                start()
+            }
+        }
+    }
+
+    private fun ObjectAnimator.doOnEnd(action: () -> Unit) {
+        addListener(object : android.animation.Animator.AnimatorListener {
+            override fun onAnimationStart(animation: android.animation.Animator) {}
+            override fun onAnimationEnd(animation: android.animation.Animator) {
+                action()
+            }
+            override fun onAnimationCancel(animation: android.animation.Animator) {}
+            override fun onAnimationRepeat(animation: android.animation.Animator) {}
+        })
     }
 }

@@ -29,6 +29,12 @@
             tools:text="Welcome, Prof. Smith" />
 
         <!-- ZONE 1: Attention / Needs Review (Focal) -->
+        <androidx.constraintlayout.widget.Group
+            android:id="@+id/contentZone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:constraint_referenced_ids="attentionEmptyState,projectsSectionHeader,projectsContainer,projectsEmptyState,deadlinesSectionHeader,deadlinesContainer,deadlinesEmptyState" />
+
         <com.cutm.TeamPulse.ui.common.EmptyStateView
             android:id="@+id/attentionEmptyState"
             android:layout_width="0dp"

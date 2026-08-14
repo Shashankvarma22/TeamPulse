@@ -29,6 +29,7 @@
             tools:text="Welcome, Alex" />
 
         <!-- ZONE 1: Current Project (Focal) -->
+
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/projectFocalCard"
             style="@style/Widget.TeamPulse.Card"
@@ -126,6 +127,7 @@
             app:layout_constraintTop_toBottomOf="@id/greetingText" />
 
         <!-- ZONE 2: Your Tasks Section (Secondary) -->
+
         <com.cutm.TeamPulse.ui.common.SectionHeaderView
             android:id="@+id/tasksSectionHeader"
             android:layout_width="0dp"
@@ -169,6 +171,7 @@
             app:layout_constraintTop_toBottomOf="@id/tasksSectionHeader" />
 
         <!-- ZONE 3: Gamification (Demoted) -->
+
         <com.cutm.TeamPulse.ui.common.SectionHeaderView
             android:id="@+id/progressSectionHeader"
             android:layout_width="0dp"
