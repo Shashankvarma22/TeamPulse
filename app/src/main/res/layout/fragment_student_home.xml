@@ -16,7 +16,7 @@
         android:paddingBottom="@dimen/spacing_xl"
         tools:context=".ui.student.StudentHomeFragment">
 
-        <!-- Header Section -->
+        <!-- Header -->
         <TextView
             android:id="@+id/greetingText"
             style="@style/TextAppearance.TeamPulse.HeadlineMedium"
@@ -26,189 +26,106 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="Welcome, Student" />
+            tools:text="Welcome, Alex" />
 
-        <!-- XP and Badges Summary Card -->
+        <!-- ZONE 1: Current Project (Focal) -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/progressCard"
+            android:id="@+id/projectFocalCard"
             style="@style/Widget.TeamPulse.Card"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_base"
+            android:visibility="gone"
             app:cardBackgroundColor="@color/primary_light"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/greetingText">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="@dimen/spacing_lg">
-
-                <!-- XP Section -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/icon_size_xl"
-                        android:layout_height="@dimen/icon_size_xl"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_trophy"
-                        app:tint="@color/on_primary" />
-
-                    <TextView
-                        style="@style/TextAppearance.TeamPulse.NumericLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_sm"
-                        android:text="0"
-                        android:textColor="@color/on_primary"
-                        tools:text="245" />
-
-                    <TextView
-                        style="@style/TextAppearance.TeamPulse.DataLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_xxs"
-                        android:text="EXPERIENCE"
-                        android:textColor="@color/on_primary" />
-
-                </LinearLayout>
-
-                <!-- Divider -->
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="@dimen/spacing_base"
-                    android:layout_marginEnd="@dimen/spacing_base"
-                    android:alpha="0.3"
-                    android:background="@color/on_primary" />
-
-                <!-- Badges Section -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/icon_size_xl"
-                        android:layout_height="@dimen/icon_size_xl"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_badge"
-                        app:tint="@color/on_primary" />
-
-                    <TextView
-                        style="@style/TextAppearance.TeamPulse.NumericLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_sm"
-                        android:text="0"
-                        android:textColor="@color/on_primary"
-                        tools:text="3" />
-
-                    <TextView
-                        style="@style/TextAppearance.TeamPulse.DataLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_xxs"
-                        android:text="BADGES"
-                        android:textColor="@color/on_primary" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- My Team Section -->
-        <com.cutm.TeamPulse.ui.common.SectionHeaderView
-            android:id="@+id/teamSectionHeader"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/section_spacing"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/progressCard"
-            app:sectionTitle="My Team" />
-
-        <!-- Team Card (or empty state) -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/teamCard"
-            style="@style/Widget.TeamPulse.Card.Outlined"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/teamSectionHeader"
+            app:layout_constraintTop_toBottomOf="@id/greetingText"
             tools:visibility="visible">
 
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_base">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="@dimen/icon_size_md"
-                        android:layout_height="@dimen/icon_size_md"
-                        android:layout_marginEnd="@dimen/spacing_sm"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_team"
-                        app:tint="@color/secondary" />
-
-                    <TextView
-                        android:id="@+id/teamNameText"
-                        style="@style/TextAppearance.TeamPulse.TitleMedium"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        tools:text="Team Alpha" />
-
-                </LinearLayout>
+                android:padding="@dimen/spacing_lg">
 
                 <TextView
-                    android:id="@+id/teamMembersText"
-                    style="@style/TextAppearance.TeamPulse.BodyMedium"
-                    android:layout_width="match_parent"
+                    android:id="@+id/projectNameText"
+                    style="@style/TextAppearance.TeamPulse.TitleLarge"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/spacing_xs"
-                    android:textColor="@color/text_secondary"
-                    tools:text="4 members • Active" />
+                    android:textColor="@color/on_primary"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="Mobile App Development" />
 
-            </LinearLayout>
+                <TextView
+                    android:id="@+id/teamNameText"
+                    style="@style/TextAppearance.TeamPulse.BodyMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_xxs"
+                    android:textColor="@color/on_primary"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/projectNameText"
+                    tools:text="Team Alpha" />
+
+                <TextView
+                    android:id="@+id/projectProgressText"
+                    style="@style/TextAppearance.TeamPulse.NumericLarge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_md"
+                    android:textColor="@color/on_primary"
+                    android:textSize="32sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/teamNameText"
+                    tools:text="65%" />
+
+                <TextView
+                    android:id="@+id/projectProgressLabel"
+                    style="@style/TextAppearance.TeamPulse.LabelMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_sm"
+                    android:text="Complete"
+                    android:textColor="@color/on_primary"
+                    app:layout_constraintBottom_toBottomOf="@id/projectProgressText"
+                    app:layout_constraintStart_toEndOf="@id/projectProgressText"
+                    app:layout_constraintTop_toTopOf="@id/projectProgressText" />
+
+                <TextView
+                    android:id="@+id/projectDeadlineText"
+                    style="@style/TextAppearance.TeamPulse.BodyMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_sm"
+                    android:textColor="@color/on_primary"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/projectProgressText"
+                    tools:text="Due in 12 days" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Team Empty State -->
+        <!-- Project Empty State -->
         <com.cutm.TeamPulse.ui.common.EmptyStateView
-            android:id="@+id/teamEmptyState"
+            android:id="@+id/projectEmptyState"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
+            android:layout_marginTop="@dimen/spacing_base"
             android:background="@drawable/bg_empty_state"
             android:padding="@dimen/spacing_xl"
-            app:emptyIcon="@drawable/ic_empty_team"
-            app:emptyMessage="@string/empty_state_no_teams_message"
-            app:emptyTitle="@string/empty_state_no_teams_title"
+            app:emptyIcon="@drawable/ic_project"
+            app:emptyMessage="@string/no_active_project_message"
+            app:emptyTitle="@string/no_active_project"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/teamSectionHeader" />
+            app:layout_constraintTop_toBottomOf="@id/greetingText" />
 
-        <!-- My Tasks Section -->
+        <!-- ZONE 2: Your Tasks Section (Secondary) -->
         <com.cutm.TeamPulse.ui.common.SectionHeaderView
             android:id="@+id/tasksSectionHeader"
             android:layout_width="0dp"
@@ -216,34 +133,25 @@
             android:layout_marginTop="@dimen/section_spacing"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/teamEmptyState"
-            app:sectionTitle="My Tasks" />
+            app:layout_constraintTop_toBottomOf="@id/projectEmptyState"
+            app:sectionTitle="@string/your_tasks_section" />
 
-        <!-- Tasks Container (for future RecyclerView) -->
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <!-- Tasks List Container -->
+        <LinearLayout
             android:id="@+id/tasksContainer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_md"
+            android:orientation="vertical"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tasksSectionHeader"
             tools:visibility="visible">
 
-            <!-- Placeholder task cards would go here in a RecyclerView -->
-            <TextView
-                style="@style/TextAppearance.TeamPulse.BodyMedium"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tasks will appear here"
-                android:textColor="@color/text_tertiary"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+            <!-- Task items will be added programmatically -->
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
 
         <!-- Tasks Empty State -->
         <com.cutm.TeamPulse.ui.common.EmptyStateView
@@ -252,13 +160,39 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_md"
             android:background="@drawable/bg_empty_state"
-            android:padding="@dimen/spacing_xl"
+            android:padding="@dimen/spacing_lg"
             app:emptyIcon="@drawable/ic_empty_tasks"
-            app:emptyMessage="@string/empty_state_no_tasks_message"
-            app:emptyTitle="@string/empty_state_no_tasks_title"
+            app:emptyMessage=""
+            app:emptyTitle="No Tasks Assigned"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tasksSectionHeader" />
+
+        <!-- ZONE 3: Gamification (Demoted) -->
+        <com.cutm.TeamPulse.ui.common.SectionHeaderView
+            android:id="@+id/progressSectionHeader"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/section_spacing_compact"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tasksEmptyState"
+            app:sectionTitle="Your Progress" />
+
+        <!-- XP/Badges Placeholder (honest empty state) -->
+        <com.cutm.TeamPulse.ui.common.EmptyStateView
+            android:id="@+id/xpEmptyState"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:background="@drawable/bg_empty_state"
+            android:padding="@dimen/spacing_lg"
+            app:emptyIcon="@drawable/ic_trophy"
+            app:emptyMessage="Complete tasks to earn experience points and unlock achievements."
+            app:emptyTitle="Progress Tracking Coming Soon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/progressSectionHeader" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

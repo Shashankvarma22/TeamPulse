@@ -6,4 +6,6 @@ import kotlinx.coroutines.flow.Flow
 interface TeamRepository {
 
     fun observeTeams(projectId: String): Flow<List<Team>>
+
+    fun observeTeams(): Flow<List<Team>>
 }

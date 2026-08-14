@@ -16,4 +16,22 @@
         <attr name="sectionActionText" format="string" />
         <attr name="sectionActionVisible" format="boolean" />
     </declare-styleable>
+
+    <!-- ProjectProgressCard custom attributes -->
+    <declare-styleable name="ProjectProgressCard">
+        <attr name="projectName" format="string" />
+        <attr name="projectProgress" format="integer" />
+        <attr name="projectDeadline" format="string" />
+    </declare-styleable>
+
+    <!-- TaskItemView custom attributes -->
+    <declare-styleable name="TaskItemView">
+        <attr name="taskTitle" format="string" />
+        <attr name="taskStatus" format="enum">
+            <enum name="todo" value="0" />
+            <enum name="in_progress" value="1" />
+            <enum name="done" value="2" />
+        </attr>
+        <attr name="taskDueDate" format="string" />
+    </declare-styleable>
 </resources>

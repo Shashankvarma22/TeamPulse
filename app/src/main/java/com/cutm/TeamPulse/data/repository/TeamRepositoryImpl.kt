@@ -19,4 +19,10 @@ class TeamRepositoryImpl @Inject constructor(
             entities.map { it.toDomain() }
         }
     }
+
+    override fun observeTeams(): Flow<List<Team>> {
+        return teamDao.observeAll().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
 }

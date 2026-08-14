@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:parentTag="com.google.android.material.card.MaterialCardView">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/spacing_base">
+
+        <ImageView
+            android:id="@+id/projectIcon"
+            android:layout_width="@dimen/icon_size_md"
+            android:layout_height="@dimen/icon_size_md"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_project"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/primary" />
+
+        <TextView
+            android:id="@+id/projectNameText"
+            style="@style/TextAppearance.TeamPulse.TitleMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_sm"
+            android:layout_marginEnd="@dimen/spacing_sm"
+            android:ellipsize="end"
+            android:maxLines="1"
+            app:layout_constraintEnd_toStartOf="@id/progressText"
+            app:layout_constraintStart_toEndOf="@id/projectIcon"
+            app:layout_constraintTop_toTopOf="@id/projectIcon"
+            tools:text="Mobile App Development" />
+
+        <TextView
+            android:id="@+id/progressText"
+            style="@style/TextAppearance.TeamPulse.NumericLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/primary"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/projectIcon"
+            tools:text="75%" />
+
+        <TextView
+            android:id="@+id/deadlineText"
+            style="@style/TextAppearance.TeamPulse.BodyMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_sm"
+            android:layout_marginTop="@dimen/spacing_xxs"
+            android:textColor="@color/text_secondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/projectIcon"
+            app:layout_constraintTop_toBottomOf="@id/projectNameText"
+            tools:text="Due in 5 days" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</merge>

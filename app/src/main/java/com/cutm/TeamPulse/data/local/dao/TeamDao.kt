@@ -13,6 +13,9 @@ interface TeamDao {
     @Query("SELECT * FROM teams WHERE projectId = :projectId ORDER BY createdAt ASC")
     fun observeByProject(projectId: String): Flow<List<TeamEntity>>
 
+    @Query("SELECT * FROM teams")
+    fun observeAll(): Flow<List<TeamEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(team: TeamEntity)
 }

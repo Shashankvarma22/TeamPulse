@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">TeamPulse</string>
-    
+
     <!-- Sign In Screen -->
     <string name="sign_in_title">Welcome to TeamPulse</string>
     <string name="sign_in_subtitle">Track team collaboration, manage tasks, and earn rewards for productive teamwork.</string>
@@ -17,15 +17,15 @@
     <string name="sign_in_error_no_google_account">No Google account found on this device. Add one in Settings and try again.</string>
     <string name="sign_in_error_generic">Something went wrong signing in. Please try again.</string>
     <string name="sign_in_error_unexpected_credential">Unexpected credential type returned. Please try again.</string>
-    
+
     <!-- Home Screens -->
     <string name="teacher_home_title">Welcome, %1$s</string>
     <string name="student_home_title">Welcome, %1$s</string>
-    
+
     <!-- Role Pending -->
     <string name="role_pending_title">Account Pending</string>
     <string name="role_pending_message">Your account has not been enrolled yet. Please contact your teacher to be added to the system.</string>
-    
+
     <!-- Empty States -->
     <string name="empty_state_no_teams_title">No Teams Yet</string>
     <string name="empty_state_no_teams_message">You haven\'t been assigned to any teams. Check back later or contact your teacher.</string>
@@ -33,26 +33,49 @@
     <string name="empty_state_no_tasks_message">No tasks assigned. New assignments will appear here.</string>
     <string name="empty_state_no_projects_title">No Projects Yet</string>
     <string name="empty_state_no_projects_message">Create your first project to start managing teams and tracking collaboration.</string>
-    
+
     <!-- Common Actions -->
     <string name="action_retry">Retry</string>
     <string name="action_refresh">Refresh</string>
     <string name="action_sign_out">Sign Out</string>
-    
+
     <!-- Navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_tasks">Tasks</string>
     <string name="nav_team">Team</string>
     <string name="nav_progress">Progress</string>
-    
+
     <!-- Status Labels -->
     <string name="status_todo">To Do</string>
     <string name="status_in_progress">In Progress</string>
     <string name="status_done">Done</string>
-    
+
     <!-- Content Descriptions -->
     <string name="cd_app_logo">TeamPulse logo</string>
     <string name="cd_google_logo">Google logo</string>
     <string name="cd_loading">Loading</string>
     <string name="cd_user_avatar">User avatar</string>
+
+    <!-- Progress and Stats -->
+    <string name="progress_percentage">%1$d%%</string>
+    <string name="tasks_completed">%1$d/%2$d tasks</string>
+    <string name="due_in_days">Due in %1$d days</string>
+    <string name="due_today">Due today</string>
+    <string name="overdue">Overdue</string>
+
+    <!-- Teacher Home -->
+    <string name="teacher_home_greeting">Welcome, %1$s</string>
+    <string name="attention_all_on_track">All Teams On Track</string>
+    <string name="attention_all_on_track_message">No attention needed at this time. All teams are making progress.</string>
+    <string name="no_projects_message">Create your first project to start tracking team collaboration and progress.</string>
+    <string name="no_deadlines">No Upcoming Deadlines</string>
+    <string name="upcoming_deadlines_section">Upcoming Deadlines</string>
+
+    <!-- Student Home -->
+    <string name="student_home_greeting">Welcome, %1$s</string>
+    <string name="no_active_project">No Active Project</string>
+    <string name="no_active_project_message">You haven\'t been assigned to a project yet. Check back soon or contact your teacher.</string>
+    <string name="your_tasks_section">Your Tasks</string>
+    <string name="team_progress_section">Team Progress</string>
+    <string name="next_action">Next: %1$s</string>
 </resources>
