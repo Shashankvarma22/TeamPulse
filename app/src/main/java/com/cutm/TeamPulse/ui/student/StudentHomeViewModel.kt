@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class CurrentProjectData(
@@ -48,6 +49,12 @@ class StudentHomeViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null
         )
+
+    fun updateTaskStatus(taskId: String, newStatus: TaskStatus) {
+        viewModelScope.launch {
+            taskRepository.updateTaskStatus(taskId, newStatus)
+        }
+    }
 
     val currentProject: StateFlow<CurrentProjectData?> = userSession
         .flatMapLatest { session ->

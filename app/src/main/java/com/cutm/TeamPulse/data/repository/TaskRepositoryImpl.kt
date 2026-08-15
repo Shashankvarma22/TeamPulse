@@ -3,6 +3,7 @@ package com.cutm.TeamPulse.data.repository
 import com.cutm.TeamPulse.data.local.dao.TaskAssignmentDao
 import com.cutm.TeamPulse.data.mapper.toDomain
 import com.cutm.TeamPulse.domain.model.TaskAssignment
+import com.cutm.TeamPulse.domain.model.TaskStatus
 import com.cutm.TeamPulse.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -24,5 +25,17 @@ class TaskRepositoryImpl @Inject constructor(
         return taskAssignmentDao.observeByAssignee(email).map { entities ->
             entities.map { it.toDomain() }
         }
+    }
+
+    override suspend fun updateTaskStatus(taskId: String, status: TaskStatus) {
+        val entity = taskAssignmentDao.getById(taskId) ?: return
+
+        val updated = entity.copy(
+            status = status,
+            localDirty = true,
+            lastModifiedLocal = System.currentTimeMillis()
+        )
+
+        taskAssignmentDao.upsert(updated)
     }
 }

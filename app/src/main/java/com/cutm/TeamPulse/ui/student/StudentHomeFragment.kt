@@ -214,6 +214,13 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
                         status = taskData.task.status,
                         dueDate = dueDateText
                     )
+
+                    // Make task tappable with subtle feedback
+                    isClickable = true
+                    isFocusable = true
+                    setOnClickListener {
+                        onTaskClicked(taskData.task)
+                    }
                 }
 
                 val layoutParams = LinearLayout.LayoutParams(
@@ -226,6 +233,38 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
                 binding.tasksContainer.addView(taskView, layoutParams)
             }
         }
+    }
+
+    private fun onTaskClicked(task: com.cutm.TeamPulse.domain.model.TaskAssignment) {
+        // Subtle scale feedback
+        val clickedView = (binding.tasksContainer.focusedChild as? TaskItemView)
+        clickedView?.let { animateTaskTap(it) }
+
+        // Show task detail bottom sheet
+        val bottomSheet = TaskDetailBottomSheet.newInstance(
+            taskId = task.taskId,
+            title = task.title,
+            description = task.description,
+            status = task.status,
+            dueDate = task.dueDate,
+            weight = task.weight
+        )
+        bottomSheet.show(childFragmentManager, "TaskDetailBottomSheet")
+    }
+
+    private fun animateTaskTap(view: View) {
+        view.animate()
+            .scaleX(0.97f)
+            .scaleY(0.97f)
+            .setDuration(100)
+            .withEndAction {
+                view.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(100)
+                    .start()
+            }
+            .start()
     }
 
     private fun crossFade(fromView: View, toView: View) {

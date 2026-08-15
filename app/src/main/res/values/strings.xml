@@ -78,4 +78,7 @@
     <string name="your_tasks_section">Your Tasks</string>
     <string name="team_progress_section">Team Progress</string>
     <string name="next_action">Next: %1$s</string>
+    <!-- Task Details -->
+    <string name="task_weight_format">%.1f pts</string>
+
 </resources>

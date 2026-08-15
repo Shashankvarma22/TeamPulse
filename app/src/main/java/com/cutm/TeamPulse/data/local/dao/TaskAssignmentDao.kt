@@ -16,6 +16,9 @@ interface TaskAssignmentDao {
     @Query("SELECT * FROM task_assignments WHERE assigneeEmail = :email ORDER BY dueDate ASC")
     fun observeByAssignee(email: String): Flow<List<TaskAssignmentEntity>>
 
+    @Query("SELECT * FROM task_assignments WHERE taskId = :taskId")
+    suspend fun getById(taskId: String): TaskAssignmentEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(task: TaskAssignmentEntity)
 }
