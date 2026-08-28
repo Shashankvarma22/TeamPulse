@@ -149,4 +149,10 @@ class TeacherTaskListViewModel @Inject constructor(
             taskRepository.updateTask(task)
         }
     }
+
+    fun deleteTask(taskId: String) {
+        viewModelScope.launch {
+            taskRepository.deleteTask(taskId)
+        }
+    }
 }

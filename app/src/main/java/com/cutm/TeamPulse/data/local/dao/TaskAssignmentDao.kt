@@ -21,4 +21,7 @@ interface TaskAssignmentDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(task: TaskAssignmentEntity)
+
+    @Query("DELETE FROM task_assignments WHERE taskId = :taskId")
+    suspend fun deleteById(taskId: String)
 }

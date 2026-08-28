@@ -14,6 +14,7 @@ import com.cutm.TeamPulse.R
 import com.cutm.TeamPulse.databinding.BottomSheetEditTaskBinding
 import com.cutm.TeamPulse.domain.model.TaskStatus
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -135,6 +136,10 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
         binding.saveButton.setOnClickListener {
             saveTask()
         }
+
+        binding.deleteButton.setOnClickListener {
+            showDeleteConfirmation()
+        }
     }
 
     private fun setupValidation() {
@@ -172,6 +177,26 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
         )
 
         Toast.makeText(requireContext(), R.string.edit_task_success, Toast.LENGTH_SHORT).show()
+        dismiss()
+    }
+
+    private fun showDeleteConfirmation() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.delete_task_confirm_title)
+            .setMessage(R.string.delete_task_confirm_message)
+            .setNegativeButton(R.string.create_task_button_cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setPositiveButton(R.string.delete_task_confirm_delete) { dialog, _ ->
+                deleteTask()
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun deleteTask() {
+        viewModel.deleteTask(taskId)
+        Toast.makeText(requireContext(), R.string.delete_task_success, Toast.LENGTH_SHORT).show()
         dismiss()
     }
 

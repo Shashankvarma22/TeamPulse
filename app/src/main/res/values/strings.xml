@@ -100,7 +100,12 @@
     <!-- Edit Task -->
     <string name="edit_task_title">Edit Task</string>
     <string name="edit_task_button_save">Save Changes</string>
+    <string name="edit_task_button_delete">Delete Task</string>
     <string name="edit_task_success">Task updated successfully</string>
     <string name="edit_task_error">Failed to update task</string>
+    <string name="delete_task_confirm_title">Delete Task?</string>
+    <string name="delete_task_confirm_message">This task will be permanently removed.</string>
+    <string name="delete_task_confirm_delete">Delete</string>
+    <string name="delete_task_success">Task deleted successfully</string>
 
 </resources>

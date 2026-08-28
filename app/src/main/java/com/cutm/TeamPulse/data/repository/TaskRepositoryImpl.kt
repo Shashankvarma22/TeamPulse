@@ -77,4 +77,8 @@ class TaskRepositoryImpl @Inject constructor(
 
         taskAssignmentDao.upsert(entity)
     }
+
+    override suspend fun deleteTask(taskId: String) {
+        taskAssignmentDao.deleteById(taskId)
+    }
 }
