@@ -117,4 +117,36 @@ class TeacherTaskListViewModel @Inject constructor(
             taskRepository.createTask(task)
         }
     }
+
+    fun updateTask(
+        taskId: String,
+        title: String,
+        description: String,
+        dueDate: Long,
+        status: TaskStatus,
+        teamId: String,
+        projectId: String,
+        assigneeEmail: String,
+        weight: Float,
+        remoteRowIndex: Int?
+    ) {
+        viewModelScope.launch {
+            val task = TaskAssignment(
+                taskId = taskId,
+                teamId = teamId,
+                projectId = projectId,
+                assigneeEmail = assigneeEmail,
+                title = title,
+                description = description,
+                weight = weight,
+                dueDate = dueDate,
+                status = status,
+                localDirty = true,
+                lastModifiedLocal = System.currentTimeMillis(),
+                remoteRowIndex = remoteRowIndex
+            )
+
+            taskRepository.updateTask(task)
+        }
+    }
 }

@@ -68,6 +68,10 @@ class TaskItemView @JvmOverloads constructor(
         binding.dueDateText.text = dueDate
     }
 
+    override fun setOnClickListener(listener: OnClickListener?) {
+        super.setOnClickListener(listener)
+    }
+
     private fun setStatus(status: TaskStatus) {
         binding.statusChip.apply {
             when (status) {

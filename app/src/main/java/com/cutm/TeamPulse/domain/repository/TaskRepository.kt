@@ -13,4 +13,6 @@ interface TaskRepository {
     suspend fun updateTaskStatus(taskId: String, status: TaskStatus)
 
     suspend fun createTask(task: TaskAssignment)
+
+    suspend fun updateTask(task: TaskAssignment)
 }

@@ -58,4 +58,23 @@ class TaskRepositoryImpl @Inject constructor(
 
         taskAssignmentDao.upsert(entity)
     }
+
+    override suspend fun updateTask(task: TaskAssignment) {
+        val entity = TaskAssignmentEntity(
+            taskId = task.taskId,
+            teamId = task.teamId,
+            projectId = task.projectId,
+            assigneeEmail = task.assigneeEmail,
+            title = task.title,
+            description = task.description,
+            weight = task.weight,
+            dueDate = task.dueDate,
+            status = task.status,
+            localDirty = true,
+            lastModifiedLocal = System.currentTimeMillis(),
+            remoteRowIndex = task.remoteRowIndex
+        )
+
+        taskAssignmentDao.upsert(entity)
+    }
 }

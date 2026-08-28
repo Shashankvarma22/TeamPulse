@@ -97,4 +97,10 @@
     <string name="create_task_success">Task created successfully</string>
     <string name="create_task_error">Failed to create task</string>
 
+    <!-- Edit Task -->
+    <string name="edit_task_title">Edit Task</string>
+    <string name="edit_task_button_save">Save Changes</string>
+    <string name="edit_task_success">Task updated successfully</string>
+    <string name="edit_task_error">Failed to update task</string>
+
 </resources>
