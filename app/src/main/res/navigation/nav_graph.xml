@@ -42,7 +42,26 @@
             android:id="@+id/teacherHomeFragment"
             android:name="com.cutm.TeamPulse.ui.teacher.TeacherHomeFragment"
             android:label="@string/teacher_home_title"
-            tools:layout="@layout/fragment_teacher_home" />
+            tools:layout="@layout/fragment_teacher_home">
+
+            <action
+                android:id="@+id/action_teacherHome_to_teacherTaskList"
+                app:destination="@id/teacherTaskListFragment" />
+        </fragment>
+
+        <fragment
+            android:id="@+id/teacherTaskListFragment"
+            android:name="com.cutm.TeamPulse.ui.teacher.TeacherTaskListFragment"
+            android:label="Tasks"
+            tools:layout="@layout/fragment_teacher_task_list">
+
+            <argument
+                android:name="projectId"
+                app:argType="string" />
+            <argument
+                android:name="projectName"
+                app:argType="string" />
+        </fragment>
     </navigation>
 
     <!-- Student Flow -->

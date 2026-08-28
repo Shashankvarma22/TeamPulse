@@ -13,6 +13,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import com.cutm.TeamPulse.R
 import com.cutm.TeamPulse.databinding.FragmentTeacherHomeBinding
 import com.cutm.TeamPulse.ui.common.BaseFragment
@@ -141,6 +142,16 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
                         progress = progress,
                         deadline = deadlineText
                     )
+
+                    // Make card clickable to navigate to task list
+                    setOnClickListener {
+                        val action = TeacherHomeFragmentDirections
+                            .actionTeacherHomeToTeacherTaskList(
+                                projectId = projectData.project.projectId,
+                                projectName = projectData.project.name
+                            )
+                        findNavController().navigate(action)
+                    }
                 }
 
                 val layoutParams = LinearLayout.LayoutParams(

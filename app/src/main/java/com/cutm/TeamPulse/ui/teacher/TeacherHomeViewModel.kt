@@ -9,10 +9,15 @@ import com.cutm.TeamPulse.domain.model.UserSession
 import com.cutm.TeamPulse.domain.repository.AuthRepository
 import com.cutm.TeamPulse.domain.repository.ProjectRepository
 import com.cutm.TeamPulse.domain.repository.TaskRepository
+import com.cutm.TeamPulse.domain.repository.TeamRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -29,11 +34,13 @@ data class UpcomingDeadline(
     val isProject: Boolean
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TeacherHomeViewModel @Inject constructor(
     authRepository: AuthRepository,
     private val projectRepository: ProjectRepository,
     private val taskRepository: TaskRepository,
+    private val teamRepository: TeamRepository,
 ) : ViewModel() {
 
     val userSession: StateFlow<UserSession?> = authRepository.observeSession()
@@ -43,33 +50,66 @@ class TeacherHomeViewModel @Inject constructor(
             initialValue = null
         )
 
-    val projectsWithProgress: StateFlow<List<ProjectWithProgress>> = combine(
-        projectRepository.observeProjects(),
-        userSession
-    ) { projects, session ->
-        if (session == null) return@combine emptyList()
-
-        projects.mapNotNull { project ->
-            // Only show projects belonging to this teacher
-            if (project.teacherEmail != session.email) return@mapNotNull null
-
-            // Note: Task progress calculation deferred - requires aggregating async task data
-            // For now, showing projects with 0 progress until proper data aggregation is implemented
-            val currentTime = System.currentTimeMillis()
-            val daysUntil = ((project.dueDate - currentTime) / (1000 * 60 * 60 * 24)).toInt()
-
-            ProjectWithProgress(
-                project = project,
-                completedTasks = 0,
-                totalTasks = 0,
-                daysUntilDeadline = daysUntil
-            )
+    val projectsWithProgress: StateFlow<List<ProjectWithProgress>> = projectRepository.observeProjects()
+        .combine(userSession) { projects, session ->
+            if (session == null) return@combine emptyList()
+            projects.filter { it.teacherEmail == session.email }
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+        .flatMapLatest { teacherProjects ->
+            if (teacherProjects.isEmpty()) {
+                flowOf(emptyList())
+            } else {
+                // Combine each project with ALL its teams' tasks to calculate real progress
+                combine(
+                    teacherProjects.map { project ->
+                        combine(
+                            flowOf(project),
+                            teamRepository.observeTeams(project.projectId)
+                        ) { proj, teams ->
+                            proj to teams
+                        }.flatMapLatest { (proj, teams) ->
+                            if (teams.isEmpty()) {
+                                flowOf(Triple(proj, 0, 0))
+                            } else if (teams.size == 1) {
+                                // Single team optimization
+                                taskRepository.observeTasksForTeam(teams.first().teamId)
+                                    .map { tasks ->
+                                        val completed = tasks.count { it.status == TaskStatus.DONE }
+                                        Triple(proj, completed, tasks.size)
+                                    }
+                            } else {
+                                // Multiple teams: observe each and merge
+                                combine(
+                                    teams.map { team ->
+                                        taskRepository.observeTasksForTeam(team.teamId)
+                                    }
+                                ) { teamTaskArrays: Array<List<TaskAssignment>> ->
+                                    val allTasks = teamTaskArrays.flatMap { it }
+                                    val completed = allTasks.count { it.status == TaskStatus.DONE }
+                                    Triple(proj, completed, allTasks.size)
+                                }
+                            }
+                        }
+                    }
+                ) { projectDataArray: Array<Triple<Project, Int, Int>> ->
+                    val currentTime = System.currentTimeMillis()
+                    projectDataArray.map { (project, completed, total) ->
+                        val daysUntil = ((project.dueDate - currentTime) / (1000 * 60 * 60 * 24)).toInt()
+                        ProjectWithProgress(
+                            project = project,
+                            completedTasks = completed,
+                            totalTasks = total,
+                            daysUntilDeadline = daysUntil
+                        )
+                    }
+                }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     val upcomingDeadlines: StateFlow<List<UpcomingDeadline>> = projectsWithProgress
         .combine(userSession) { projects, _ ->

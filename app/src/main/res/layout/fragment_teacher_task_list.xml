@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/background">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/screen_padding_horizontal"
+        android:paddingEnd="@dimen/screen_padding_horizontal"
+        android:paddingTop="@dimen/spacing_xl"
+        android:paddingBottom="@dimen/spacing_xl">
+
+        <!-- Project Name -->
+        <TextView
+            android:id="@+id/projectNameText"
+            style="@style/TextAppearance.TeamPulse.TitleLarge"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Mobile App Development" />
+
+        <!-- Team Name -->
+        <TextView
+            android:id="@+id/teamNameText"
+            style="@style/TextAppearance.TeamPulse.BodyMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_xxs"
+            android:textColor="@color/text_secondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/projectNameText"
+            tools:text="Team Alpha" />
+
+        <!-- Tasks Section -->
+        <com.cutm.TeamPulse.ui.common.SectionHeaderView
+            android:id="@+id/tasksSectionHeader"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_lg"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/teamNameText"
+            app:sectionTitle="Tasks" />
+
+        <!-- Tasks Container -->
+        <LinearLayout
+            android:id="@+id/tasksContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tasksSectionHeader"
+            tools:visibility="visible" />
+
+        <!-- Tasks Empty State -->
+        <com.cutm.TeamPulse.ui.common.EmptyStateView
+            android:id="@+id/tasksEmptyState"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:background="@drawable/bg_empty_state"
+            android:padding="@dimen/spacing_lg"
+            app:emptyIcon="@drawable/ic_empty_tasks"
+            app:emptyMessage="No tasks have been created for this project yet."
+            app:emptyTitle="No Tasks"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tasksSectionHeader" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>
