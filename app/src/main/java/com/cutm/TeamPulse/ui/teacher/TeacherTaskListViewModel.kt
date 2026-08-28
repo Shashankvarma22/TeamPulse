@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.cutm.TeamPulse.domain.model.TaskAssignment
 import com.cutm.TeamPulse.domain.model.TaskStatus
 import com.cutm.TeamPulse.domain.model.Team
+import com.cutm.TeamPulse.domain.model.Student
 import com.cutm.TeamPulse.domain.repository.TaskRepository
 import com.cutm.TeamPulse.domain.repository.TeamRepository
+import com.cutm.TeamPulse.domain.repository.StudentRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,6 +34,7 @@ class TeacherTaskListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val taskRepository: TaskRepository,
     private val teamRepository: TeamRepository,
+    private val studentRepository: StudentRepository,
 ) : ViewModel() {
 
     private val projectId: String = savedStateHandle.get<String>("projectId") ?: ""
@@ -155,4 +158,6 @@ class TeacherTaskListViewModel @Inject constructor(
             taskRepository.deleteTask(taskId)
         }
     }
+
+    fun getTeamMembers(teamId: String) = studentRepository.observeStudentsByTeam(teamId)
 }

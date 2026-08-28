@@ -163,6 +163,39 @@
 
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
+        <!-- Assign To Section -->
+        <TextView
+            android:id="@+id/assignToLabel"
+            style="@style/TextAppearance.TeamPulse.LabelMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:text="@string/task_assign_to_label"
+            android:textColor="@color/text_secondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/statusToggleGroup" />
+
+        <!-- Assignee Dropdown -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/assigneeDropdownLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_xs"
+            android:hint="@string/task_assign_to_label"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/assignToLabel">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/assigneeDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- Error Message -->
         <TextView
             android:id="@+id/errorText"
@@ -174,7 +207,7 @@
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/statusToggleGroup"
+            app:layout_constraintTop_toBottomOf="@id/assigneeDropdownLayout"
             tools:text="Task title is required"
             tools:visibility="visible" />
 

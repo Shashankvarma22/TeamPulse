@@ -5,17 +5,24 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.cutm.TeamPulse.R
 import com.cutm.TeamPulse.databinding.BottomSheetEditTaskBinding
+import com.cutm.TeamPulse.domain.model.Student
 import com.cutm.TeamPulse.domain.model.TaskStatus
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -48,6 +55,10 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
 
     private var selectedDueDate: Long = 0L
     private var selectedStatus: TaskStatus = TaskStatus.TODO
+    private var selectedAssigneeEmail: String = ""
+    private var teamMembers: List<Student> = emptyList()
+    private var isAssigneeStale: Boolean = false
+    private var teamMembersLoaded: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,12 +74,15 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
 
         selectedDueDate = taskDueDate
         selectedStatus = taskStatus
+        selectedAssigneeEmail = assigneeEmail
 
         populateFields()
         setupDueDatePicker()
         setupStatusButtons()
+        setupAssigneeDropdown()
         setupButtons()
         setupValidation()
+        loadTeamMembers()
     }
 
     private fun populateFields() {
@@ -128,6 +142,77 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
         binding.statusDoneButton.isChecked = status == TaskStatus.DONE
     }
 
+    private fun setupAssigneeDropdown() {
+        binding.assigneeDropdown.setOnItemClickListener { _, _, position, _ ->
+            selectedAssigneeEmail = if (position == 0) {
+                "" // Unassigned
+            } else {
+                teamMembers[position - 1].studentEmail
+            }
+            // Explicit user action resolved stale state
+            isAssigneeStale = false
+            clearError()
+        }
+    }
+
+    private fun loadTeamMembers() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.getTeamMembers(teamId).collectLatest { students ->
+                    teamMembers = students
+                    teamMembersLoaded = true
+                    updateAssigneeDropdown()
+                }
+            }
+        }
+    }
+
+    private fun updateAssigneeDropdown() {
+        val items = mutableListOf(getString(R.string.task_assign_unassigned))
+
+        if (!teamMembersLoaded) {
+            // Team members not loaded yet - show loading state
+            binding.assigneeDropdownLayout.isEnabled = false
+            binding.assigneeDropdown.setText("Loading team members...")
+            isAssigneeStale = false
+        } else if (teamMembers.isEmpty()) {
+            // Team loaded but has zero members - treat as stale if assigned
+            binding.assigneeDropdownLayout.isEnabled = true
+            if (selectedAssigneeEmail.isEmpty()) {
+                isAssigneeStale = false
+                binding.assigneeDropdown.setText(getString(R.string.task_assign_unassigned))
+            } else {
+                // Task is assigned but team has no members - stale
+                isAssigneeStale = true
+                binding.assigneeDropdown.setText("$selectedAssigneeEmail — team has no members")
+            }
+        } else {
+            // Team members loaded and present
+            binding.assigneeDropdownLayout.isEnabled = true
+            items.addAll(teamMembers.map { it.displayName })
+
+            // Set current selection - DO NOT mutate selectedAssigneeEmail
+            val currentSelection = if (selectedAssigneeEmail.isEmpty()) {
+                isAssigneeStale = false
+                getString(R.string.task_assign_unassigned)
+            } else {
+                val matchingStudent = teamMembers.find { it.studentEmail == selectedAssigneeEmail }
+                if (matchingStudent != null) {
+                    isAssigneeStale = false
+                    matchingStudent.displayName
+                } else {
+                    // Assignee no longer in team - mark as stale but preserve email
+                    isAssigneeStale = true
+                    "$selectedAssigneeEmail — no longer on team"
+                }
+            }
+            binding.assigneeDropdown.setText(currentSelection, false)
+        }
+
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, items)
+        binding.assigneeDropdown.setAdapter(adapter)
+    }
+
     private fun setupButtons() {
         binding.cancelButton.setOnClickListener {
             dismiss()
@@ -159,6 +244,18 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
             return
         }
 
+        // Validate team members have loaded before allowing save
+        if (!teamMembersLoaded) {
+            showError("Please wait for team members to load before saving.")
+            return
+        }
+
+        // Validate assignee is not stale
+        if (isAssigneeStale) {
+            showError("This task is assigned to someone no longer on the team. Please select 'Unassigned' or assign to a current team member.")
+            return
+        }
+
         // Clear validation errors
         binding.taskTitleInputLayout.error = null
 
@@ -171,7 +268,7 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
             status = selectedStatus,
             teamId = teamId,
             projectId = projectId,
-            assigneeEmail = assigneeEmail,
+            assigneeEmail = selectedAssigneeEmail,
             weight = taskWeight,
             remoteRowIndex = remoteRowIndex
         )

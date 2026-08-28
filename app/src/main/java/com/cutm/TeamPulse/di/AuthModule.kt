@@ -10,12 +10,14 @@ import com.cutm.TeamPulse.core.sheets.SheetsProbeReader
 import com.cutm.TeamPulse.core.sheets.SheetsProbeReaderImpl
 import com.cutm.TeamPulse.data.repository.AuthRepositoryImpl
 import com.cutm.TeamPulse.data.repository.ProjectRepositoryImpl
+import com.cutm.TeamPulse.data.repository.StudentRepositoryImpl
 import com.cutm.TeamPulse.data.repository.SyncRepositoryImpl
 import com.cutm.TeamPulse.data.repository.TaskRepositoryImpl
 import com.cutm.TeamPulse.data.repository.TeamRepositoryImpl
 import com.cutm.TeamPulse.data.repository.UserRegistryRepositoryImpl
 import com.cutm.TeamPulse.domain.repository.AuthRepository
 import com.cutm.TeamPulse.domain.repository.ProjectRepository
+import com.cutm.TeamPulse.domain.repository.StudentRepository
 import com.cutm.TeamPulse.domain.repository.SyncRepository
 import com.cutm.TeamPulse.domain.repository.TaskRepository
 import com.cutm.TeamPulse.domain.repository.TeamRepository
@@ -69,4 +71,8 @@ abstract class AuthModule {
     @Binds
     @Singleton
     abstract fun bindSyncRepository(impl: SyncRepositoryImpl): SyncRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindStudentRepository(impl: StudentRepositoryImpl): StudentRepository
 }

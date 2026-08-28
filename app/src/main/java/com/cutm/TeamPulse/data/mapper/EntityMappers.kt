@@ -1,10 +1,12 @@
 package com.cutm.TeamPulse.data.mapper
 
 import com.cutm.TeamPulse.data.local.entity.ProjectEntity
+import com.cutm.TeamPulse.data.local.entity.StudentEntity
 import com.cutm.TeamPulse.data.local.entity.TaskAssignmentEntity
 import com.cutm.TeamPulse.data.local.entity.TeamEntity
 import com.cutm.TeamPulse.data.local.entity.UserSessionEntity
 import com.cutm.TeamPulse.domain.model.Project
+import com.cutm.TeamPulse.domain.model.Student
 import com.cutm.TeamPulse.domain.model.TaskAssignment
 import com.cutm.TeamPulse.domain.model.Team
 import com.cutm.TeamPulse.domain.model.UserSession
@@ -63,4 +65,13 @@ fun TaskAssignmentEntity.toDomain(): TaskAssignment = TaskAssignment(
     localDirty = localDirty,
     lastModifiedLocal = lastModifiedLocal,
     remoteRowIndex = remoteRowIndex,
+)
+
+fun StudentEntity.toDomain(): Student = Student(
+    studentEmail = studentEmail,
+    displayName = displayName,
+    teamId = teamId,
+    projectId = projectId,
+    joinedAt = joinedAt,
+    localDirty = localDirty,
 )

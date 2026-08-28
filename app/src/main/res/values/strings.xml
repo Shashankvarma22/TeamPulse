@@ -108,4 +108,9 @@
     <string name="delete_task_confirm_delete">Delete</string>
     <string name="delete_task_success">Task deleted successfully</string>
 
+    <!-- Task Assignment -->
+    <string name="task_assign_to_label">Assign To</string>
+    <string name="task_assign_unassigned">Unassigned (whole team)</string>
+    <string name="task_assign_no_members">No team members available</string>
+
 </resources>
