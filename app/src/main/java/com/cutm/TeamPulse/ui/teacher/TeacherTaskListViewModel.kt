@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cutm.TeamPulse.domain.model.TaskAssignment
+import com.cutm.TeamPulse.domain.model.TaskStatus
+import com.cutm.TeamPulse.domain.model.Team
 import com.cutm.TeamPulse.domain.repository.TaskRepository
 import com.cutm.TeamPulse.domain.repository.TeamRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +17,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 data class TeacherTaskData(
@@ -32,7 +36,14 @@ class TeacherTaskListViewModel @Inject constructor(
 
     private val projectId: String = savedStateHandle.get<String>("projectId") ?: ""
 
-    val teamName: StateFlow<String?> = teamRepository.observeTeams(projectId)
+    val availableTeams: StateFlow<List<Team>> = teamRepository.observeTeams(projectId)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val teamName: StateFlow<String?> = availableTeams
         .map { teams -> 
             when (teams.size) {
                 0 -> null
@@ -78,4 +89,32 @@ class TeacherTaskListViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    fun createTask(
+        title: String,
+        description: String,
+        teamId: String,
+        dueDate: Long
+    ) {
+        viewModelScope.launch {
+            val team = availableTeams.value.find { it.teamId == teamId } ?: return@launch
+
+            val task = TaskAssignment(
+                taskId = UUID.randomUUID().toString(),
+                teamId = teamId,
+                projectId = projectId,
+                assigneeEmail = "",
+                title = title,
+                description = description,
+                weight = 1.0f,
+                dueDate = dueDate,
+                status = TaskStatus.TODO,
+                localDirty = true,
+                lastModifiedLocal = System.currentTimeMillis(),
+                remoteRowIndex = null
+            )
+
+            taskRepository.createTask(task)
+        }
+    }
 }

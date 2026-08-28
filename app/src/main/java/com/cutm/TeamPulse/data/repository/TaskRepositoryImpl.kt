@@ -1,6 +1,7 @@
 package com.cutm.TeamPulse.data.repository
 
 import com.cutm.TeamPulse.data.local.dao.TaskAssignmentDao
+import com.cutm.TeamPulse.data.local.entity.TaskAssignmentEntity
 import com.cutm.TeamPulse.data.mapper.toDomain
 import com.cutm.TeamPulse.domain.model.TaskAssignment
 import com.cutm.TeamPulse.domain.model.TaskStatus
@@ -37,5 +38,24 @@ class TaskRepositoryImpl @Inject constructor(
         )
 
         taskAssignmentDao.upsert(updated)
+    }
+
+    override suspend fun createTask(task: TaskAssignment) {
+        val entity = TaskAssignmentEntity(
+            taskId = task.taskId,
+            teamId = task.teamId,
+            projectId = task.projectId,
+            assigneeEmail = task.assigneeEmail,
+            title = task.title,
+            description = task.description,
+            weight = task.weight,
+            dueDate = task.dueDate,
+            status = task.status,
+            localDirty = true,
+            lastModifiedLocal = System.currentTimeMillis(),
+            remoteRowIndex = null
+        )
+
+        taskAssignmentDao.upsert(entity)
     }
 }

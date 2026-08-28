@@ -81,4 +81,20 @@
     <!-- Task Details -->
     <string name="task_weight_format">%.1f pts</string>
 
+    <!-- Create Task -->
+    <string name="action_create_task">Create Task</string>
+    <string name="create_task_title">Create New Task</string>
+    <string name="create_task_hint_title">Task title</string>
+    <string name="create_task_hint_description">Task description (optional)</string>
+    <string name="create_task_label_team">Team</string>
+    <string name="create_task_label_due_date">Due Date</string>
+    <string name="create_task_button_save">Create Task</string>
+    <string name="create_task_button_cancel">Cancel</string>
+    <string name="create_task_error_no_title">Task title is required</string>
+    <string name="create_task_error_no_due_date">Due date is required</string>
+    <string name="create_task_error_no_teams">No teams available. Create a team first.</string>
+    <string name="create_task_error_select_team">Please select a team</string>
+    <string name="create_task_success">Task created successfully</string>
+    <string name="create_task_error">Failed to create task</string>
+
 </resources>

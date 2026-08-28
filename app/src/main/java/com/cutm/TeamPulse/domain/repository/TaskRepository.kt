@@ -11,4 +11,6 @@ interface TaskRepository {
     fun observeTasksForStudent(email: String): Flow<List<TaskAssignment>>
 
     suspend fun updateTaskStatus(taskId: String, status: TaskStatus)
+
+    suspend fun createTask(task: TaskAssignment)
 }

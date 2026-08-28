@@ -29,6 +29,10 @@ class TeacherTaskListFragment : BaseFragment<FragmentTeacherTaskListBinding>(
 
         binding.projectNameText.text = args.projectName
 
+        binding.createTaskFab.setOnClickListener {
+            showCreateTaskBottomSheet()
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
@@ -45,6 +49,11 @@ class TeacherTaskListFragment : BaseFragment<FragmentTeacherTaskListBinding>(
                 }
             }
         }
+    }
+
+    private fun showCreateTaskBottomSheet() {
+        val bottomSheet = CreateTaskBottomSheet.newInstance()
+        bottomSheet.show(childFragmentManager, "CreateTaskBottomSheet")
     }
 
     private fun renderTasks(tasks: List<TeacherTaskData>) {
