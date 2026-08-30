@@ -14,25 +14,78 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.cutm.TeamPulse.BuildConfig
 import com.cutm.TeamPulse.R
+import com.cutm.TeamPulse.data.local.dao.ProjectDao
+import com.cutm.TeamPulse.data.local.dao.StudentDao
+import com.cutm.TeamPulse.data.local.dao.TeamDao
+import com.cutm.TeamPulse.data.local.entity.ProjectEntity
+import com.cutm.TeamPulse.data.local.entity.StudentEntity
+import com.cutm.TeamPulse.data.local.entity.TeamEntity
 import com.cutm.TeamPulse.databinding.FragmentTeacherHomeBinding
+import com.cutm.TeamPulse.domain.model.ProjectStatus
 import com.cutm.TeamPulse.ui.common.BaseFragment
 import com.cutm.TeamPulse.ui.common.ProjectProgressCard
 import com.google.android.material.card.MaterialCardView
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTeacherHomeBinding::inflate) {
 
     private val viewModel: TeacherHomeViewModel by viewModels()
+    
+    // DEBUG ONLY: Direct DAO injection for seeding with correct teacher email
+    @Inject
+    lateinit var projectDao: ProjectDao
+    @Inject
+    lateinit var teamDao: TeamDao
+    @Inject
+    lateinit var studentDao: StudentDao
     private var hasAnimatedEntrance = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // DEBUG ONLY: Seed test data if missing, or refresh due date if exists
+        if (BuildConfig.DEBUG) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    // Wait for user session to load
+                    val session = viewModel.userSession.first { it != null }
+                    if (session != null) {
+                        val existingProject = projectDao.getById("debug-project-1")
+                        if (existingProject == null) {
+                            // First-time creation
+                            seedTestData(session.email)
+                            android.util.Log.d("TeacherHome", "Debug seed data created for ${session.email}")
+                        } else {
+                            // Refresh due date in place (no delete/insert race)
+                            val newDueDate = System.currentTimeMillis() + (30L * 24 * 60 * 60 * 1000)
+                            projectDao.updateDueDate(
+                                projectId = existingProject.projectId,
+                                dueDate = newDueDate,
+                                lastModified = System.currentTimeMillis()
+                            )
+                            android.util.Log.d("TeacherHome", "Debug project due date refreshed")
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("TeacherHome", "Seed failed", e)
+                }
+            }
+        }
+
         // Light entrance animation for information-dense teacher view
         animateEntrance()
+
+        // Setup FAB for creating new project
+        binding.createProjectFab.setOnClickListener {
+            CreateProjectBottomSheet.newInstance()
+                .show(childFragmentManager, "CreateProjectBottomSheet")
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -78,11 +131,12 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
 
         if (animationScale == 0f) {
             // Immediately show all content
+            // Exclude data-dependent views (projectsContainer/projectsEmptyState)
             binding.greetingText.alpha = 1f
             binding.attentionEmptyState.alpha = 1f
             binding.projectsSectionHeader.alpha = 1f
-            binding.projectsContainer.alpha = 1f
-            binding.projectsEmptyState.alpha = 1f
+            // projectsContainer - EXCLUDED (data-dependent)
+            // projectsEmptyState - EXCLUDED (data-dependent)
             binding.deadlinesSectionHeader.alpha = 1f
             binding.deadlinesContainer.alpha = 1f
             binding.deadlinesEmptyState.alpha = 1f
@@ -91,12 +145,14 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
 
         // Very subtle fade-in for dense content
         // No translation - just alpha for minimal distraction
+        // Exclude data-dependent mutually-exclusive views (projectsContainer/projectsEmptyState)
+        // whose visibility is managed exclusively by renderProjects()/crossFade()
         val views = listOf(
             binding.greetingText,
             binding.attentionEmptyState,
             binding.projectsSectionHeader,
-            binding.projectsContainer,
-            binding.projectsEmptyState,
+            // projectsContainer - EXCLUDED (data-dependent)
+            // projectsEmptyState - EXCLUDED (data-dependent)
             binding.deadlinesSectionHeader,
             binding.deadlinesContainer,
             binding.deadlinesEmptyState
@@ -143,12 +199,11 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
                         deadline = deadlineText
                     )
 
-                    // Make card clickable to navigate to task list
+                    // Make card clickable to navigate to project detail
                     setOnClickListener {
                         val action = TeacherHomeFragmentDirections
-                            .actionTeacherHomeToTeacherTaskList(
-                                projectId = projectData.project.projectId,
-                                projectName = projectData.project.name
+                            .actionTeacherHomeToProjectDetail(
+                                projectId = projectData.project.projectId
                             )
                         findNavController().navigate(action)
                     }
@@ -234,8 +289,7 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
             return
         }
 
-        // Don't animate if already in correct state
-        if (fromView.isVisible && toView.isVisible) return
+        // Guard 2: Both-GONE is a genuine no-op (nothing to show)
         if (!fromView.isVisible && !toView.isVisible) return
 
         val duration = 200L
@@ -267,5 +321,72 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
             override fun onAnimationCancel(animation: android.animation.Animator) {}
             override fun onAnimationRepeat(animation: android.animation.Animator) {}
         })
+    }
+
+    /**
+     * DEBUG ONLY: Seeds test data with the correct logged-in teacher's email.
+     * Creates: 1 project, 1 team (Alice, Bob), 2 students.
+     */
+    private suspend fun seedTestData(teacherEmail: String) {
+        check(BuildConfig.DEBUG) { "Seed function must not run in release builds" }
+
+        val projectId = "debug-project-1"
+        val teamId = "debug-team-1"
+        val currentTime = System.currentTimeMillis()
+
+        // Insert project with ACTUAL teacher email
+        projectDao.upsert(
+            ProjectEntity(
+                projectId = projectId,
+                name = "Debug Test Project",
+                teacherEmail = teacherEmail,  // Use logged-in teacher
+                spreadsheetId = "debug-spreadsheet-placeholder-id",
+                driveFolderId = "debug-folder-placeholder-id",
+                startDate = currentTime,
+                dueDate = currentTime + (30L * 24 * 60 * 60 * 1000), // 30 days from now
+                status = ProjectStatus.ACTIVE,
+                githubRepo = null,
+                localDirty = false,
+                lastModifiedLocal = currentTime,
+                lastSyncedAt = null
+            )
+        )
+
+        // Insert team with Alice and Bob
+        teamDao.upsert(
+            TeamEntity(
+                teamId = teamId,
+                projectId = projectId,
+                teamName = "Team Alpha",
+                memberEmails = listOf("alice@example.com", "bob@example.com"),
+                createdAt = currentTime,
+                localDirty = false,
+                lastModifiedLocal = currentTime
+            )
+        )
+
+        // Insert Alice
+        studentDao.upsert(
+            StudentEntity(
+                studentEmail = "alice@example.com",
+                displayName = "Alice Johnson",
+                teamId = teamId,
+                projectId = projectId,
+                joinedAt = currentTime,
+                localDirty = false
+            )
+        )
+
+        // Insert Bob
+        studentDao.upsert(
+            StudentEntity(
+                studentEmail = "bob@example.com",
+                displayName = "Bob Smith",
+                teamId = teamId,
+                projectId = projectId,
+                joinedAt = currentTime,
+                localDirty = false
+            )
+        )
     }
 }

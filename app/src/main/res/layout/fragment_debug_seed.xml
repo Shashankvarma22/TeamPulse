@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/spacing_lg"
+    tools:context=".debug.DebugSeedFragment">
+
+    <!-- Warning Header -->
+    <TextView
+        android:id="@+id/warningText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#FFCCCC"
+        android:padding="@dimen/spacing_md"
+        android:text="⚠️ DEBUG ONLY - REMOVE BEFORE PRODUCTION"
+        android:textAlignment="center"
+        android:textColor="#CC0000"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/titleText"
+        style="@style/TextAppearance.TeamPulse.TitleLarge"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_lg"
+        android:text="Task Assignment Test Utility"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/warningText" />
+
+    <!-- Instructions -->
+    <TextView
+        android:id="@+id/instructionsText"
+        style="@style/TextAppearance.TeamPulse.BodyMedium"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_md"
+        android:text="Use these controls to test stale assignee scenarios:\n\n1. Seed test data\n2. Create task in main app\n3. Modify team membership here\n4. Test stale assignee behavior"
+        android:textColor="@color/text_secondary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/titleText" />
+
+    <!-- Seed Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonSeedData"
+        style="@style/Widget.Material3.Button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_lg"
+        android:text="Seed Test Data"
+        app:icon="@android:drawable/ic_input_add"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/instructionsText" />
+
+    <!-- Remove Alice Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonRemoveAlice"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_sm"
+        android:text="Remove Alice from Team (Case 2)"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonSeedData" />
+
+    <!-- Clear Members Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonClearAllMembers"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_sm"
+        android:text="Clear All Team Members (Case 6)"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonRemoveAlice" />
+
+    <!-- Status Section -->
+    <TextView
+        android:id="@+id/statusLabel"
+        style="@style/TextAppearance.TeamPulse.LabelLarge"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_lg"
+        android:text="Status:"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonClearAllMembers" />
+
+    <!-- Status Display -->
+    <TextView
+        android:id="@+id/statusText"
+        style="@style/TextAppearance.TeamPulse.BodyMedium"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/spacing_sm"
+        android:background="?attr/colorSurfaceVariant"
+        android:padding="@dimen/spacing_md"
+        android:textColor="@color/text_primary"
+        android:textIsSelectable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/statusLabel"
+        tools:text="Ready. Tap 'Seed Test Data' to begin." />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

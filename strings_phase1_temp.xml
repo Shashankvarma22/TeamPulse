@@ -1,0 +1,15 @@
+    <!-- Create Project -->
+    <string name="action_create_project">Create Project</string>
+    <string name="create_project_title">Create New Project</string>
+    <string name="create_project_name_hint">Project Name</string>
+    <string name="create_project_due_date_label">Due Date</string>
+    <string name="create_project_select_date">Select Due Date</string>
+    <string name="create_project_button_create">Create</string>
+    <string name="create_project_success">Project created</string>
+    <string name="create_project_error_no_name">Project name is required</string>
+    <string name="create_project_error_name_too_long">Project name too long (max 100 characters)</string>
+    <string name="create_project_error_no_due_date">Due date is required</string>
+    <string name="create_project_error_date_too_far">Due date cannot be more than 1 year from today</string>
+    <string name="create_project_error_session_expired">Session expired. Please sign in again.</string>
+
+</resources>

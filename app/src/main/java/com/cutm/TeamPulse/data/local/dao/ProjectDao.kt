@@ -16,6 +16,15 @@ interface ProjectDao {
     @Query("SELECT * FROM projects WHERE projectId = :projectId")
     fun observeById(projectId: String): Flow<ProjectEntity?>
 
+    @Query("SELECT * FROM projects WHERE projectId = :projectId")
+    suspend fun getById(projectId: String): ProjectEntity?
+
+    @Query("DELETE FROM projects WHERE projectId = :projectId")
+    suspend fun deleteById(projectId: String)
+
+    @Query("UPDATE projects SET dueDate = :dueDate, lastModifiedLocal = :lastModified WHERE projectId = :projectId")
+    suspend fun updateDueDate(projectId: String, dueDate: Long, lastModified: Long)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(project: ProjectEntity)
 }

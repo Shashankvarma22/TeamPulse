@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+<ScrollView
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
@@ -92,6 +96,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/projectsSectionHeader" />
 
+        <!-- Barrier: Ensures deadlines section positions after whichever projects view is visible -->
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/projectsSectionBarrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="projectsContainer,projectsEmptyState" />
+
         <!-- ZONE 3: Upcoming Deadlines (Tertiary) -->
         <com.cutm.TeamPulse.ui.common.SectionHeaderView
             android:id="@+id/deadlinesSectionHeader"
@@ -100,7 +112,7 @@
             android:layout_marginTop="@dimen/section_spacing_compact"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/projectsEmptyState"
+            app:layout_constraintTop_toBottomOf="@id/projectsSectionBarrier"
             app:sectionTitle="@string/upcoming_deadlines_section" />
 
         <!-- Deadlines List Container -->
@@ -138,3 +150,14 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>
+
+<com.google.android.material.floatingactionbutton.FloatingActionButton
+    android:id="@+id/createProjectFab"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom|end"
+    android:layout_margin="@dimen/spacing_lg"
+    android:contentDescription="@string/action_create_project"
+    app:srcCompat="@android:drawable/ic_input_add" />
+
+</FrameLayout>

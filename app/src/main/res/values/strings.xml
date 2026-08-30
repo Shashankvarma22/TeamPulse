@@ -113,4 +113,52 @@
     <string name="task_assign_unassigned">Unassigned (whole team)</string>
     <string name="task_assign_no_members">No team members available</string>
 
+    <!-- Create Project -->
+    <string name="action_create_project">Create Project</string>
+    <string name="create_project_title">Create New Project</string>
+    <string name="create_project_name_hint">Project Name</string>
+    <string name="create_project_due_date_label">Due Date</string>
+    <string name="create_project_select_date">Select Due Date</string>
+    <string name="create_project_button_create">Create</string>
+    <string name="create_project_success">Project created</string>
+    <string name="create_project_error_no_name">Project name is required</string>
+    <string name="create_project_error_name_too_long">Project name too long (max 100 characters)</string>
+    <string name="create_project_error_no_due_date">Due date is required</string>
+    <string name="create_project_error_date_too_far">Due date cannot be more than 1 year from today</string>
+    <string name="create_project_error_session_expired">Session expired. Please sign in again.</string>
+
+    <!-- Project Detail Screen -->
+    <string name="project_detail_title">Project Details</string>
+    <string name="project_detail_due_date">Due: %1$s</string>
+    <string name="project_detail_status">Status: %1$s</string>
+    <string name="project_detail_created">Created: %1$s</string>
+    <string name="project_detail_github">GitHub: %1$s</string>
+    <string name="project_detail_teams_header">Teams (%1$d)</string>
+    <string name="project_detail_create_team">Create Team</string>
+    <string name="project_detail_empty_teams">No teams yet</string>
+    <string name="project_detail_empty_teams_hint">Tap "+ Create Team" to start organizing your project</string>
+    <string name="project_detail_team_members">%1$d members</string>
+    <string name="project_detail_team_no_members">No members</string>
+    <string name="project_detail_team_more_members">+%1$d more</string>
+
+    <!-- Create Team Bottom Sheet -->
+    <string name="create_team_title">Create Team</string>
+    <string name="create_team_name_label">Team Name</string>
+    <string name="create_team_name_hint">Enter team name</string>
+    <string name="create_team_button">Create Team</string>
+    <string name="create_team_cancel">Cancel</string>
+
+    <!-- Validation Errors -->
+    <string name="create_team_error_no_name">Team name is required</string>
+    <string name="create_team_error_name_too_long">Team name cannot exceed 100 characters</string>
+    <string name="create_team_error_session_expired">Session expired. Please sign in again.</string>
+
+    <!-- Success Messages -->
+    <string name="create_team_success">Team created successfully</string>
+
+    <!-- Project Detail Actions -->
+    <string name="project_detail_manage_tasks">Manage Tasks</string>
+
 </resources>
+
+

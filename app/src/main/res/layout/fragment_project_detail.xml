@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:title="@string/project_detail_title"
+            app:titleTextAppearance="@style/TextAppearance.TeamPulse.TitleLarge" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/screen_padding_horizontal">
+
+            <!-- Project Info Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/projectInfoCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_md"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:contentPadding="@dimen/spacing_base">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/projectNameText"
+                        style="@style/TextAppearance.TeamPulse.TitleMedium"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        tools:text="Mobile App Development" />
+
+                    <TextView
+                        android:id="@+id/projectDueDateText"
+                        style="@style/TextAppearance.TeamPulse.BodyMedium"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:textColor="@color/on_surface_variant"
+                        tools:text="Due: Mar 15, 2027" />
+
+                    <TextView
+                        android:id="@+id/projectStatusText"
+                        style="@style/TextAppearance.TeamPulse.BodyMedium"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:textColor="@color/on_surface_variant"
+                        tools:text="Status: Active" />
+
+                    <TextView
+                        android:id="@+id/projectCreatedText"
+                        style="@style/TextAppearance.TeamPulse.BodyMedium"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:textColor="@color/on_surface_variant"
+                        tools:text="Created: Jan 10, 2027" />
+
+                    <TextView
+                        android:id="@+id/projectGithubText"
+                        style="@style/TextAppearance.TeamPulse.BodyMedium"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:textColor="@color/on_surface_variant"
+                        tools:text="GitHub: [placeholder]" />
+
+                    <!-- Manage Tasks Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/manageTasksButton"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:text="@string/project_detail_manage_tasks"
+                        app:icon="@drawable/ic_task"
+                        app:iconGravity="textStart" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Teams Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/section_spacing"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/teamsSectionHeader"
+                    style="@style/TextAppearance.TeamPulse.TitleMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    tools:text="Teams (3)" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/createTeamButton"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/project_detail_create_team"
+                    app:icon="@drawable/ic_add"
+                    app:iconGravity="textStart" />
+
+            </LinearLayout>
+
+            <!-- Teams List Container -->
+            <LinearLayout
+                android:id="@+id/teamsListContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <!-- Team cards will be added programmatically -->
+
+            </LinearLayout>
+
+            <!-- Empty State for Teams -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/teamsEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:visibility="gone"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:contentPadding="@dimen/spacing_xl">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <TextView
+                        style="@style/TextAppearance.TeamPulse.TitleMedium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/project_detail_empty_teams"
+                        android:textColor="@color/on_surface_variant" />
+
+                    <TextView
+                        style="@style/TextAppearance.TeamPulse.BodyMedium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:text="@string/project_detail_empty_teams_hint"
+                        android:textColor="@color/on_surface_variant"
+                        android:gravity="center" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

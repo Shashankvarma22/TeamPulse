@@ -47,6 +47,33 @@
             <action
                 android:id="@+id/action_teacherHome_to_teacherTaskList"
                 app:destination="@id/teacherTaskListFragment" />
+
+            <action
+                android:id="@+id/action_teacherHome_to_projectDetail"
+                app:destination="@id/projectDetailFragment"
+                app:enterAnim="@android:anim/slide_in_left"
+                app:exitAnim="@android:anim/fade_out"
+                app:popEnterAnim="@android:anim/fade_in"
+                app:popExitAnim="@android:anim/slide_out_right" />
+        </fragment>
+
+        <fragment
+            android:id="@+id/projectDetailFragment"
+            android:name="com.cutm.TeamPulse.ui.teacher.ProjectDetailFragment"
+            android:label="@string/project_detail_title"
+            tools:layout="@layout/fragment_project_detail">
+
+            <argument
+                android:name="projectId"
+                app:argType="string" />
+
+            <action
+                android:id="@+id/action_projectDetail_to_teacherTaskList"
+                app:destination="@id/teacherTaskListFragment"
+                app:enterAnim="@android:anim/slide_in_left"
+                app:exitAnim="@android:anim/fade_out"
+                app:popEnterAnim="@android:anim/fade_in"
+                app:popExitAnim="@android:anim/slide_out_right" />
         </fragment>
 
         <fragment
@@ -82,5 +109,15 @@
         android:name="com.cutm.TeamPulse.ui.rolepending.RolePendingFragment"
         android:label="@string/role_pending_title"
         tools:layout="@layout/fragment_role_pending" />
+
+    <!-- DEBUG ONLY: Task Assignment Test Utility
+         NOT WIRED INTO PRODUCTION NAVIGATION
+         Access manually via fragment transaction for testing
+         MUST BE REMOVED before production release -->
+    <fragment
+        android:id="@+id/debugSeedFragment"
+        android:name="com.cutm.TeamPulse.debug.DebugSeedFragment"
+        android:label="[DEBUG] Seed Utility"
+        tools:layout="@layout/fragment_debug_seed" />
 
 </navigation>
