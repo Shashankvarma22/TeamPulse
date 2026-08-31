@@ -2,9 +2,12 @@ package com.cutm.TeamPulse.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.cutm.TeamPulse.data.local.TeamPulseDatabase
 import com.cutm.TeamPulse.data.local.dao.ProjectDao
 import com.cutm.TeamPulse.data.local.dao.StudentDao
+import com.cutm.TeamPulse.data.local.dao.StudentProgressDao
 import com.cutm.TeamPulse.data.local.dao.SyncMetadataDao
 import com.cutm.TeamPulse.data.local.dao.SyncQueueDao
 import com.cutm.TeamPulse.data.local.dao.TaskAssignmentDao
@@ -27,6 +30,29 @@ object DatabaseModule {
         System.loadLibrary("sqlcipher")
     }
 
+    /**
+     * Migration from version 1 to version 2: Add student_progress table for gamification
+     */
+    private val MIGRATION_1_2 = object : Migration(1, 2) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS student_progress (
+                    studentEmail TEXT NOT NULL PRIMARY KEY,
+                    totalXp INTEGER NOT NULL DEFAULT 0,
+                    tasksCompleted INTEGER NOT NULL DEFAULT 0,
+                    hasTaskMasterBadge INTEGER NOT NULL DEFAULT 0,
+                    lastModifiedLocal INTEGER NOT NULL,
+                    localDirty INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY(studentEmail) REFERENCES students(studentEmail) ON DELETE CASCADE
+                )
+            """)
+            db.execSQL("""
+                CREATE INDEX IF NOT EXISTS index_student_progress_studentEmail 
+                ON student_progress(studentEmail)
+            """)
+        }
+    }
+
     @Provides
     @Singleton
     fun provideDatabase(
@@ -40,7 +66,8 @@ object DatabaseModule {
             DATABASE_NAME,
         )
             .openHelperFactory(factory)
-            .fallbackToDestructiveMigration(dropAllTables = true)
+            .addMigrations(MIGRATION_1_2)
+            .fallbackToDestructiveMigration(dropAllTables = true)  // Only if migration fails
             .build()
     }
 
@@ -59,6 +86,10 @@ object DatabaseModule {
     @Provides
     fun provideStudentDao(database: TeamPulseDatabase): StudentDao =
         database.studentDao()
+
+    @Provides
+    fun provideStudentProgressDao(database: TeamPulseDatabase): StudentProgressDao =
+        database.studentProgressDao()
 
     @Provides
     fun provideTaskAssignmentDao(database: TeamPulseDatabase): TaskAssignmentDao =

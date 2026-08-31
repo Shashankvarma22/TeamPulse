@@ -6,6 +6,7 @@ import androidx.room.TypeConverters
 import com.cutm.TeamPulse.data.local.converter.Converters
 import com.cutm.TeamPulse.data.local.dao.ProjectDao
 import com.cutm.TeamPulse.data.local.dao.StudentDao
+import com.cutm.TeamPulse.data.local.dao.StudentProgressDao
 import com.cutm.TeamPulse.data.local.dao.SyncMetadataDao
 import com.cutm.TeamPulse.data.local.dao.SyncQueueDao
 import com.cutm.TeamPulse.data.local.dao.TaskAssignmentDao
@@ -13,6 +14,7 @@ import com.cutm.TeamPulse.data.local.dao.TeamDao
 import com.cutm.TeamPulse.data.local.dao.UserSessionDao
 import com.cutm.TeamPulse.data.local.entity.ProjectEntity
 import com.cutm.TeamPulse.data.local.entity.StudentEntity
+import com.cutm.TeamPulse.data.local.entity.StudentProgressEntity
 import com.cutm.TeamPulse.data.local.entity.SyncMetadataEntity
 import com.cutm.TeamPulse.data.local.entity.SyncQueueEntity
 import com.cutm.TeamPulse.data.local.entity.TaskAssignmentEntity
@@ -25,11 +27,12 @@ import com.cutm.TeamPulse.data.local.entity.UserSessionEntity
         ProjectEntity::class,
         TeamEntity::class,
         StudentEntity::class,
+        StudentProgressEntity::class,
         TaskAssignmentEntity::class,
         SyncQueueEntity::class,
         SyncMetadataEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -39,6 +42,7 @@ abstract class TeamPulseDatabase : RoomDatabase() {
     abstract fun projectDao(): ProjectDao
     abstract fun teamDao(): TeamDao
     abstract fun studentDao(): StudentDao
+    abstract fun studentProgressDao(): StudentProgressDao
     abstract fun taskAssignmentDao(): TaskAssignmentDao
     abstract fun syncQueueDao(): SyncQueueDao
     abstract fun syncMetadataDao(): SyncMetadataDao
