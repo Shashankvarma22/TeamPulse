@@ -59,4 +59,47 @@ interface ProjectRepository {
      * Get the count of tasks in a project (for deletion confirmation)
      */
     suspend fun getTaskCount(projectId: String): Int
+
+    /**
+     * Add a member to a team.
+     * Creates StudentEntity and updates TeamEntity.memberEmails atomically.
+     *
+     * @param teamId Team to add member to
+     * @param projectId Project the team belongs to
+     * @param studentEmail Student's email address
+     * @param displayName Student's display name
+     * @return ApiResult.Success on success, ApiResult.Error if duplicate or team not found
+     */
+    suspend fun addMemberToTeam(
+        teamId: String,
+        projectId: String,
+        studentEmail: String,
+        displayName: String
+    ): ApiResult<Unit>
+
+    /**
+     * Remove a member from a team.
+     * Deletes StudentEntity and updates TeamEntity.memberEmails atomically.
+     * Tasks assigned to the member become stale assignees.
+     *
+     * @param teamId Team to remove member from
+     * @param studentEmail Student's email address
+     * @return ApiResult.Success on success, ApiResult.Error if team not found
+     */
+    suspend fun removeMemberFromTeam(
+        teamId: String,
+        studentEmail: String
+    ): ApiResult<Unit>
+
+    /**
+     * Check if an email is already a member of a team.
+     *
+     * @param teamId Team to check
+     * @param email Email to check
+     * @return true if email is in team.memberEmails, false otherwise
+     */
+    suspend fun isEmailInTeam(
+        teamId: String,
+        email: String
+    ): Boolean
 }

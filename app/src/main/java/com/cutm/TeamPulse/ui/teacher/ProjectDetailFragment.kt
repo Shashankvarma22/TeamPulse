@@ -60,6 +60,20 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
                         renderTeams(teams)
                     }
                 }
+
+                // Observe member operation results
+                launch {
+                    viewModel.removeMemberSuccess.collect { message ->
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                launch {
+                    viewModel.memberOperationError.collect { errorMessage ->
+                        // Show error as Toast (could be improved to use Snackbar)
+                        Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
+                    }
+                }
             }
         }
     }
@@ -156,15 +170,15 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
             // Clear existing team cards
             binding.teamsListContainer.removeAllViews()
 
-            // Add team cards
+            // Add team cards (with expand state tracking)
             teams.forEach { team ->
-                val teamCard = createTeamCard(team)
+                val teamCard = createExpandableTeamCard(team)
                 binding.teamsListContainer.addView(teamCard)
             }
         }
     }
 
-    private fun createTeamCard(team: Team): View {
+    private fun createExpandableTeamCard(team: Team): View {
         val cardView = MaterialCardView(requireContext()).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -186,7 +200,7 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
             )
         }
 
-        // Header: Team name + member count + delete icon
+        // Header: Team name + member count + chevron + delete icon
         val headerLayout = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
@@ -195,13 +209,21 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
             )
         }
 
-        val teamNameText = TextView(requireContext()).apply {
-            text = team.teamName
-            setTextAppearance(R.style.TextAppearance_TeamPulse_BodyLarge)
+        val teamInfoLayout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 1f
+            )
+        }
+
+        val teamNameText = TextView(requireContext()).apply {
+            text = team.teamName
+            setTextAppearance(R.style.TextAppearance_TeamPulse_BodyLarge)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
             )
         }
 
@@ -214,16 +236,23 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
             setTextAppearance(R.style.TextAppearance_TeamPulse_BodyMedium)
             setTextColor(resources.getColor(R.color.on_surface_variant, null))
             layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(
-                    0, 
-                    0, 
-                    resources.getDimensionPixelSize(R.dimen.spacing_sm), 
-                    0
-                )
-            }
+            )
+        }
+
+        teamInfoLayout.addView(teamNameText)
+        teamInfoLayout.addView(memberCountText)
+
+        // Chevron icon (for expand/collapse)
+        val chevronIcon = com.google.android.material.button.MaterialButton(
+            requireContext(),
+            null,
+            com.google.android.material.R.attr.materialIconButtonStyle
+        ).apply {
+            icon = resources.getDrawable(R.drawable.ic_expand_more_24, null)
+            val size = (48 * resources.displayMetrics.density).toInt()
+            layoutParams = LinearLayout.LayoutParams(size, size)
         }
 
         // Delete icon button
@@ -241,49 +270,179 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
             }
         }
 
-        headerLayout.addView(teamNameText)
-        headerLayout.addView(memberCountText)
+        headerLayout.addView(teamInfoLayout)
+        headerLayout.addView(chevronIcon)
         headerLayout.addView(deleteIcon)
-        cardContent.addView(headerLayout)
 
-        // Member list (hidden if empty)
-        if (team.memberEmails.isNotEmpty()) {
-            val membersToShow = team.memberEmails.take(3)
-            val remainingCount = team.memberEmails.size - 3
-
-            membersToShow.forEach { email ->
-                val memberText = TextView(requireContext()).apply {
-                    text = "• $email"
-                    setTextAppearance(R.style.TextAppearance_TeamPulse_BodyMedium)
-                    setTextColor(resources.getColor(R.color.on_surface_variant, null))
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        topMargin = resources.getDimensionPixelSize(R.dimen.spacing_xs)
-                    }
-                }
-                cardContent.addView(memberText)
+        // Member list container (initially collapsed)
+        val memberListContainer = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = resources.getDimensionPixelSize(R.dimen.spacing_md)
             }
+            visibility = View.GONE
+        }
 
-            if (remainingCount > 0) {
-                val moreText = TextView(requireContext()).apply {
-                    text = getString(R.string.project_detail_team_more_members, remainingCount)
-                    setTextAppearance(R.style.TextAppearance_TeamPulse_BodyMedium)
-                    setTextColor(resources.getColor(R.color.on_surface_variant, null))
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        topMargin = resources.getDimensionPixelSize(R.dimen.spacing_xs)
-                    }
-                }
-                cardContent.addView(moreText)
+        cardContent.addView(headerLayout)
+        cardContent.addView(memberListContainer)
+
+        // Toggle expand/collapse
+        val toggleExpansion = {
+            if (memberListContainer.visibility == View.VISIBLE) {
+                // Collapse
+                memberListContainer.visibility = View.GONE
+                chevronIcon.icon = resources.getDrawable(R.drawable.ic_expand_more_24, null)
+            } else {
+                // Expand
+                memberListContainer.visibility = View.VISIBLE
+                chevronIcon.icon = resources.getDrawable(R.drawable.ic_expand_less_24, null)
+                renderMemberList(team, memberListContainer)
             }
         }
 
+        headerLayout.setOnClickListener { toggleExpansion() }
+        chevronIcon.setOnClickListener { toggleExpansion() }
+
         cardView.addView(cardContent)
         return cardView
+    }
+
+    private fun renderMemberList(team: Team, container: LinearLayout) {
+        container.removeAllViews()
+
+        // Observe students for this team
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.getTeamMembers(team.teamId).collect { students ->
+                    container.removeAllViews()
+
+                    if (students.isEmpty()) {
+                        // Show empty state
+                        val emptyText = TextView(requireContext()).apply {
+                            text = getString(R.string.member_list_empty)
+                            setTextAppearance(R.style.TextAppearance_TeamPulse_BodyMedium)
+                            setTextColor(resources.getColor(R.color.on_surface_variant, null))
+                            layoutParams = LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                            ).apply {
+                                val spacing = resources.getDimensionPixelSize(R.dimen.spacing_md)
+                                setMargins(0, spacing, 0, spacing)
+                            }
+                        }
+                        container.addView(emptyText)
+                    } else {
+                        // Render member rows (sorted alphabetically)
+                        students.sortedBy { it.displayName }.forEach { student ->
+                            val memberRow = createMemberRow(student, team)
+                            container.addView(memberRow)
+                        }
+                    }
+
+                    // Add Member button
+                    val addButton = com.google.android.material.button.MaterialButton(
+                        requireContext()
+                    ).apply {
+                        text = getString(R.string.add_member_button)
+                        icon = resources.getDrawable(R.drawable.ic_add_24, null)
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            topMargin = resources.getDimensionPixelSize(R.dimen.spacing_sm)
+                        }
+                        setOnClickListener {
+                            AddMemberBottomSheet.newInstance(team.teamId, team.teamName)
+                                .show(childFragmentManager, "AddMemberBottomSheet")
+                        }
+                    }
+                    container.addView(addButton)
+                }
+            }
+        }
+    }
+
+    private fun createMemberRow(student: com.cutm.TeamPulse.domain.model.Student, team: Team): View {
+        val rowLayout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                val verticalSpacing = resources.getDimensionPixelSize(R.dimen.spacing_xs)
+                setMargins(0, verticalSpacing, 0, verticalSpacing)
+            }
+        }
+
+        val memberInfoLayout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        }
+
+        val nameText = TextView(requireContext()).apply {
+            text = student.displayName
+            setTextAppearance(R.style.TextAppearance_TeamPulse_BodyMedium)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        val emailText = TextView(requireContext()).apply {
+            text = student.studentEmail
+            setTextAppearance(R.style.TextAppearance_TeamPulse_BodyMedium)
+            setTextColor(resources.getColor(R.color.on_surface_variant, null))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        memberInfoLayout.addView(nameText)
+        memberInfoLayout.addView(emailText)
+
+        // Remove icon
+        val removeIcon = com.google.android.material.button.MaterialButton(
+            requireContext(),
+            null,
+            com.google.android.material.R.attr.materialIconButtonStyle
+        ).apply {
+            icon = resources.getDrawable(R.drawable.ic_delete_24, null)
+            iconTint = resources.getColorStateList(R.color.error, null)
+            val size = (48 * resources.displayMetrics.density).toInt()
+            layoutParams = LinearLayout.LayoutParams(size, size)
+            setOnClickListener {
+                showRemoveMemberConfirmation(team, student)
+            }
+        }
+
+        rowLayout.addView(memberInfoLayout)
+        rowLayout.addView(removeIcon)
+
+        return rowLayout
+    }
+
+    private fun showRemoveMemberConfirmation(team: Team, student: com.cutm.TeamPulse.domain.model.Student) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.remove_member_confirm_title)
+            .setMessage(getString(R.string.remove_member_confirm_message, student.displayName))
+            .setNegativeButton(R.string.create_task_button_cancel, null)
+            .setPositiveButton(R.string.remove_member_button) { _, _ ->
+                removeMember(team, student)
+            }
+            .show()
+    }
+
+    private fun removeMember(team: Team, student: com.cutm.TeamPulse.domain.model.Student) {
+        // Remove member (result will be delivered via Flow - observed in setupObservers)
+        viewModel.removeMemberFromTeam(team.teamId, student.studentEmail)
     }
 
     private fun formatProjectStatus(status: ProjectStatus): String {
