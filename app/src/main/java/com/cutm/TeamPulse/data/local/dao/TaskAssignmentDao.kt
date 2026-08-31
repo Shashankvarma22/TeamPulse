@@ -13,6 +13,9 @@ interface TaskAssignmentDao {
     @Query("SELECT * FROM task_assignments WHERE teamId = :teamId ORDER BY dueDate ASC")
     fun observeByTeam(teamId: String): Flow<List<TaskAssignmentEntity>>
 
+    @Query("SELECT * FROM task_assignments WHERE projectId = :projectId ORDER BY dueDate ASC")
+    fun observeByProject(projectId: String): Flow<List<TaskAssignmentEntity>>
+
     @Query("SELECT * FROM task_assignments WHERE assigneeEmail = :email ORDER BY dueDate ASC")
     fun observeByAssignee(email: String): Flow<List<TaskAssignmentEntity>>
 

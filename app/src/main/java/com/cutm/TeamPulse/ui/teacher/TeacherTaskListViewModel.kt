@@ -11,12 +11,8 @@ import com.cutm.TeamPulse.domain.repository.TaskRepository
 import com.cutm.TeamPulse.domain.repository.TeamRepository
 import com.cutm.TeamPulse.domain.repository.StudentRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -28,7 +24,6 @@ data class TeacherTaskData(
     val daysUntilDue: Int
 )
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TeacherTaskListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -60,24 +55,7 @@ class TeacherTaskListViewModel @Inject constructor(
             initialValue = null
         )
 
-    val tasks: StateFlow<List<TeacherTaskData>> = teamRepository.observeTeams(projectId)
-        .flatMapLatest { teams ->
-            if (teams.isEmpty()) {
-                flowOf(emptyList())
-            } else if (teams.size == 1) {
-                // Single team optimization
-                taskRepository.observeTasksForTeam(teams.first().teamId)
-            } else {
-                // Multiple teams: observe each and merge
-                combine(
-                    teams.map { team ->
-                        taskRepository.observeTasksForTeam(team.teamId)
-                    }
-                ) { teamTaskArrays: Array<List<TaskAssignment>> ->
-                    teamTaskArrays.flatMap { it }
-                }
-            }
-        }
+    val tasks: StateFlow<List<TeacherTaskData>> = taskRepository.observeTasksForProject(projectId)
         .map { tasks ->
             val currentTime = System.currentTimeMillis()
             tasks.map { task ->
@@ -97,16 +75,24 @@ class TeacherTaskListViewModel @Inject constructor(
         title: String,
         description: String,
         teamId: String,
-        dueDate: Long
+        dueDate: Long,
+        assigneeEmail: String = ""
     ) {
         viewModelScope.launch {
             val team = availableTeams.value.find { it.teamId == teamId } ?: return@launch
+
+            // Validate assignee is in team if not empty
+            if (assigneeEmail.isNotEmpty() && assigneeEmail !in team.memberEmails) {
+                // Validation failed - should not happen with proper UI
+                android.util.Log.e("TeacherTaskListViewModel", "Assignee $assigneeEmail not in team ${team.teamId}")
+                return@launch
+            }
 
             val task = TaskAssignment(
                 taskId = UUID.randomUUID().toString(),
                 teamId = teamId,
                 projectId = projectId,
-                assigneeEmail = "",
+                assigneeEmail = assigneeEmail,
                 title = title,
                 description = description,
                 weight = 1.0f,

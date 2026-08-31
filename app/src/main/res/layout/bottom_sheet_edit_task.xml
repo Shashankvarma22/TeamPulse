@@ -79,6 +79,39 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Team Selection Label -->
+        <TextView
+            android:id="@+id/teamLabel"
+            style="@style/TextAppearance.TeamPulse.LabelMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:text="@string/edit_task_label_team"
+            android:textColor="@color/text_secondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/taskDescriptionInputLayout" />
+
+        <!-- Team Dropdown -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/teamDropdownLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_xs"
+            android:hint="@string/task_select_team"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/teamLabel">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/teamDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- Due Date Label -->
         <TextView
             android:id="@+id/dueDateLabel"
@@ -90,7 +123,7 @@
             android:textColor="@color/text_secondary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/taskDescriptionInputLayout" />
+            app:layout_constraintTop_toBottomOf="@id/teamDropdownLayout" />
 
         <!-- Due Date Button -->
         <com.google.android.material.button.MaterialButton

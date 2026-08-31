@@ -8,6 +8,8 @@ interface TaskRepository {
 
     fun observeTasksForTeam(teamId: String): Flow<List<TaskAssignment>>
 
+    fun observeTasksForProject(projectId: String): Flow<List<TaskAssignment>>
+
     fun observeTasksForStudent(email: String): Flow<List<TaskAssignment>>
 
     suspend fun updateTaskStatus(taskId: String, status: TaskStatus)

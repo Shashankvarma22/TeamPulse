@@ -28,6 +28,12 @@ class TaskRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun observeTasksForProject(projectId: String): Flow<List<TaskAssignment>> {
+        return taskAssignmentDao.observeByProject(projectId).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
     override suspend fun updateTaskStatus(taskId: String, status: TaskStatus) {
         val entity = taskAssignmentDao.getById(taskId) ?: return
 

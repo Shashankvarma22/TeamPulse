@@ -15,9 +15,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.cutm.TeamPulse.R
 import com.cutm.TeamPulse.databinding.BottomSheetCreateTaskBinding
+import com.cutm.TeamPulse.domain.model.Student
 import com.cutm.TeamPulse.domain.model.Team
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -35,6 +37,9 @@ class CreateTaskBottomSheet : BottomSheetDialogFragment() {
     private var availableTeams: List<Team> = emptyList()
     private var selectedTeamId: String? = null
     private var selectedDueDate: Long? = null
+    private var teamMembers: List<Student> = emptyList()
+    private var selectedAssigneeEmail: String = ""
+    private var memberObserverJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,6 +54,7 @@ class CreateTaskBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupTeamSelection()
+        setupAssigneeDropdown()
         setupDueDatePicker()
         setupButtons()
         setupValidation()
@@ -69,21 +75,16 @@ class CreateTaskBottomSheet : BottomSheetDialogFragment() {
         when (teams.size) {
             0 -> {
                 // No teams available
-                binding.teamSpinner.isEnabled = false
+                binding.teamSpinnerLayout.isEnabled = false
                 binding.teamSpinner.setText(getString(R.string.create_task_error_no_teams))
                 binding.saveButton.isEnabled = false
                 showError(getString(R.string.create_task_error_no_teams))
             }
-            1 -> {
-                // Single team: auto-select
-                val team = teams.first()
-                selectedTeamId = team.teamId
-                binding.teamSpinner.setText(team.teamName)
-                binding.teamSpinner.isEnabled = false
-            }
             else -> {
-                // Multiple teams: user must select
-                binding.teamSpinner.isEnabled = true
+                // One or more teams: user must select
+                binding.teamSpinnerLayout.isEnabled = true
+                binding.saveButton.isEnabled = true
+                
                 val teamNames = teams.map { it.teamName }
                 val adapter = ArrayAdapter(
                     requireContext(),
@@ -93,11 +94,71 @@ class CreateTaskBottomSheet : BottomSheetDialogFragment() {
                 binding.teamSpinner.setAdapter(adapter)
                 
                 binding.teamSpinner.setOnItemClickListener { _, _, position, _ ->
-                    selectedTeamId = teams[position].teamId
+                    val newTeamId = teams[position].teamId
+                    onTeamSelected(newTeamId)
                     clearError()
                 }
             }
         }
+    }
+
+    private fun onTeamSelected(teamId: String) {
+        selectedTeamId = teamId
+        selectedAssigneeEmail = "" // Clear assignee when team changes
+        loadTeamMembers(teamId)
+    }
+
+    private fun loadTeamMembers(teamId: String) {
+        // Cancel previous member observer
+        memberObserverJob?.cancel()
+        
+        memberObserverJob = viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.getTeamMembers(teamId).collect { students ->
+                    teamMembers = students
+                    updateAssigneeDropdown()
+                }
+            }
+        }
+    }
+
+    private fun setupAssigneeDropdown() {
+        binding.assigneeDropdown.setOnItemClickListener { _, _, position, _ ->
+            selectedAssigneeEmail = if (position == 0) {
+                "" // Unassigned
+            } else {
+                teamMembers[position - 1].studentEmail
+            }
+            clearError()
+        }
+    }
+
+    private fun updateAssigneeDropdown() {
+        if (selectedTeamId == null) {
+            // No team selected yet
+            binding.assigneeDropdownLayout.isEnabled = false
+            binding.assigneeDropdownLayout.hint = getString(R.string.task_assign_select_team_first)
+            binding.assigneeDropdown.setText("")
+            return
+        }
+
+        // Team selected - populate with members
+        binding.assigneeDropdownLayout.isEnabled = true
+        binding.assigneeDropdownLayout.hint = getString(R.string.task_assign_to_label)
+        
+        val items = mutableListOf(getString(R.string.task_assign_unassigned))
+        items.addAll(teamMembers.map { it.displayName })
+        
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            items
+        )
+        binding.assigneeDropdown.setAdapter(adapter)
+        
+        // Default to "Unassigned"
+        binding.assigneeDropdown.setText(getString(R.string.task_assign_unassigned), false)
+        selectedAssigneeEmail = ""
     }
 
     private fun setupDueDatePicker() {
@@ -173,7 +234,8 @@ class CreateTaskBottomSheet : BottomSheetDialogFragment() {
             title = title,
             description = description,
             teamId = teamId,
-            dueDate = dueDate
+            dueDate = dueDate,
+            assigneeEmail = selectedAssigneeEmail
         )
 
         Toast.makeText(requireContext(), R.string.create_task_success, Toast.LENGTH_SHORT).show()
@@ -192,6 +254,7 @@ class CreateTaskBottomSheet : BottomSheetDialogFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        memberObserverJob?.cancel()
         _binding = null
     }
 
