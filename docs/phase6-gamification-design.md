@@ -41,7 +41,21 @@ Add basic gamification layer to incentivize task completion: XP awarded on task 
 
 ## 2. Data Model
 
-### 2.1 New Entity: StudentProgress
+### 2.1 Authorization and Status Change Rules
+
+**Task Status Transitions:**
+- **Teachers** (via EditTaskBottomSheet): Can set any status (TODO, IN_PROGRESS, COMPLETED)
+- **Students** (via TaskDetailBottomSheet): Can only set TODO or IN_PROGRESS
+  - Attempting to set COMPLETED is silently rejected (StudentHomeViewModel check)
+  - DONE button disabled in student UI (alpha=0.5f, isEnabled=false)
+  - Prevents self-XP-farming exploit
+
+**XP Award Trigger:**
+- Automatic on first transition to COMPLETED status
+- Guarded by `hasEverBeenCompleted` flag (one-time only, never re-awards)
+- No client-side control (repository-level logic, inside transaction)
+
+### 2.2 New Entity: StudentProgress
 
 **Purpose:** Track XP, badges, and task completion stats per student.
 
@@ -99,6 +113,22 @@ data class StudentProgress(
     val hasTaskMasterBadge: Boolean
 )
 ```
+
+### 2.25 Modified Entity: TaskAssignment
+
+**New field added (v2 → v3 schema migration):**
+```kotlin
+val hasEverBeenCompleted: Boolean = false  // One-time XP guard
+```
+
+**Purpose:** Prevent XP re-award on repeated COMPLETED→IN_PROGRESS→COMPLETED cycles
+
+**Behavior:**
+- Set to `true` on first transition to COMPLETED status
+- Never reset (permanent flag)
+- Checked before awarding XP: `justCompleted && !hasEverBeenCompleted`
+
+**Migration:** `MIGRATION_2_3` adds `hasEverBeenCompleted INTEGER NOT NULL DEFAULT 0` to task_assignments table
 
 ### 2.3 XP Calculation Rules
 
@@ -259,19 +289,21 @@ override suspend fun updateTask(
         val wasCompleted = task.status == TaskStatus.COMPLETED
         val isNowCompleted = status == TaskStatus.COMPLETED
         val justCompleted = !wasCompleted && isNowCompleted
+        val isFirstTimeCompletion = !task.hasEverBeenCompleted
         
         // Update task
         val updatedTask = task.copy(
             // ... existing updates ...
             status = status,
+            hasEverBeenCompleted = task.hasEverBeenCompleted || justCompleted,
             // ... existing updates ...
         )
         
         database.withTransaction {
             taskDao.upsert(updatedTask)
             
-            // Award XP if task just completed
-            if (justCompleted && updatedTask.assigneeEmail.isNotEmpty()) {
+            // Award XP only on first-time completion
+            if (justCompleted && isFirstTimeCompletion && updatedTask.assigneeEmail.isNotEmpty()) {
                 awardXpForTaskCompletion(
                     studentEmail = updatedTask.assigneeEmail,
                     taskWeight = updatedTask.weight
@@ -659,15 +691,15 @@ suspend fun getTeamLeaderboard(teamId: String): List<StudentProgress> {
 2. 🥈 Carol White (80 XP, 10 tasks)
 3. 🥉 Bob Smith (80 XP, 8 tasks) — fewer tasks completed, ranks last
 
-### TC12: Repeated Complete-Revert-Complete Cycle Re-Awards XP
-**Setup:** Alice has totalXp=30, tasksCompleted=1. Task T1 (weight=2, status=COMPLETED, assignee=Alice)  
+### TC12: Repeated Complete-Revert-Complete Cycle Does NOT Re-Award XP
+**Setup:** Alice has totalXp=30, tasksCompleted=1. Task T1 (weight=2, status=COMPLETED, hasEverBeenCompleted=true, assignee=Alice)  
 **Action:**
 1. Change T1 status: COMPLETED → IN_PROGRESS (no XP deduction per §2.3)
-2. Change T1 status: IN_PROGRESS → COMPLETED (triggers XP award)
+2. Change T1 status: IN_PROGRESS → COMPLETED (XP award blocked by hasEverBeenCompleted flag)
 **Expected:**
 - After step 1: Alice still has totalXp=30, tasksCompleted=1 (no change)
-- After step 2: Alice has totalXp=50, tasksCompleted=2 (20 XP re-awarded, counter incremented)
-**Rationale:** `justCompleted` flag only checks current transition, not historical completion. This is **accepted for v1** — prevents need for task completion history table. Mitigated by: (1) teacher is trusted actor (no incentive to game), (2) task status changes are intentional teacher actions (not accidental), (3) adding completion history is future enhancement if abuse observed.
+- After step 2: Alice still has totalXp=30, tasksCompleted=1 (NO XP re-awarded, hasEverBeenCompleted prevents it)
+**Rationale:** `hasEverBeenCompleted` flag set on first completion prevents all subsequent re-awards. This closes both student self-farming (blocked separately by student status restriction) and teacher-initiated re-toggle XP farming.
 
 ### TC13: XP Award to Removed Team Member
 **Scenario A: Student moved to different team**  
@@ -757,20 +789,21 @@ suspend fun getTeamLeaderboard(teamId: String): List<StudentProgress> {
 ### Q7: Should repeated COMPLETED→IN_PROGRESS→COMPLETED cycles re-award XP?
 **Scenario:** Teacher completes task (XP awarded), reverts to IN_PROGRESS (no deduction per Q1), completes again.
 
-**Options:**
-- **A)** Allow re-award (current design) — `justCompleted` flag only checks transition, not history
-- **B)** Block re-award — add `hasEverBeenCompleted` flag to TaskAssignment, only award XP on first completion
+**Decision:** Option B (block re-award) - IMPLEMENTED
 
-**Decision:** Option A (allow re-award) for v1
+**Implementation:**
+- Added `hasEverBeenCompleted: Boolean` field to TaskAssignmentEntity
+- Set to `true` on first transition to COMPLETED status
+- XP award logic checks: `justCompleted && !hasEverBeenCompleted`
+- Once set, field never resets (permanent one-time guard)
 
 **Rationale:**
-- Prevents need for task completion history tracking (simpler schema)
-- Teacher is trusted actor (no incentive to game student XP)
-- Repeated toggle is intentional teacher action (not accidental bug)
-- Rare in practice (teachers don't typically revert completed tasks)
-- Mitigation: If abuse observed post-launch, add Option B in future milestone
+- Prevents XP farming from both teacher-initiated and student-initiated toggles
+- Eliminates need to track "trusted actor" vs "student actor" at XP-award time
+- Simpler than completion history table (single boolean vs timestamped log)
+- Covers edge case: teacher accidentally reverts completed task, re-completing doesn't double-award
 
-**Acknowledged exploit:** Yes, a teacher could repeatedly toggle a task to inflate student XP. This is accepted for v1 as low-risk given trusted teacher actor and low incentive (teachers don't benefit from student XP inflation). Future: add `completionHistory` table or `firstCompletedAt` timestamp to prevent re-award.
+**Migration:** MIGRATION_2_3 adds `hasEverBeenCompleted INTEGER NOT NULL DEFAULT 0` to task_assignments table
 
 ---
 
