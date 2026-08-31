@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -79,6 +80,9 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
     }
 
     private fun setupToolbar() {
+        // Set this toolbar as the Activity's ActionBar so MenuProvider can attach to it
+        (requireActivity() as AppCompatActivity).setSupportActionBar(binding.toolbar)
+        
         binding.toolbar.setNavigationOnClickListener {
             findNavController().navigateUp()
         }
