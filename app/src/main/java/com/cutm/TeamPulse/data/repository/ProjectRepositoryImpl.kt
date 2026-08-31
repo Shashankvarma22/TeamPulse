@@ -33,6 +33,7 @@ class ProjectRepositoryImpl @Inject constructor(
     private val taskDao: TaskAssignmentDao,
     private val syncQueueDao: SyncQueueDao,
     private val sessionDao: UserSessionDao,
+    private val studentDao: com.cutm.TeamPulse.data.local.dao.StudentDao,
     private val database: TeamPulseDatabase,
     private val dispatchers: DispatcherProvider,
 ) : ProjectRepository {
@@ -206,5 +207,92 @@ class ProjectRepositoryImpl @Inject constructor(
             0
         }
     }
-}
 
+    override suspend fun addMemberToTeam(
+        teamId: String,
+        projectId: String,
+        studentEmail: String,
+        displayName: String
+    ): ApiResult<Unit> = withContext(dispatchers.io) {
+        try {
+            val team = teamDao.getById(teamId)
+                ?: return@withContext ApiResult.Error("Team not found")
+
+            // Check duplicate in target team
+            if (studentEmail in team.memberEmails) {
+                return@withContext ApiResult.Error("Student already in this team")
+            }
+
+            // Check if email exists in ANY team in this project
+            val existingStudent = studentDao.getByEmailSync(studentEmail)
+            if (existingStudent != null && existingStudent.projectId == projectId) {
+                return@withContext ApiResult.Error("Student already in another team")
+            }
+
+            val now = System.currentTimeMillis()
+
+            // Create student entity
+            val student = com.cutm.TeamPulse.data.local.entity.StudentEntity(
+                studentEmail = studentEmail,
+                displayName = displayName,
+                teamId = teamId,
+                projectId = projectId,
+                joinedAt = now,
+                localDirty = true
+            )
+
+            // Update team entity
+            val updatedTeam = team.copy(
+                memberEmails = team.memberEmails + studentEmail,
+                localDirty = true,
+                lastModifiedLocal = now
+            )
+
+            // ATOMIC TRANSACTION: Both operations must succeed or both fail
+            database.withTransaction {
+                studentDao.upsert(student)
+                teamDao.upsert(updatedTeam)
+            }
+
+            ApiResult.Success(Unit)
+        } catch (e: Exception) {
+            Log.e("ProjectRepository", "Failed to add member", e)
+            ApiResult.Error("Failed to add member")
+        }
+    }
+
+    override suspend fun removeMemberFromTeam(
+        teamId: String,
+        studentEmail: String
+    ): ApiResult<Unit> = withContext(dispatchers.io) {
+        try {
+            val team = teamDao.getById(teamId)
+                ?: return@withContext ApiResult.Error("Team not found")
+
+            val now = System.currentTimeMillis()
+
+            // Update team entity (remove email from list)
+            val updatedTeam = team.copy(
+                memberEmails = team.memberEmails - studentEmail,
+                localDirty = true,
+                lastModifiedLocal = now
+            )
+
+            // ATOMIC TRANSACTION: Both operations must succeed or both fail
+            database.withTransaction {
+                studentDao.deleteByEmail(studentEmail)
+                teamDao.upsert(updatedTeam)
+            }
+
+            ApiResult.Success(Unit)
+        } catch (e: Exception) {
+            Log.e("ProjectRepository", "Failed to remove member", e)
+            ApiResult.Error("Failed to remove member")
+        }
+    }
+
+    override suspend fun isEmailInTeam(teamId: String, email: String): Boolean = withContext(dispatchers.io) {
+        val team = teamDao.getById(teamId) ?: return@withContext false
+        return@withContext email in team.memberEmails
+    }
+}

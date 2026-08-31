@@ -16,6 +16,15 @@ interface StudentDao {
     @Query("SELECT * FROM students WHERE teamId = :teamId")
     fun observeByTeam(teamId: String): Flow<List<StudentEntity>>
 
+    @Query("SELECT * FROM students WHERE teamId = :teamId")
+    suspend fun getByTeamSync(teamId: String): List<StudentEntity>
+
+    @Query("SELECT * FROM students WHERE studentEmail = :email")
+    suspend fun getByEmailSync(email: String): StudentEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(student: StudentEntity)
+
+    @Query("DELETE FROM students WHERE studentEmail = :email")
+    suspend fun deleteByEmail(email: String)
 }

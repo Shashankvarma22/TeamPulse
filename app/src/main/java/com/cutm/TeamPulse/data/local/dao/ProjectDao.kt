@@ -13,6 +13,9 @@ interface ProjectDao {
     @Query("SELECT * FROM projects ORDER BY lastModifiedLocal DESC")
     fun observeAll(): Flow<List<ProjectEntity>>
 
+    @Query("SELECT * FROM projects ORDER BY lastModifiedLocal DESC")
+    suspend fun getAllSync(): List<ProjectEntity>
+
     @Query("SELECT * FROM projects WHERE projectId = :projectId")
     fun observeById(projectId: String): Flow<ProjectEntity?>
 

@@ -18,9 +18,11 @@ import com.cutm.TeamPulse.R
 import com.cutm.TeamPulse.databinding.BottomSheetEditTaskBinding
 import com.cutm.TeamPulse.domain.model.Student
 import com.cutm.TeamPulse.domain.model.TaskStatus
+import com.cutm.TeamPulse.domain.model.Team
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -44,7 +46,7 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
     }
     private val taskDueDate: Long by lazy { arguments?.getLong(ARG_DUE_DATE) ?: 0L }
     private val taskWeight: Float by lazy { arguments?.getFloat(ARG_WEIGHT) ?: 1.0f }
-    private val teamId: String by lazy { arguments?.getString(ARG_TEAM_ID) ?: "" }
+    private val originalTeamId: String by lazy { arguments?.getString(ARG_TEAM_ID) ?: "" }
     private val projectId: String by lazy { arguments?.getString(ARG_PROJECT_ID) ?: "" }
     private val assigneeEmail: String by lazy { arguments?.getString(ARG_ASSIGNEE_EMAIL) ?: "" }
     private val remoteRowIndex: Int? by lazy {
@@ -55,10 +57,13 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
 
     private var selectedDueDate: Long = 0L
     private var selectedStatus: TaskStatus = TaskStatus.TODO
+    private var selectedTeamId: String = ""
     private var selectedAssigneeEmail: String = ""
+    private var availableTeams: List<Team> = emptyList()
     private var teamMembers: List<Student> = emptyList()
     private var isAssigneeStale: Boolean = false
     private var teamMembersLoaded: Boolean = false
+    private var memberObserverJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -74,15 +79,16 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
 
         selectedDueDate = taskDueDate
         selectedStatus = taskStatus
+        selectedTeamId = originalTeamId
         selectedAssigneeEmail = assigneeEmail
 
         populateFields()
+        setupTeamDropdown()
         setupDueDatePicker()
         setupStatusButtons()
         setupAssigneeDropdown()
         setupButtons()
         setupValidation()
-        loadTeamMembers()
     }
 
     private fun populateFields() {
@@ -93,6 +99,105 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
         binding.dueDateButton.text = dateFormat.format(Date(taskDueDate))
 
         updateStatusButtons(taskStatus)
+    }
+
+    private fun setupTeamDropdown() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.availableTeams.collect { teams ->
+                    availableTeams = teams
+                    handleTeamSelection(teams)
+                }
+            }
+        }
+    }
+
+    private fun handleTeamSelection(teams: List<Team>) {
+        if (teams.isEmpty()) {
+            binding.teamDropdownLayout.isEnabled = false
+            binding.teamDropdown.setText(getString(R.string.task_team_not_found))
+            return
+        }
+
+        val teamNames = teams.map { it.teamName }
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            teamNames
+        )
+        binding.teamDropdown.setAdapter(adapter)
+        binding.teamDropdownLayout.isEnabled = true
+
+        // Default to current team if exists
+        val currentTeam = teams.find { it.teamId == selectedTeamId }
+        if (currentTeam != null) {
+            binding.teamDropdown.setText(currentTeam.teamName, false)
+            // Load members for current team
+            loadTeamMembers(selectedTeamId)
+        } else {
+            // Current team deleted - no selection
+            binding.teamDropdown.setText("", false)
+            selectedTeamId = ""
+            updateAssigneeDropdown()  // Show "No members" when no team selected
+        }
+
+        binding.teamDropdown.setOnItemClickListener { _, _, position, _ ->
+            val newTeamId = teams[position].teamId
+            onTeamChangeRequested(newTeamId)
+        }
+    }
+
+    private fun onTeamChangeRequested(newTeamId: String) {
+        if (newTeamId == selectedTeamId) {
+            return // No change
+        }
+
+        // If current assignee is not empty, show confirmation
+        if (selectedAssigneeEmail.isNotEmpty()) {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.change_team_warning_title)
+                .setMessage(R.string.change_team_warning_message)
+                .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+                    // Revert team selection in UI
+                    val currentTeam = availableTeams.find { it.teamId == selectedTeamId }
+                    if (currentTeam != null) {
+                        binding.teamDropdown.setText(currentTeam.teamName, false)
+                    }
+                    dialog.dismiss()
+                }
+                .setPositiveButton(R.string.change_team_confirm) { dialog, _ ->
+                    applyTeamChange(newTeamId)
+                    dialog.dismiss()
+                }
+                .show()
+        } else {
+            // No assignee, change directly
+            applyTeamChange(newTeamId)
+        }
+    }
+
+    private fun applyTeamChange(newTeamId: String) {
+        selectedTeamId = newTeamId
+        selectedAssigneeEmail = "" // Clear assignee
+        isAssigneeStale = false
+        teamMembersLoaded = false
+        loadTeamMembers(newTeamId)
+        clearError()
+    }
+
+    private fun loadTeamMembers(teamId: String) {
+        // Cancel previous member observer
+        memberObserverJob?.cancel()
+        
+        memberObserverJob = viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.getTeamMembers(teamId).collectLatest { students ->
+                    teamMembers = students
+                    teamMembersLoaded = true
+                    updateAssigneeDropdown()
+                }
+            }
+        }
     }
 
     private fun setupDueDatePicker() {
@@ -155,22 +260,15 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun loadTeamMembers() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.getTeamMembers(teamId).collectLatest { students ->
-                    teamMembers = students
-                    teamMembersLoaded = true
-                    updateAssigneeDropdown()
-                }
-            }
-        }
-    }
-
     private fun updateAssigneeDropdown() {
         val items = mutableListOf(getString(R.string.task_assign_unassigned))
 
-        if (!teamMembersLoaded) {
+        if (selectedTeamId.isEmpty()) {
+            // No team selected yet
+            binding.assigneeDropdownLayout.isEnabled = false
+            binding.assigneeDropdown.setText("No members")
+            isAssigneeStale = false
+        } else if (!teamMembersLoaded) {
             // Team members not loaded yet - show loading state
             binding.assigneeDropdownLayout.isEnabled = false
             binding.assigneeDropdown.setText("Loading team members...")
@@ -244,6 +342,12 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
             return
         }
 
+        // Validate team selected
+        if (selectedTeamId.isEmpty()) {
+            showError("Please select a team")
+            return
+        }
+
         // Validate team members have loaded before allowing save
         if (!teamMembersLoaded) {
             showError("Please wait for team members to load before saving.")
@@ -266,7 +370,7 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
             description = description,
             dueDate = selectedDueDate,
             status = selectedStatus,
-            teamId = teamId,
+            teamId = selectedTeamId,
             projectId = projectId,
             assigneeEmail = selectedAssigneeEmail,
             weight = taskWeight,
@@ -309,6 +413,7 @@ class EditTaskBottomSheet : BottomSheetDialogFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        memberObserverJob?.cancel()
         _binding = null
     }
 
