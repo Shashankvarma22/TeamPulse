@@ -37,8 +37,14 @@ class TaskRepositoryImpl @Inject constructor(
     override suspend fun updateTaskStatus(taskId: String, status: TaskStatus) {
         val entity = taskAssignmentDao.getById(taskId) ?: return
 
+        // Check if this is first-time completion (for XP one-time guard)
+        val wasCompleted = entity.status == TaskStatus.DONE
+        val isNowCompleted = status == TaskStatus.DONE
+        val justCompletedForFirstTime = !wasCompleted && isNowCompleted && !entity.hasEverBeenCompleted
+
         val updated = entity.copy(
             status = status,
+            hasEverBeenCompleted = entity.hasEverBeenCompleted || justCompletedForFirstTime,
             localDirty = true,
             lastModifiedLocal = System.currentTimeMillis()
         )
@@ -57,6 +63,7 @@ class TaskRepositoryImpl @Inject constructor(
             weight = task.weight,
             dueDate = task.dueDate,
             status = task.status,
+            hasEverBeenCompleted = task.hasEverBeenCompleted,
             localDirty = true,
             lastModifiedLocal = System.currentTimeMillis(),
             remoteRowIndex = null
@@ -76,6 +83,7 @@ class TaskRepositoryImpl @Inject constructor(
             weight = task.weight,
             dueDate = task.dueDate,
             status = task.status,
+            hasEverBeenCompleted = task.hasEverBeenCompleted,
             localDirty = true,
             lastModifiedLocal = System.currentTimeMillis(),
             remoteRowIndex = task.remoteRowIndex

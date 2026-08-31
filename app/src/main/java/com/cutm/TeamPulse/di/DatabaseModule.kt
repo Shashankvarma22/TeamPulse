@@ -53,6 +53,19 @@ object DatabaseModule {
         }
     }
 
+    /**
+     * Migration from version 2 to version 3: Add hasEverBeenCompleted to task_assignments
+     * (One-time XP guard: prevents re-award on repeated complete-revert-complete cycles)
+     */
+    private val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                ALTER TABLE task_assignments 
+                ADD COLUMN hasEverBeenCompleted INTEGER NOT NULL DEFAULT 0
+            """)
+        }
+    }
+
     @Provides
     @Singleton
     fun provideDatabase(
@@ -66,7 +79,7 @@ object DatabaseModule {
             DATABASE_NAME,
         )
             .openHelperFactory(factory)
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .fallbackToDestructiveMigration(dropAllTables = true)  // Only if migration fails
             .build()
     }

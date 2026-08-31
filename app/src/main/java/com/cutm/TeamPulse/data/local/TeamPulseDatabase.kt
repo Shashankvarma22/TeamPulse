@@ -32,7 +32,7 @@ import com.cutm.TeamPulse.data.local.entity.UserSessionEntity
         SyncQueueEntity::class,
         SyncMetadataEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

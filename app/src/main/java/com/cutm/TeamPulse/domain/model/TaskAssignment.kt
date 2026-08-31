@@ -10,6 +10,7 @@ data class TaskAssignment(
     val weight: Float,
     val dueDate: Long,
     val status: TaskStatus,
+    val hasEverBeenCompleted: Boolean = false,
     val localDirty: Boolean,
     val lastModifiedLocal: Long,
     val remoteRowIndex: Int?,

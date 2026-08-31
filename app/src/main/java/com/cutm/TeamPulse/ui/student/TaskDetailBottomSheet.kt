@@ -61,8 +61,10 @@ class TaskDetailBottomSheet : BottomSheetDialogFragment() {
             updateStatus(TaskStatus.IN_PROGRESS)
         }
 
-        binding.statusDoneButton.setOnClickListener {
-            updateStatus(TaskStatus.DONE)
+        // DONE button disabled for students - only teachers can mark tasks complete
+        binding.statusDoneButton.apply {
+            isEnabled = false
+            alpha = 0.5f
         }
     }
 

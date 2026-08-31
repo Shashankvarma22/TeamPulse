@@ -51,6 +51,12 @@ class StudentHomeViewModel @Inject constructor(
         )
 
     fun updateTaskStatus(taskId: String, newStatus: TaskStatus) {
+        // Students can only set TODO or IN_PROGRESS, not DONE/COMPLETED
+        // (Prevents self-XP-farming exploit - only teachers can mark tasks complete)
+        if (newStatus != TaskStatus.TODO && newStatus != TaskStatus.IN_PROGRESS) {
+            return  // Silently reject student attempt to set DONE
+        }
+        
         viewModelScope.launch {
             taskRepository.updateTaskStatus(taskId, newStatus)
         }

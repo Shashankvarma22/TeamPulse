@@ -15,6 +15,7 @@ data class TaskAssignmentEntity(
     val weight: Float,
     val dueDate: Long,
     val status: TaskStatus,
+    val hasEverBeenCompleted: Boolean = false,  // One-time XP guard: set on first COMPLETED transition
     val localDirty: Boolean,
     val lastModifiedLocal: Long,
     val remoteRowIndex: Int?,

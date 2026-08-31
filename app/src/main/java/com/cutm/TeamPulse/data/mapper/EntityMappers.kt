@@ -62,6 +62,7 @@ fun TaskAssignmentEntity.toDomain(): TaskAssignment = TaskAssignment(
     weight = weight,
     dueDate = dueDate,
     status = status,
+    hasEverBeenCompleted = hasEverBeenCompleted,
     localDirty = localDirty,
     lastModifiedLocal = lastModifiedLocal,
     remoteRowIndex = remoteRowIndex,
