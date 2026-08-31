@@ -1,8 +1,12 @@
 package com.cutm.TeamPulse.data.repository
 
+import android.util.Log
 import androidx.room.withTransaction
 import com.cutm.TeamPulse.data.local.TeamPulseDatabase
+import com.cutm.TeamPulse.data.local.dao.StudentDao
+import com.cutm.TeamPulse.data.local.dao.StudentProgressDao
 import com.cutm.TeamPulse.data.local.dao.TaskAssignmentDao
+import com.cutm.TeamPulse.data.local.entity.StudentProgressEntity
 import com.cutm.TeamPulse.data.local.entity.TaskAssignmentEntity
 import com.cutm.TeamPulse.data.mapper.toDomain
 import com.cutm.TeamPulse.domain.model.TaskAssignment
@@ -16,6 +20,8 @@ import javax.inject.Singleton
 @Singleton
 class TaskRepositoryImpl @Inject constructor(
     private val taskAssignmentDao: TaskAssignmentDao,
+    private val studentDao: com.cutm.TeamPulse.data.local.dao.StudentDao,
+    private val studentProgressDao: com.cutm.TeamPulse.data.local.dao.StudentProgressDao,
     private val database: TeamPulseDatabase,
 ) : TaskRepository {
 
@@ -124,6 +130,8 @@ class TaskRepositoryImpl @Inject constructor(
             val justCompletedForFirstTime = !wasCompleted && isNowCompleted && !currentEntity.hasEverBeenCompleted
             
             // 4. Set completion guard if first-time DONE
+            // CRITICAL: Must run AFTER updateFields() to override any hasEverBeenCompleted
+            // value the caller's lambda may have set (prevents caller from bypassing guard)
             val finalEntity = if (justCompletedForFirstTime) {
                 updatedEntity.copy(hasEverBeenCompleted = true)
             } else {
@@ -134,9 +142,74 @@ class TaskRepositoryImpl @Inject constructor(
             // 5. Persist (atomic with guard check)
             taskAssignmentDao.upsert(finalEntity)
             
-            // TODO Phase 6.2: Award XP here if justCompletedForFirstTime && finalEntity.assigneeEmail.isNotEmpty()
-            // awardXpForTaskCompletion(finalEntity.assigneeEmail, finalEntity.weight)
+            // 6. Award XP if first-time completion
+            if (justCompletedForFirstTime && finalEntity.assigneeEmail.isNotEmpty()) {
+                awardXpForTaskCompletion(
+                    studentEmail = finalEntity.assigneeEmail,
+                    taskWeight = finalEntity.weight
+                )
+            }
         }
+    }
+
+    /**
+     * Award XP to student for task completion.
+     * 
+     * CRITICAL: This method executes inside the same database.withTransaction {}
+     * block as the task status update (called from applyTaskUpdate).
+     * 
+     * Atomicity guarantee: Task update + XP award succeed together or fail together.
+     * 
+     * @param studentEmail Student to award XP
+     * @param taskWeight Task weight for XP calculation
+     */
+    private suspend fun awardXpForTaskCompletion(
+        studentEmail: String,
+        taskWeight: Float
+    ) {
+        // Verify student still exists before awarding XP
+        // (Prevents FK constraint violation if student was deleted)
+        // CRITICAL: This check MUST remain inside the same withTransaction {} block
+        // as the subsequent studentProgressDao.upsert() call to prevent race condition
+        // where student is deleted between check and insert.
+        val studentExists = studentDao.getByEmailSync(studentEmail) != null
+        if (!studentExists) {
+            Log.w("TaskRepository", "Skipping XP award: student $studentEmail no longer exists")
+            return  // Exit early, task completion proceeds without XP award
+        }
+        
+        // Calculate XP
+        val xpAmount = if (taskWeight > 0) {
+            (taskWeight * 10).toInt()
+        } else {
+            10  // Flat default for zero/negative weight
+        }
+        
+        // Get or create progress record
+        val currentProgress = studentProgressDao.getByEmail(studentEmail)
+        val updatedProgress = if (currentProgress != null) {
+            currentProgress.copy(
+                totalXp = currentProgress.totalXp + xpAmount,
+                tasksCompleted = currentProgress.tasksCompleted + 1,
+                hasTaskMasterBadge = currentProgress.tasksCompleted + 1 >= 10 || currentProgress.hasTaskMasterBadge,
+                lastModifiedLocal = System.currentTimeMillis(),
+                localDirty = true
+            )
+        } else {
+            // First task completed by this student
+            StudentProgressEntity(
+                studentEmail = studentEmail,
+                totalXp = xpAmount,
+                tasksCompleted = 1,
+                hasTaskMasterBadge = false,  // Won't reach threshold on first task
+                lastModifiedLocal = System.currentTimeMillis(),
+                localDirty = true
+            )
+        }
+        
+        studentProgressDao.upsert(updatedProgress)
+        
+        Log.d("TaskRepository", "Awarded $xpAmount XP to $studentEmail (total: ${updatedProgress.totalXp}, tasks: ${updatedProgress.tasksCompleted})")
     }
 
     override suspend fun deleteTask(taskId: String) {
