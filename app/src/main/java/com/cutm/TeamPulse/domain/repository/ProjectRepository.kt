@@ -38,4 +38,25 @@ interface ProjectRepository {
         projectId: String,
         teamName: String
     ): ApiResult<Unit>
+
+    /**
+     * Delete a team. Tasks assigned to team members will become stale assignees.
+     */
+    suspend fun deleteTeam(teamId: String): ApiResult<Unit>
+
+    /**
+     * Delete a project and cascade to all teams and tasks.
+     * @return ApiResult.Success if deleted, ApiResult.Error if session expired or operation failed
+     */
+    suspend fun deleteProject(projectId: String): ApiResult<Unit>
+
+    /**
+     * Get the count of teams in a project (for deletion confirmation)
+     */
+    suspend fun getTeamCount(projectId: String): Int
+
+    /**
+     * Get the count of tasks in a project (for deletion confirmation)
+     */
+    suspend fun getTaskCount(projectId: String): Int
 }

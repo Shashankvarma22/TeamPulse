@@ -156,6 +156,20 @@
     <!-- Success Messages -->
     <string name="create_team_success">Team created successfully</string>
 
+    <!-- Team Deletion -->
+    <string name="action_delete_team">Delete Team</string>
+    <string name="delete_team_confirm_title">Delete Team?</string>
+    <string name="delete_team_confirm_message">Team \'%1$s\' will be permanently removed.</string>
+    <string name="delete_team_success">Team deleted successfully</string>
+    <string name="delete_team_error">Failed to delete team</string>
+
+    <!-- Project Deletion -->
+    <string name="action_delete_project">Delete Project</string>
+    <string name="delete_project_confirm_title">Delete Project?</string>
+    <string name="delete_project_confirm_message">Project \'%1$s\' will be permanently deleted.\n\nThis will also delete %2$d team(s) and %3$d task(s).</string>
+    <string name="delete_project_success">Project deleted successfully</string>
+    <string name="delete_project_error">Failed to delete project</string>
+
     <!-- Project Detail Actions -->
     <string name="project_detail_manage_tasks">Manage Tasks</string>
 

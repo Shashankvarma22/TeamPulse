@@ -2,10 +2,15 @@ package com.cutm.TeamPulse.ui.teacher
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
+import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -19,6 +24,7 @@ import com.cutm.TeamPulse.domain.model.ProjectStatus
 import com.cutm.TeamPulse.domain.model.Team
 import com.cutm.TeamPulse.ui.common.BaseFragment
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -62,6 +68,26 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
         binding.toolbar.setNavigationOnClickListener {
             findNavController().navigateUp()
         }
+
+        // Add menu provider for delete project action
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_project_detail, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.action_delete_project -> {
+                        val project = viewModel.project.value
+                        if (project != null) {
+                            showDeleteProjectConfirmation(project)
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun setupCreateTeamButton() {
@@ -160,7 +186,7 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
             )
         }
 
-        // Header: Team name + member count
+        // Header: Team name + member count + delete icon
         val headerLayout = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
@@ -190,11 +216,34 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            )
+            ).apply {
+                setMargins(
+                    0, 
+                    0, 
+                    resources.getDimensionPixelSize(R.dimen.spacing_sm), 
+                    0
+                )
+            }
+        }
+
+        // Delete icon button
+        val deleteIcon = com.google.android.material.button.MaterialButton(
+            requireContext(),
+            null,
+            com.google.android.material.R.attr.materialIconButtonStyle
+        ).apply {
+            icon = resources.getDrawable(R.drawable.ic_delete_24, null)
+            iconTint = resources.getColorStateList(R.color.error, null)
+            val size = (48 * resources.displayMetrics.density).toInt()
+            layoutParams = LinearLayout.LayoutParams(size, size)
+            setOnClickListener {
+                showDeleteTeamConfirmation(team)
+            }
         }
 
         headerLayout.addView(teamNameText)
         headerLayout.addView(memberCountText)
+        headerLayout.addView(deleteIcon)
         cardContent.addView(headerLayout)
 
         // Member list (hidden if empty)
@@ -242,5 +291,50 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
             ProjectStatus.ACTIVE -> "Active"
             ProjectStatus.ARCHIVED -> "Archived"
         }
+    }
+
+    private fun showDeleteTeamConfirmation(team: Team) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.delete_team_confirm_title)
+            .setMessage(getString(R.string.delete_team_confirm_message, team.teamName))
+            .setNegativeButton(R.string.create_task_button_cancel, null)
+            .setPositiveButton(R.string.delete_task_confirm_delete) { _, _ ->
+                deleteTeam(team)
+            }
+            .show()
+    }
+
+    private fun deleteTeam(team: Team) {
+        viewModel.deleteTeam(team.teamId)
+        Toast.makeText(requireContext(), R.string.delete_team_success, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showDeleteProjectConfirmation(project: Project) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val teamCount = viewModel.getTeamCount(project.projectId)
+            val taskCount = viewModel.getTaskCount(project.projectId)
+
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.delete_project_confirm_title)
+                .setMessage(
+                    getString(
+                        R.string.delete_project_confirm_message,
+                        project.name,
+                        teamCount,
+                        taskCount
+                    )
+                )
+                .setNegativeButton(R.string.create_task_button_cancel, null)
+                .setPositiveButton(R.string.delete_task_confirm_delete) { _, _ ->
+                    deleteProject(project)
+                }
+                .show()
+        }
+    }
+
+    private fun deleteProject(project: Project) {
+        viewModel.deleteProject(project.projectId)
+        Toast.makeText(requireContext(), R.string.delete_project_success, Toast.LENGTH_SHORT).show()
+        findNavController().navigateUp()
     }
 }

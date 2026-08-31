@@ -21,7 +21,7 @@
         android:id="@+id/teamNameInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/create_team_name_label"
+        android:hint="@string/create_team_name_hint"
         app:counterEnabled="true"
         app:counterMaxLength="100"
         app:errorEnabled="true">
@@ -30,7 +30,6 @@
             android:id="@+id/teamNameInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/create_team_name_hint"
             android:inputType="text"
             android:maxLength="100"
             android:singleLine="true" />

@@ -13,6 +13,9 @@ interface UserSessionDao {
     @Query("SELECT * FROM user_sessions LIMIT 1")
     fun observeCurrentSession(): Flow<UserSessionEntity?>
 
+    @Query("SELECT * FROM user_sessions LIMIT 1")
+    suspend fun getActive(): UserSessionEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(session: UserSessionEntity)
 

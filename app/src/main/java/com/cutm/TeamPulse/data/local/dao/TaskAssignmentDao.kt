@@ -24,4 +24,10 @@ interface TaskAssignmentDao {
 
     @Query("DELETE FROM task_assignments WHERE taskId = :taskId")
     suspend fun deleteById(taskId: String)
+
+    @Query("DELETE FROM task_assignments WHERE teamId = :teamId")
+    suspend fun deleteByTeam(teamId: String)
+
+    @Query("SELECT * FROM task_assignments WHERE teamId = :teamId")
+    suspend fun getByTeamSync(teamId: String): List<TaskAssignmentEntity>
 }
