@@ -57,6 +57,14 @@ class TaskRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createTask(task: TaskAssignment) {
+        android.util.Log.d("TaskRepository", "=== CREATE TASK CALLED ===")
+        android.util.Log.d("TaskRepository", "Task ID: ${task.taskId}")
+        android.util.Log.d("TaskRepository", "Title: ${task.title}")
+        android.util.Log.d("TaskRepository", "Assignee: ${task.assigneeEmail}")
+        android.util.Log.d("TaskRepository", "Team: ${task.teamId}")
+        android.util.Log.d("TaskRepository", "Project: ${task.projectId}")
+        android.util.Log.d("TaskRepository", "Due Date: ${task.dueDate} (${java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(task.dueDate))})")
+
         val entity = TaskAssignmentEntity(
             taskId = task.taskId,
             teamId = task.teamId,
@@ -74,6 +82,7 @@ class TaskRepositoryImpl @Inject constructor(
         )
 
         taskAssignmentDao.upsert(entity)
+        android.util.Log.d("TaskRepository", "=== CREATE TASK SUCCEEDED ===")
     }
 
     override suspend fun updateTask(task: TaskAssignment) {

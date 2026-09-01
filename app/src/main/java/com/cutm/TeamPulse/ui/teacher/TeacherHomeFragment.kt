@@ -44,6 +44,8 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
     lateinit var teamDao: TeamDao
     @Inject
     lateinit var studentDao: StudentDao
+    @Inject
+    lateinit var taskDao: com.cutm.TeamPulse.data.local.dao.TaskAssignmentDao
     private var hasAnimatedEntrance = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -85,6 +87,12 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
         binding.createProjectFab.setOnClickListener {
             CreateProjectBottomSheet.newInstance()
                 .show(childFragmentManager, "CreateProjectBottomSheet")
+        }
+
+        // TEMPORARY DEBUG: Long-press FAB to dump DB state
+        binding.createProjectFab.setOnLongClickListener {
+            dumpDatabaseState()
+            true
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -388,5 +396,54 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
                 localDirty = false
             )
         )
+    }
+
+    /**
+     * TEMPORARY DEBUG: Dump actual database state to Logcat
+     * Use: Long-press FAB to trigger
+     */
+    private fun dumpDatabaseState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            android.util.Log.d("TeacherHome", "========== DATABASE STATE DUMP ==========")
+            
+            try {
+                val projects = projectDao.debugGetAllProjects()
+                android.util.Log.d("TeacherHome", "=== PROJECTS (${projects.size}) ===")
+                projects.forEach { proj ->
+                    android.util.Log.d("TeacherHome", "  ID: ${proj.projectId}")
+                    android.util.Log.d("TeacherHome", "  Name: ${proj.name}")
+                    android.util.Log.d("TeacherHome", "  Teacher: ${proj.teacherEmail}")
+                    android.util.Log.d("TeacherHome", "  Status: ${proj.status}")
+                    android.util.Log.d("TeacherHome", "  ---")
+                }
+                
+                val tasks = taskDao.debugGetAllTasks()
+                android.util.Log.d("TeacherHome", "=== TASKS (${tasks.size}) ===")
+                tasks.forEach { task ->
+                    android.util.Log.d("TeacherHome", "  ID: ${task.taskId}")
+                    android.util.Log.d("TeacherHome", "  Title: ${task.title}")
+                    android.util.Log.d("TeacherHome", "  TeamId: ${task.teamId}")
+                    android.util.Log.d("TeacherHome", "  AssignedTo: ${task.assigneeEmail.ifEmpty { "WHOLE TEAM" }}")
+                    android.util.Log.d("TeacherHome", "  Status: ${task.status}")
+                    android.util.Log.d("TeacherHome", "  ---")
+                }
+                
+                android.util.Log.d("TeacherHome", "========================================")
+                
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "DB state dumped to Logcat (tag: TeacherHome)",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                
+            } catch (e: Exception) {
+                android.util.Log.e("TeacherHome", "Failed to dump DB state", e)
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "DB dump failed: ${e.message}",
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 }

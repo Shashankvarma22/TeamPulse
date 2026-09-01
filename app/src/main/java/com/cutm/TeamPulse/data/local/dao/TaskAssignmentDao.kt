@@ -33,4 +33,19 @@ interface TaskAssignmentDao {
 
     @Query("SELECT * FROM task_assignments WHERE teamId = :teamId")
     suspend fun getByTeamSync(teamId: String): List<TaskAssignmentEntity>
+
+    // TEMPORARY DEBUG: Check all tasks in DB
+    @Query("SELECT taskId, title, assigneeEmail, projectId, teamId, status, dueDate FROM task_assignments ORDER BY dueDate ASC")
+    suspend fun debugGetAllTasks(): List<DebugTask>
 }
+
+// TEMPORARY DEBUG: Lightweight task data for logging
+data class DebugTask(
+    val taskId: String,
+    val title: String,
+    val assigneeEmail: String,
+    val projectId: String,
+    val teamId: String,
+    val status: com.cutm.TeamPulse.domain.model.TaskStatus,
+    val dueDate: Long
+)
