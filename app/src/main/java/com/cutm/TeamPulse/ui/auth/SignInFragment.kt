@@ -35,7 +35,7 @@ class SignInFragment :
 
     private lateinit var authorizationLauncher:
         ActivityResultLauncher<IntentSenderRequest>
-
+ 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

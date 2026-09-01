@@ -27,11 +27,6 @@ class TaskItemView @JvmOverloads constructor(
         strokeWidth = resources.getDimensionPixelSize(R.dimen.card_stroke_width)
         radius = resources.getDimension(R.dimen.card_corner_radius)
         cardElevation = 0f
-        
-        // Make entire card clickable with ripple effect
-        isClickable = true
-        isFocusable = true
-        foreground = context.getDrawable(android.R.drawable.list_selector_background)
 
         binding = ViewTaskItemBinding.inflate(
             LayoutInflater.from(context),
