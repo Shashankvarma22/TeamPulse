@@ -14,88 +14,23 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import com.cutm.TeamPulse.BuildConfig
 import com.cutm.TeamPulse.R
-import com.cutm.TeamPulse.data.local.dao.ProjectDao
-import com.cutm.TeamPulse.data.local.dao.StudentDao
-import com.cutm.TeamPulse.data.local.dao.TeamDao
-import com.cutm.TeamPulse.data.local.entity.ProjectEntity
-import com.cutm.TeamPulse.data.local.entity.StudentEntity
-import com.cutm.TeamPulse.data.local.entity.TeamEntity
 import com.cutm.TeamPulse.databinding.FragmentTeacherHomeBinding
-import com.cutm.TeamPulse.domain.model.ProjectStatus
 import com.cutm.TeamPulse.ui.common.BaseFragment
 import com.cutm.TeamPulse.ui.common.ProjectProgressCard
 import com.google.android.material.card.MaterialCardView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTeacherHomeBinding::inflate) {
 
     private val viewModel: TeacherHomeViewModel by viewModels()
     
-    // DEBUG ONLY: Direct DAO injection for seeding with correct teacher email
-    @Inject
-    lateinit var projectDao: ProjectDao
-    @Inject
-    lateinit var teamDao: TeamDao
-    @Inject
-    lateinit var studentDao: StudentDao
     private var hasAnimatedEntrance = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // ONE-TIME CLEANUP: Remove test data artifacts
-        // This block will be removed in next commit after executing once
-        if (BuildConfig.DEBUG) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                try {
-                    // Delete orphaned "Blaa" project (created under student account)
-                    projectDao.deleteById("93ab134c-fe14-4101-9a02-9956c4c7c7cd")
-                    android.util.Log.d("TeacherHome", "Cleaned up orphaned 'Blaa' project")
-                    
-                    // Delete debug seed project
-                    projectDao.deleteById("debug-project-1")
-                    android.util.Log.d("TeacherHome", "Cleaned up debug-project-1")
-                } catch (e: Exception) {
-                    // Silently ignore if already deleted or not found
-                    android.util.Log.d("TeacherHome", "Cleanup: ${e.message}")
-                }
-            }
-        }
-
-        // DEBUG ONLY: Seed test data if missing, or refresh due date if exists
-        if (BuildConfig.DEBUG) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                try {
-                    // Wait for user session to load
-                    val session = viewModel.userSession.first { it != null }
-                    if (session != null) {
-                        val existingProject = projectDao.getById("debug-project-1")
-                        if (existingProject == null) {
-                            // First-time creation
-                            seedTestData(session.email)
-                            android.util.Log.d("TeacherHome", "Debug seed data created for ${session.email}")
-                        } else {
-                            // Refresh due date in place (no delete/insert race)
-                            val newDueDate = System.currentTimeMillis() + (30L * 24 * 60 * 60 * 1000)
-                            projectDao.updateDueDate(
-                                projectId = existingProject.projectId,
-                                dueDate = newDueDate,
-                                lastModified = System.currentTimeMillis()
-                            )
-                            android.util.Log.d("TeacherHome", "Debug project due date refreshed")
-                        }
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("TeacherHome", "Seed failed", e)
-                }
-            }
-        }
 
         // Light entrance animation for information-dense teacher view
         animateEntrance()
@@ -340,72 +275,5 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
             override fun onAnimationCancel(animation: android.animation.Animator) {}
             override fun onAnimationRepeat(animation: android.animation.Animator) {}
         })
-    }
-
-    /**
-     * DEBUG ONLY: Seeds test data with the correct logged-in teacher's email.
-     * Creates: 1 project, 1 team (Alice, Bob), 2 students.
-     */
-    private suspend fun seedTestData(teacherEmail: String) {
-        check(BuildConfig.DEBUG) { "Seed function must not run in release builds" }
-
-        val projectId = "debug-project-1"
-        val teamId = "debug-team-1"
-        val currentTime = System.currentTimeMillis()
-
-        // Insert project with ACTUAL teacher email
-        projectDao.upsert(
-            ProjectEntity(
-                projectId = projectId,
-                name = "Debug Test Project",
-                teacherEmail = teacherEmail,  // Use logged-in teacher
-                spreadsheetId = "debug-spreadsheet-placeholder-id",
-                driveFolderId = "debug-folder-placeholder-id",
-                startDate = currentTime,
-                dueDate = currentTime + (30L * 24 * 60 * 60 * 1000), // 30 days from now
-                status = ProjectStatus.ACTIVE,
-                githubRepo = null,
-                localDirty = false,
-                lastModifiedLocal = currentTime,
-                lastSyncedAt = null
-            )
-        )
-
-        // Insert team with Alice and Bob
-        teamDao.upsert(
-            TeamEntity(
-                teamId = teamId,
-                projectId = projectId,
-                teamName = "Team Alpha",
-                memberEmails = listOf("alice@example.com", "bob@example.com"),
-                createdAt = currentTime,
-                localDirty = false,
-                lastModifiedLocal = currentTime
-            )
-        )
-
-        // Insert Alice
-        studentDao.upsert(
-            StudentEntity(
-                studentEmail = "alice@example.com",
-                displayName = "Alice Johnson",
-                teamId = teamId,
-                projectId = projectId,
-                joinedAt = currentTime,
-                localDirty = false
-            )
-        )
-
-        // Insert Bob
-        studentDao.upsert(
-            StudentEntity(
-                studentEmail = "bob@example.com",
-                displayName = "Bob Smith",
-                teamId = teamId,
-                projectId = projectId,
-                joinedAt = currentTime,
-                localDirty = false
-            )
-        )
     }
 }
