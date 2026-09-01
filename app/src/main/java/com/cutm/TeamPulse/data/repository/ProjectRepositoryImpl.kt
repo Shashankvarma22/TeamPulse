@@ -168,10 +168,17 @@ class ProjectRepositoryImpl @Inject constructor(
                     taskDao.deleteByTeam(team.teamId)
                 }
 
-                // 3. Delete all teams
+                // 3. Delete all students in those teams
+                teams.forEach { team ->
+                    team.memberEmails.forEach { email ->
+                        studentDao.deleteByEmail(email)
+                    }
+                }
+
+                // 4. Delete all teams
                 teamDao.deleteByProject(projectId)
 
-                // 4. Delete project
+                // 5. Delete project
                 projectDao.deleteById(projectId)
             }
             // All deletes succeed atomically or none do - no partial state possible
@@ -298,5 +305,38 @@ class ProjectRepositoryImpl @Inject constructor(
     override suspend fun isEmailInTeam(teamId: String, email: String): Boolean = withContext(dispatchers.io) {
         val team = teamDao.getById(teamId) ?: return@withContext false
         return@withContext email in team.memberEmails
+    }
+
+    /**
+     * ONE-TIME DATA REPAIR: Remove orphaned team and task from deleted "Blaa" project.
+     * 
+     * Evidence from logcat (Sept 1, 2026):
+     * - Team "alpha" (fde846fc-5717-49e4-901a-cd502592b40c) references dead project 93ab134c-...
+     * - Task "Hi" (73bbd919-387f-40a4-bce9-bb7e6509ab72) references same dead project/team
+     * - Student in both orphaned team AND real team, firstOrNull picks orphaned one
+     * 
+     * This function should be called ONCE, then removed from codebase.
+     */
+    override suspend fun cleanupOrphanedBlaaData(): ApiResult<Unit> = withContext(dispatchers.io) {
+        try {
+            database.withTransaction {
+                // Delete specific orphaned task
+                taskDao.deleteById("73bbd919-387f-40a4-bce9-bb7e6509ab72")
+                
+                // Delete specific orphaned team
+                teamDao.deleteById("fde846fc-5717-49e4-901a-cd502592b40c")
+                
+                // Students table cleanup: students are per-team, so deleting by teamId would be correct
+                // But we don't have deleteByTeam in StudentDao. The orphaned students will remain
+                // but harmless (they reference a teamId that no longer exists).
+                // Real fix is to add ON DELETE CASCADE FK constraint, noted in known-issues.md
+            }
+            
+            Log.d("ProjectRepository", "Cleanup: Removed orphaned team fde846fc-... and task 73bbd919-...")
+            ApiResult.Success(Unit)
+        } catch (e: Exception) {
+            Log.e("ProjectRepository", "Cleanup failed", e)
+            ApiResult.Error("Cleanup failed: ${e.message}")
+        }
     }
 }

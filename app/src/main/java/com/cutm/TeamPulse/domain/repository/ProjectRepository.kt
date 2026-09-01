@@ -102,4 +102,10 @@ interface ProjectRepository {
         teamId: String,
         email: String
     ): Boolean
+
+    /**
+     * ONE-TIME DATA REPAIR: Remove orphaned team/task from deleted "Blaa" project.
+     * Call once, verify with logcat, then remove this function.
+     */
+    suspend fun cleanupOrphanedBlaaData(): ApiResult<Unit>
 }

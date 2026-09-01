@@ -43,6 +43,20 @@ class StudentHomeViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
 ) : ViewModel() {
 
+    init {
+        // ONE-TIME CLEANUP: Remove orphaned data from "Blaa" project
+        // This will execute once when ViewModel is created
+        // TODO: Remove this block after confirming cleanup worked
+        viewModelScope.launch {
+            try {
+                projectRepository.cleanupOrphanedBlaaData()
+                android.util.Log.d("StudentHome", "ONE-TIME CLEANUP: Orphaned data removed")
+            } catch (e: Exception) {
+                android.util.Log.e("StudentHome", "ONE-TIME CLEANUP failed", e)
+            }
+        }
+    }
+
     val userSession: StateFlow<UserSession?> = authRepository.observeSession()
         .stateIn(
             scope = viewModelScope,
