@@ -49,6 +49,25 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // ONE-TIME CLEANUP: Remove test data artifacts
+        // This block will be removed in next commit after executing once
+        if (BuildConfig.DEBUG) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    // Delete orphaned "Blaa" project (created under student account)
+                    projectDao.deleteById("93ab134c-fe14-4101-9a02-9956c4c7c7cd")
+                    android.util.Log.d("TeacherHome", "Cleaned up orphaned 'Blaa' project")
+                    
+                    // Delete debug seed project
+                    projectDao.deleteById("debug-project-1")
+                    android.util.Log.d("TeacherHome", "Cleaned up debug-project-1")
+                } catch (e: Exception) {
+                    // Silently ignore if already deleted or not found
+                    android.util.Log.d("TeacherHome", "Cleanup: ${e.message}")
+                }
+            }
+        }
+
         // DEBUG ONLY: Seed test data if missing, or refresh due date if exists
         if (BuildConfig.DEBUG) {
             viewLifecycleOwner.lifecycleScope.launch {
