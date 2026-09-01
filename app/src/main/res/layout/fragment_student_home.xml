@@ -140,7 +140,7 @@
             android:id="@+id/tasksSectionHeader"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/section_spacing"
+            android:layout_marginTop="@dimen/spacing_xl"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/projectSectionBarrier"

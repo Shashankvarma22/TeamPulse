@@ -43,20 +43,6 @@ class StudentHomeViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
 ) : ViewModel() {
 
-    init {
-        // ONE-TIME CLEANUP: Remove orphaned data from "Blaa" project
-        // This will execute once when ViewModel is created
-        // TODO: Remove this block after confirming cleanup worked
-        viewModelScope.launch {
-            try {
-                projectRepository.cleanupOrphanedBlaaData()
-                android.util.Log.d("StudentHome", "ONE-TIME CLEANUP: Orphaned data removed")
-            } catch (e: Exception) {
-                android.util.Log.e("StudentHome", "ONE-TIME CLEANUP failed", e)
-            }
-        }
-    }
-
     val userSession: StateFlow<UserSession?> = authRepository.observeSession()
         .stateIn(
             scope = viewModelScope,
@@ -83,39 +69,21 @@ class StudentHomeViewModel @Inject constructor(
             }
 
             teamRepository.observeTeams().flatMapLatest { teams ->
-                // DIAGNOSTIC: Log all teams and student membership
-                android.util.Log.d("StudentHome", "=== TEAM MEMBERSHIP CHECK ===")
-                android.util.Log.d("StudentHome", "Student email: ${session.email}")
-                android.util.Log.d("StudentHome", "Total teams in DB: ${teams.size}")
-                teams.forEach { team ->
-                    android.util.Log.d("StudentHome", "  Team: ${team.teamName} (${team.teamId})")
-                    android.util.Log.d("StudentHome", "    ProjectId: ${team.projectId}")
-                    android.util.Log.d("StudentHome", "    MemberEmails: ${team.memberEmails}")
-                    android.util.Log.d("StudentHome", "    Contains student? ${team.memberEmails.contains(session.email)}")
-                }
-                
                 val studentTeam = teams.firstOrNull { team ->
                     team.memberEmails.contains(session.email)
                 }
                 
                 if (studentTeam == null) {
-                    android.util.Log.w("StudentHome", "!!! NO TEAM FOUND FOR STUDENT !!!")
                     return@flatMapLatest flowOf(null)
                 }
-                
-                android.util.Log.d("StudentHome", "Student team found: ${studentTeam.teamName} (${studentTeam.teamId})")
 
                 combine(
                     projectRepository.observeProject(studentTeam.projectId),
                     taskRepository.observeTasksForTeam(studentTeam.teamId)
                 ) { project, tasks ->
                     if (project == null) {
-                        android.util.Log.w("StudentHome", "!!! PROJECT ${studentTeam.projectId} NOT FOUND !!!")
                         return@combine null
                     }
-
-                    android.util.Log.d("StudentHome", "Project found: ${project.name} (${project.projectId})")
-                    android.util.Log.d("StudentHome", "Team tasks: ${tasks.size} total")
 
                     val completedTasks = tasks.count { it.status == TaskStatus.DONE }
                     val totalTasks = tasks.size
@@ -146,18 +114,6 @@ class StudentHomeViewModel @Inject constructor(
             }
         }
         .map { tasks ->
-            // DIAGNOSTIC: Log all tasks for student
-            android.util.Log.d("StudentHome", "=== MY TASKS (Home Screen) ===")
-            android.util.Log.d("StudentHome", "Total tasks: ${tasks.size}")
-            tasks.forEach { task ->
-                android.util.Log.d("StudentHome", "  Task: ${task.title} (${task.taskId})")
-                android.util.Log.d("StudentHome", "    TeamId: ${task.teamId}")
-                android.util.Log.d("StudentHome", "    ProjectId: ${task.projectId}")
-                android.util.Log.d("StudentHome", "    AssigneeEmail: ${task.assigneeEmail}")
-                android.util.Log.d("StudentHome", "    DueDate: ${task.dueDate}")
-                android.util.Log.d("StudentHome", "    Status: ${task.status}")
-            }
-            
             val currentTime = System.currentTimeMillis()
 
             tasks.map { task ->

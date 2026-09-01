@@ -140,3 +140,67 @@ override suspend fun deleteProject(projectId: String): ApiResult<Unit> {
 **Fix:** Added ConstraintLayout Barriers between mutually-exclusive views
 
 **Status:** ✅ RESOLVED
+
+---
+
+## Orphaned Data from Deleted Projects (FIXED - Commit 600ed8c)
+
+**Issue:** Deleting a project did not cascade-delete its teams or tasks, leaving orphaned rows
+
+**Root Cause:**
+- `deleteProject()` transaction deleted tasks and teams, but NOT students
+- Students table stored separately, referenced teams that no longer existed
+- When "Blaa" project deleted, orphaned team `fde846fc-...` and task `73bbd919-...` remained
+- Student belonged to both orphaned team AND real team
+- `firstOrNull` in team membership lookup picked orphaned team first
+- Result: "No Active Project" bug despite real project existing
+
+**Evidence (Sept 1, 2026 logcat):**
+- Team count: 3 (orphaned + 2 real)
+- Orphaned team referenced dead project `93ab134c-...`
+- Project lookup failed: "NOT FOUND"
+- Task count mismatch: 3 on home (includes orphan), 2 in-project (excludes orphan)
+
+**Fix (Commit 600ed8c):**
+- Added student cleanup to `deleteProject()` cascade in `ProjectRepositoryImpl.kt` lines 167-180
+- Now deletes atomically: tasks → students → teams → project
+- One-time orphan cleanup executed via temporary long-press trigger (removed after verification)
+- Verified working: student sees correct project card, task counts match
+
+**Status:** ✅ RESOLVED
+
+**Future Recommendation:**
+- Add ON DELETE CASCADE foreign key constraints at DB schema level
+- Would make cascade delete automatic and more robust
+- Current manual cascade works but requires maintaining delete order in code
+
+---
+
+## Multi-Project Support (DESIGN NEEDED)
+
+**Issue:** `StudentHomeViewModel` uses `firstOrNull` to select ONE team when student belongs to multiple
+
+**Current Behavior:**
+- Student enrolled in multiple projects (multiple teams)
+- `firstOrNull` silently picks one project (unpredictable order)
+- No indication to student that other projects exist
+- No way to switch between projects
+
+**Impact:**
+- Works fine for single-project case (current typical usage)
+- Breaks down when students enroll in multiple courses/projects
+- Task list aggregates across ALL projects, but project card shows only one
+
+**Design Options:** See `docs/MULTI_PROJECT_DESIGN_OPTIONS.md`
+- Option 1: Most-recently-active project (minimal UI change)
+- Option 2: Horizontal carousel (swipe between projects)
+- Option 3: Stacked summary cards (all visible, tap to expand)
+- Option 4: Tabs (standard navigation pattern)
+- Option 5: Dropdown/spinner (minimal chrome)
+- Option 6: Multi-project dashboard + drill-down (full IA redesign)
+
+**Status:** ⏳ DESIGN DECISION NEEDED - user must choose intended behavior before implementation
+
+**Location:** `StudentHomeViewModel.kt` line ~70 (team lookup logic)
+
+**Priority:** LOW if students typically have 1 project, HIGH if multi-enrollment is common
