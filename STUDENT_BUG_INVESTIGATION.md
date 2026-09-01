@@ -159,3 +159,116 @@ WHERE tm.teamId IS NULL;
 3. Compare actual DB state to expected state
 
 4. Fix based on evidence, not assumption
+
+
+## CRITICAL HYPOTHESIS: Unified Root Cause
+
+**Both bugs might stem from a single issue: orphaned team from deleted "Blaa" project**
+
+### The Theory
+
+When project "Blaa" (ID: `93ab134c-fe14-4101-9a02-9956c4c7c7cd`) was created/deleted during earlier testing:
+1. Project was deleted (or never properly created)
+2. BUT team + tasks were **NOT cascade-deleted**
+3. Student remains in that orphaned team's memberEmails
+4. Orphaned task "Hi" due 1d still points to that orphaned teamId
+
+### How This Explains Both Bugs
+
+**Bug #1: "No Active Project"**
+- `currentProject` Flow finds orphaned "Blaa" team by email match
+- Tries to load project: `projectRepository.observeProject(orphanedTeam.projectId)`
+- Project "Blaa" doesn't exist (was deleted or never created)
+- Returns `null` → "No Active Project" empty state
+
+**Bug #2: Task Mismatch (3 vs 2)**
+- Home screen: `assigneeEmail = student` returns ALL student tasks (including orphaned one)
+- In-project: `teamId = currentTeam` should show current team's tasks
+- But `currentProject` is null (Bug #1), so in-project list shows nothing OR shows different team
+- Orphaned "Hi" task has old teamId, doesn't match current "alpha" team
+
+### This Also Answers Earlier Session Question
+
+**"Does project deletion cascade-delete teams?"** (Bug C from investigation)
+
+Code says YES:
+```kotlin
+// ProjectRepositoryImpl.kt deleteProject()
+database.withTransaction {
+    val teams = teamDao.getByProjectSync(projectId)
+    teams.forEach { team ->
+        taskDao.deleteByTeam(team.teamId)  // Delete tasks
+    }
+    teamDao.deleteByProject(projectId)  // Delete teams
+    projectDao.deleteById(projectId)  // Delete project
+}
+```
+
+But if orphaned team exists, one of these happened:
+1. Delete was never executed for "Blaa" (user didn't actually delete it)
+2. Transaction rolled back silently (exception not logged)
+3. "Blaa" was created with team but project insert failed (partial creation)
+
+### Critical Evidence Needed
+
+When capturing logcat, specifically look for:
+
+**1. Team Membership:**
+```
+Student email: 231801371093@cutmap.ac.in
+Total teams in DB: X
+Team: [NAME] ([TEAM_ID])
+  ProjectId: [PROJECT_ID]  <-- Is this "Blaa" ID (93ab134c-...) or "Hi" ID?
+  MemberEmails: [231801371093@cutmap.ac.in, ...]
+  Contains student? true
+```
+
+**2. Project Lookup Result:**
+```
+Student team found: [NAME] ([TEAM_ID])
+```
+
+Then EITHER:
+```
+Project found: [NAME] ([PROJECT_ID])  <-- Success
+```
+
+OR:
+```
+!!! PROJECT [PROJECT_ID] NOT FOUND !!!  <-- Confirms orphaned team
+```
+
+**3. Task TeamId:**
+```
+Task: Hi ([TASK_ID])
+  TeamId: [TEAM_ID]  <-- Does this match student's current team or orphaned team?
+  ProjectId: [PROJECT_ID]  <-- "Blaa" (93ab134c-...) or "Hi"?
+  AssigneeEmail: 231801371093@cutmap.ac.in
+  DueDate: [timestamp for "due 1d"]
+```
+
+### If Hypothesis is Correct
+
+**We should see:**
+- Student's team has `projectId = 93ab134c-fe14-4101-9a02-9956c4c7c7cd` (Blaa)
+- Log shows: `!!! PROJECT 93ab134c-... NOT FOUND !!!`
+- Task "Hi" due 1d has same orphaned teamId
+- Task "Hi" due 1d has `projectId = 93ab134c-...` (Blaa)
+
+**This proves:**
+- Project deletion did NOT cascade-delete teams (contrary to code)
+- OR "Blaa" was never deleted (user attempted but failed silently)
+- Either way: orphaned team/tasks are the root cause of both bugs
+
+### Evidence-Driven Fix
+
+**DO NOT propose fix until logcat confirms:**
+1. Which team contains student email
+2. What projectId that team references
+3. Whether that project exists in DB
+4. Which teamId the orphaned "Hi" task references
+
+Once evidence is captured, fix will be clear:
+- If cascade delete failed: fix the cascade delete logic
+- If orphaned data exists: add cleanup migration to remove orphaned teams/tasks
+- If FK constraints missing: add proper ON DELETE CASCADE constraints
