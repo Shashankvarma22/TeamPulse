@@ -1,5 +1,45 @@
 # Data Integrity Bug - Trace Instructions
 
+## 🔴 CRITICAL FINDING - Authorization Bug Identified
+
+**Root Cause Located:**
+- Project "Blaa" has `teacherEmail = 231801371093@cutmap.ac.in` (STUDENT email, not teacher)
+- Teacher trying to delete: `scs982627@gmail.com` (different account)
+- **`deleteProject()` has NO authorization check** - only verifies session exists
+- Any logged-in teacher can delete any project (security issue)
+
+**Files:** `ProjectRepositoryImpl.kt` lines 160-193
+
+### Immediate Action Required
+
+**Option 1: Check if delete was attempted**
+Search your existing logcat for:
+```
+ProjectRepository: === DELETE PROJECT CALLED ===
+```
+
+This will tell us if:
+- Delete was never called (UI issue)
+- Delete was called and claimed success (transaction rollback)
+- Delete was called and failed (exception)
+
+See `LOGCAT_SEARCH_INSTRUCTIONS.md` for detailed search steps.
+
+**Option 2: Delete "Blaa" again RIGHT NOW**
+1. Install updated APK: `app\build\outputs\apk\debug\app-debug.apk`
+2. Sign in as teacher
+3. Delete "Blaa" project
+4. Capture logcat immediately
+5. Long-press FAB to dump DB state
+6. Check if "Blaa" still exists in dump
+
+### Updated Build Available
+✅ **DB dump tool fixed** - now dumps tasks correctly  
+✅ All diagnostic logging in place  
+✅ APK: `app\build\outputs\apk\debug\app-debug.apk`
+
+---
+
 ## Critical Bug Report
 
 **Observed Behavior:**
