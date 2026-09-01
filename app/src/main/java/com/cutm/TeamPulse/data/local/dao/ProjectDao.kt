@@ -30,16 +30,4 @@ interface ProjectDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(project: ProjectEntity)
-
-    // TEMPORARY DEBUG: Check all projects in DB
-    @Query("SELECT projectId, name, teacherEmail, status FROM projects ORDER BY lastModifiedLocal DESC")
-    suspend fun debugGetAllProjects(): List<DebugProject>
 }
-
-// TEMPORARY DEBUG: Lightweight project data for logging
-data class DebugProject(
-    val projectId: String,
-    val name: String,
-    val teacherEmail: String,
-    val status: com.cutm.TeamPulse.domain.model.ProjectStatus
-)

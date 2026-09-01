@@ -141,13 +141,16 @@ TeacherHome: === PROJECTS (X) ===
 
 ## Current Status
 
-⏳ **NOT YET TESTED**
+✅ **PASS** (Tested: August 28, 2026)
 
-Once tested, update this section with:
-- ✅ PASS or ❌ FAIL
-- Date/time tested
-- Any observations or anomalies
-- Link to logcat output if failed
+**Test Results:**
+- Created project: `DELETE_ME_TEST` (ID: `e471a08c-7d98-4ae1-9a93-45cab7402e28`)
+- Deleted through normal teacher UI flow
+- **Verified on-device:** Project removed from UI
+- **Verified in DB:** DB dump showed count 4→3, project ID gone, no orphaned tasks
+- Transaction cascade worked correctly
+
+**Conclusion:** Delete functionality works end-to-end post-scaffolding
 
 ## After Test Passes
 

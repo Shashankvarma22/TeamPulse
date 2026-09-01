@@ -59,12 +59,6 @@ class ProjectRepositoryImpl @Inject constructor(
         driveFolderId: String
     ): ApiResult<Unit> {
         return try {
-            android.util.Log.d("ProjectRepository", "=== CREATE PROJECT CALLED ===")
-            android.util.Log.d("ProjectRepository", "Project ID: $projectId")
-            android.util.Log.d("ProjectRepository", "Project Name: $name")
-            android.util.Log.d("ProjectRepository", "Teacher: $teacherEmail")
-            android.util.Log.d("ProjectRepository", "Due Date: $dueDate (${java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(dueDate))})")
-
             val currentTime = System.currentTimeMillis()
             val entity = ProjectEntity(
                 projectId = projectId,
@@ -82,10 +76,9 @@ class ProjectRepositoryImpl @Inject constructor(
             )
             projectDao.upsert(entity)
             
-            android.util.Log.d("ProjectRepository", "=== CREATE PROJECT SUCCEEDED ===")
             ApiResult.Success(Unit)
         } catch (e: Exception) {
-            android.util.Log.e("ProjectRepository", "=== CREATE PROJECT FAILED ===", e)
+            Log.e("ProjectRepository", "Failed to create project", e)
             ApiResult.Error(e.message ?: "Failed to create project")
         }
     }
@@ -159,52 +152,36 @@ class ProjectRepositoryImpl @Inject constructor(
 
     override suspend fun deleteProject(projectId: String): ApiResult<Unit> = withContext(dispatchers.io) {
         try {
-            android.util.Log.d("ProjectRepository", "=== DELETE PROJECT CALLED ===")
-            android.util.Log.d("ProjectRepository", "Project ID: $projectId")
-
             // Verify session
             val session = sessionDao.getActive()
             if (session == null) {
-                android.util.Log.e("ProjectRepository", "Delete failed: Session expired")
                 return@withContext ApiResult.Error("Session expired")
             }
-            
-            android.util.Log.d("ProjectRepository", "Session verified: ${session.email}")
 
             // Cascade delete in ATOMIC TRANSACTION
             database.withTransaction {
-                android.util.Log.d("ProjectRepository", "Starting transaction...")
-
                 // 1. Get all teams in project
                 val teams = teamDao.getByProjectSync(projectId)
-                android.util.Log.d("ProjectRepository", "Found ${teams.size} teams to delete")
 
                 // 2. Delete all tasks for each team
                 teams.forEach { team ->
-                    android.util.Log.d("ProjectRepository", "  Deleting tasks for team: ${team.teamId}")
                     taskDao.deleteByTeam(team.teamId)
                 }
 
                 // 3. Delete all teams
-                android.util.Log.d("ProjectRepository", "Deleting ${teams.size} teams...")
                 teamDao.deleteByProject(projectId)
 
                 // 4. Delete project
-                android.util.Log.d("ProjectRepository", "Deleting project $projectId...")
                 projectDao.deleteById(projectId)
-                
-                android.util.Log.d("ProjectRepository", "Transaction completed successfully")
             }
             // All deletes succeed atomically or none do - no partial state possible
-
-            android.util.Log.d("ProjectRepository", "=== DELETE PROJECT SUCCEEDED ===")
 
             // TODO (future): Queue sync operations to delete from Google Sheets
             // syncQueueDao.enqueue(SyncOperation.DELETE_PROJECT, projectId)
 
             ApiResult.Success(Unit)
         } catch (e: Exception) {
-            android.util.Log.e("ProjectRepository", "=== DELETE PROJECT FAILED ===", e)
+            Log.e("ProjectRepository", "Failed to delete project", e)
             ApiResult.Error("Failed to delete project")
         }
     }
