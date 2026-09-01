@@ -25,6 +25,7 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun saveSession(session: UserSession) {
+        android.util.Log.d("AuthRepository", "Saving session: email=${session.email}, role=${session.role}")
         userSessionDao.upsert(session.toEntity())
     }
 

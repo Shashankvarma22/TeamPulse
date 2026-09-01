@@ -10,10 +10,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface UserSessionDao {
 
-    @Query("SELECT * FROM user_sessions LIMIT 1")
+    @Query("SELECT * FROM user_sessions ORDER BY lastSignInAt DESC LIMIT 1")
     fun observeCurrentSession(): Flow<UserSessionEntity?>
 
-    @Query("SELECT * FROM user_sessions LIMIT 1")
+    @Query("SELECT * FROM user_sessions ORDER BY lastSignInAt DESC LIMIT 1")
     suspend fun getActive(): UserSessionEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

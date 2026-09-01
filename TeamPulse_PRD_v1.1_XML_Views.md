@@ -254,9 +254,18 @@ range writes from arbitrary screens) so schema stays consistent.
                             computed_at,                            
                             teacher_override                        
 
-  **Achievements**          student_email, badge_id, System (rules  Feeds leaderboard
-                            badge_name, awarded_at,  engine)        
-                            xp_awarded                              
+  **Achievements**          student_email, badge_id, System (rules  Feeds leaderboard.
+                            badge_name, awarded_at,  engine)        **Not yet wired up** —
+                            xp_awarded                              current implementation
+                                                                     (Phase 6: XP,
+                                                                     TaskMaster badge,
+                                                                     leaderboard) lives
+                                                                     entirely in Room with
+                                                                     no sync to this tab
+                                                                     yet. Migration planned
+                                                                     immediately after
+                                                                     Phase 6 stabilizes
+                                                                     (see §7).
 
   **TeacherNotes**          team_id, note,           Teacher        Surfaced in app as
                             author_email, timestamp,                intervention
@@ -272,23 +281,64 @@ Room is the *offline* mirror, not a replacement.
 
 ## 7. Offline Storage --- Room (SQLCipher)
 
--   All tables above are mirrored locally in an encrypted Room database
+> **Status note (2026-09-01, finalized):** Architecture confirmed —
+> **Google Sheets is the database** (the durable, authoritative copy of
+> all data), and **Room is a sync-through cache only, not storage of
+> record**. Room exists solely to avoid hitting Sheets API v4's rate
+> limits and per-call latency on every read/write. Reads come from
+> Room; writes go to Room first, then sync to Sheets in the background.
+> **Data loss is explicitly not acceptable**: every local write must
+> reach Sheets and be confirmed synced as soon as connectivity is
+> available — not "eventually, on some schedule," and not silently
+> dropped if sync fails. A write path that stays Room-only with no
+> working sync to Sheets is a bug, not an accepted v1 shortcut.
+
+-   All tables above are cached locally in an encrypted Room database
     (SQLCipher, key derived from Android Keystore, never hardcoded).
+    Room holds no data that isn't also durably represented in Sheets —
+    it must be safe to clear the local DB and rebuild it from Sheets
+    without permanent data loss (modulo whatever hasn't synced yet).
 -   Local tables: `task_assignments`, `completion_log`, `peer_feedback`,
     `contribution_cache`, `conflict_cache`, `sync_queue`.
--   **Offline-first writes**: task status updates, contribution logs,
-    and peer feedback are written to Room immediately and enqueued in
-    `sync_queue`; a WorkManager-backed sync worker flushes the queue to
-    Sheets via Sheets API v4 `batchUpdate`/`append` when connectivity
-    returns, with exponential backoff and conflict resolution
-    (last-write-wins per row + a `local_dirty` flag to avoid clobbering
-    server-computed columns like `ContributionMetrics`).
+-   **Cache-through writes**: task status updates, contribution logs,
+    and peer feedback are written to Room immediately (so the UI never
+    blocks on a network call) and enqueued in `sync_queue`; a
+    WorkManager-backed sync worker flushes the queue to Sheets via
+    Sheets API v4 `batchUpdate`/`append` **as soon as connectivity is
+    available**, retrying until each queued write is confirmed synced
+    (not fire-and-forget), with conflict resolution (last-write-wins
+    per row + a `local_dirty` flag to avoid clobbering server-computed
+    columns like `ContributionMetrics`).
+    -   **Known gap:** the existing `sync_queue` infrastructure
+        (`SyncQueueEntity`, `SyncOperationType`, `SheetsSyncWorker`,
+        `SyncRepository`) is currently a stub — `processQueue()` is
+        unimplemented and nothing enqueues sync ops yet. All CRUD is
+        presently Room-only in practice. This is no longer an accepted
+        stance given the finalized architecture above; it needs to be
+        built out for real, with retry-until-confirmed semantics.
 -   Conflict-detection cache stores the last-computed risk score locally
     so the dashboard renders instantly on cold start before a background
-    refresh.
+    refresh — this is a legitimate cache-only value (recomputed from
+    Sheets data), not a case where Room is the source of record.
 -   Full DB encryption is mandatory since Room may cache peer-feedback
     text and identifiers subject to FERPA/classroom-privacy
     expectations.
+-   **Gamification data (XP/badges/leaderboard, Phase 6) is a known
+    exception currently living entirely in Room** (`StudentProgress`
+    table, no corresponding Sheets tab wired up yet) with no sync path
+    to Sheets. Under the finalized architecture above, this is now a
+    **correctness gap to close, not optional cleanup**: the feature is
+    being finished and stabilized on Room first, then migrating
+    `StudentProgress` to sync through to the `Achievements` tab is the
+    required next step, not a someday item.
+-   **Open, not yet decided:** retry/backoff strategy and what "confirmed
+    synced" means concretely (e.g. does a successful Sheets API response
+    mark the queue row synced, and what happens on partial batch
+    failure); conflict resolution when a row is touched both by a queued
+    local write and a concurrent human edit made directly in Sheets
+    (Sheets is human-editable, not just app-written); whether Room needs
+    a TTL/refresh-on-foreground policy or only refreshes reactively after
+    a sync push.
 
 ------------------------------------------------------------------------
 

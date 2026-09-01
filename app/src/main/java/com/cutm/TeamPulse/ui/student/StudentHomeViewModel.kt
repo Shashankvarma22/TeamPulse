@@ -65,35 +65,24 @@ class StudentHomeViewModel @Inject constructor(
     val currentProject: StateFlow<CurrentProjectData?> = userSession
         .flatMapLatest { session ->
             if (session == null) {
-                android.util.Log.d("StudentHome", "currentProject: No session")
                 return@flatMapLatest flowOf(null)
             }
 
-            android.util.Log.d("StudentHome", "currentProject: Looking for team with email=[${session.email}]")
             teamRepository.observeTeams().flatMapLatest { teams ->
-                android.util.Log.d("StudentHome", "currentProject: Found ${teams.size} total teams")
-                teams.forEach { team ->
-                    val membersWithBrackets = team.memberEmails.joinToString(", ") { "[$it]" }
-                    android.util.Log.d("StudentHome", "  - Team ${team.teamId}: memberEmails=$membersWithBrackets")
-                }
-                
                 val studentTeam = teams.firstOrNull { team ->
                     team.memberEmails.contains(session.email)
                 }
                 
                 if (studentTeam == null) {
-                    android.util.Log.w("StudentHome", "currentProject: Student not found in any team (email=[${session.email}])")
+                    android.util.Log.w("StudentHome", "Student not found in any team: ${session.email}")
                     return@flatMapLatest flowOf(null)
                 }
-                
-                android.util.Log.d("StudentHome", "currentProject: Found team ${studentTeam.teamId} for student")
 
                 combine(
                     projectRepository.observeProject(studentTeam.projectId),
                     taskRepository.observeTasksForTeam(studentTeam.teamId)
                 ) { project, tasks ->
                     if (project == null) {
-                        android.util.Log.w("StudentHome", "currentProject: Project ${studentTeam.projectId} not found")
                         return@combine null
                     }
 
@@ -101,8 +90,6 @@ class StudentHomeViewModel @Inject constructor(
                     val totalTasks = tasks.size
                     val currentTime = System.currentTimeMillis()
                     val daysUntil = ((project.dueDate - currentTime) / (1000 * 60 * 60 * 24)).toInt()
-
-                    android.util.Log.d("StudentHome", "currentProject: Loaded project ${project.projectId}, $completedTasks/$totalTasks tasks complete")
                     
                     CurrentProjectData(
                         project = project,
@@ -122,18 +109,12 @@ class StudentHomeViewModel @Inject constructor(
     val myTasks: StateFlow<List<StudentTaskData>> = userSession
         .flatMapLatest { session ->
             if (session == null) {
-                android.util.Log.d("StudentHome", "myTasks: No session")
                 flowOf(emptyList())
             } else {
-                android.util.Log.d("StudentHome", "myTasks: Querying for email=[${session.email}]")
                 taskRepository.observeTasksForStudent(session.email)
             }
         }
         .map { tasks ->
-            android.util.Log.d("StudentHome", "myTasks: Received ${tasks.size} tasks")
-            tasks.forEach { task ->
-                android.util.Log.d("StudentHome", "  - Task: ${task.taskId}, assignee=[${task.assigneeEmail}], status=${task.status}")
-            }
             val currentTime = System.currentTimeMillis()
 
             tasks.map { task ->

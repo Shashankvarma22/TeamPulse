@@ -110,6 +110,8 @@ class SignInViewModel @Inject constructor(
                         lastSignInAt = System.currentTimeMillis(),
                     )
 
+                    android.util.Log.d("SignInViewModel", "Session created: email=${session.email}, role=$role")
+
                     // Persist session with real role
                     authRepository.saveSession(session)
 
