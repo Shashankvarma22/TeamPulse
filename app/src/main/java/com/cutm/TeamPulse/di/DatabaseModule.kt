@@ -26,8 +26,24 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    init {
-        System.loadLibrary("sqlcipher")
+    // REMOVED: init { System.loadLibrary("sqlcipher") }
+    // That init block ran synchronously on main thread during Hilt module initialization
+    // Now moved to provideDatabase() to run in warmup coroutine (Dispatchers.IO)
+
+    @Volatile
+    private var sqlCipherLoaded = false
+    
+    private fun ensureSqlCipherLoaded() {
+        if (!sqlCipherLoaded) {
+            synchronized(this) {
+                if (!sqlCipherLoaded) {
+                    android.util.Log.d("DatabaseModule", "Loading SQLCipher native library")
+                    System.loadLibrary("sqlcipher")
+                    sqlCipherLoaded = true
+                    android.util.Log.d("DatabaseModule", "SQLCipher loaded")
+                }
+            }
+        }
     }
 
     /**
@@ -72,8 +88,14 @@ object DatabaseModule {
         @ApplicationContext context: Context,
         sqlCipherKeyProvider: SqlCipherKeyProvider,
     ): TeamPulseDatabase {
+        val startTime = System.currentTimeMillis()
+        android.util.Log.d("DatabaseModule", "provideDatabase START at $startTime")
+        
+        // Load SQLCipher library (thread-safe, one-time)
+        ensureSqlCipherLoaded()
+        
         val factory = SupportOpenHelperFactory(sqlCipherKeyProvider.getPassphrase())
-        return Room.databaseBuilder(
+        val database = Room.databaseBuilder(
             context,
             TeamPulseDatabase::class.java,
             DATABASE_NAME,
@@ -82,6 +104,24 @@ object DatabaseModule {
             .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .fallbackToDestructiveMigration(dropAllTables = true)  // Only if migration fails
             .build()
+        
+        val buildTime = System.currentTimeMillis()
+        android.util.Log.d("DatabaseModule", "Database object built at $buildTime (${buildTime - startTime}ms since start)")
+        
+        // Measure actual first database access (forces SQLCipher open + verification)
+        val accessStart = System.currentTimeMillis()
+        android.util.Log.d("DatabaseModule", "Triggering first database access at $accessStart")
+        try {
+            database.openHelper.writableDatabase // Force database open
+            val accessEnd = System.currentTimeMillis()
+            android.util.Log.d("DatabaseModule", "Database opened at $accessEnd (${accessEnd - accessStart}ms for open)")
+            android.util.Log.d("DatabaseModule", "TOTAL provideDatabase time: ${accessEnd - startTime}ms")
+        } catch (e: Exception) {
+            android.util.Log.e("DatabaseModule", "Database open FAILED", e)
+            throw e
+        }
+        
+        return database
     }
 
     @Provides

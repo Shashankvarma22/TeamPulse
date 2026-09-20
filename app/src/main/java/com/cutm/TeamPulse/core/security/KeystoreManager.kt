@@ -2,6 +2,7 @@ package com.cutm.TeamPulse.core.security
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.util.Log
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -37,7 +38,24 @@ class KeystoreManager @Inject constructor() {
         return keyGenerator.generateKey()
     }
 
+    /**
+     * Deletes the Keystore entry for this app's database key.
+     * Used during recovery from Keystore corruption (e.g., stale alias after uninstall).
+     */
+    fun deleteKeystoreEntry() {
+        try {
+            if (keyStore.containsAlias(KEY_ALIAS)) {
+                keyStore.deleteEntry(KEY_ALIAS)
+                Log.w(TAG, "Deleted corrupted Keystore entry: $KEY_ALIAS")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to delete Keystore entry: $KEY_ALIAS", e)
+            // Continue - recovery will proceed even if deletion fails
+        }
+    }
+
     private companion object {
+        const val TAG = "KeystoreManager"
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val KEY_ALIAS = "teampulse_db_key"
         const val KEY_SIZE = 256

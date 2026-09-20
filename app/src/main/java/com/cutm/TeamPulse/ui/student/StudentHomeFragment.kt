@@ -1,32 +1,122 @@
-package com.cutm.TeamPulse.ui.student
+﻿package com.cutm.TeamPulse.ui.student
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.provider.Settings
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
+import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import com.cutm.TeamPulse.R
 import com.cutm.TeamPulse.databinding.FragmentStudentHomeBinding
 import com.cutm.TeamPulse.ui.common.BaseFragment
 import com.cutm.TeamPulse.ui.common.TaskItemView
+import com.cutm.TeamPulse.core.security.KeystoreRecoveryManager
+import com.cutm.TeamPulse.ui.debug.DebugMenuProvider
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStudentHomeBinding::inflate) {
 
     private val viewModel: StudentHomeViewModel by viewModels()
+    
+    @Inject
+    lateinit var keystoreRecoveryManager: KeystoreRecoveryManager
+    
+    @Inject
+    lateinit var debugMenuProvider: DebugMenuProvider
+    
     private var hasAnimatedEntrance = false
+
+    private fun setupMenu() {
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_home, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.action_sign_out -> {
+                        signOut()
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner)
+    }
+
+    private fun signOut() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Call repository sign-out (clears Room + CredentialManager)
+            viewModel.signOut()
+            
+            // Navigate back to sign-in, clearing backstack
+            findNavController().navigate(R.id.action_studentHome_to_signIn)
+        }
+    }
+
+    private fun setupSecurityWarningBanner(parent: ViewGroup) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                keystoreRecoveryManager.isUsingFallbackPassphrase.collect { isUsingFallback ->
+                    // Check if banner already exists
+                    val existingBanner = parent.findViewWithTag<TextView>("security_banner")
+                    
+                    if (isUsingFallback) {
+                        // Show banner if not already present
+                        if (existingBanner == null) {
+                            val banner = TextView(requireContext()).apply {
+                                tag = "security_banner"
+                                text = "This device's secure storage failed and can't be repaired automatically — local data on this device is no longer hardware-encrypted"
+                                setTextColor(android.graphics.Color.WHITE)
+                                setBackgroundColor(requireContext().getColor(R.color.warning))
+                                setPadding(32, 32, 32, 32)
+                                textSize = 14f
+                            }
+                            parent.addView(banner, 0)
+                        }
+                    } else {
+                        // Hide banner if present
+                        if (existingBanner != null) {
+                            parent.removeView(existingBanner)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Setup security warning banner
+        setupSecurityWarningBanner(binding.root as ViewGroup)
+
+        // Attach debug menu (no-op in release builds)
+        debugMenuProvider.attach(this, keystoreRecoveryManager, binding.greetingText)
+
+        // Set toolbar as activity's action bar so MenuProvider can attach
+        (requireActivity() as AppCompatActivity).setSupportActionBar(binding.toolbar)
+
+        // Setup menu (MenuProvider now has a toolbar to attach to)
+        setupMenu()
 
         // Animate entrance once
         animateEntrance()
@@ -316,3 +406,6 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
         })
     }
 }
+
+
+
