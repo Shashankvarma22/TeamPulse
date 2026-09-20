@@ -109,7 +109,7 @@ class KeystoreRecoveryManager @Inject constructor(
         Log.w(TAG, "=== KEYSTORE RECOVERY COMPLETE ===")
     }
 
-    private fun deleteEncryptedSharedPrefs(prefsName: String) {
+    fun deleteEncryptedSharedPrefs(prefsName: String) {
         try {
             val prefsFile = File(context.applicationInfo.dataDir, "shared_prefs/${prefsName}.xml")
             if (prefsFile.exists()) {
@@ -181,5 +181,6 @@ fun getDebugForceNullKey(): Boolean = debugForceNullKey
         const val DATABASE_NAME = "teampulse.db"
     }
 }
+
 
 

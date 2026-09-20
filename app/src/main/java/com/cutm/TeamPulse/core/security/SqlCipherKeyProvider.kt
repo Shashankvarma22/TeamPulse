@@ -5,7 +5,9 @@ import android.util.Base64
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.security.GeneralSecurityException
 import java.security.SecureRandom
+import javax.crypto.AEADBadTagException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,12 +27,12 @@ class SqlCipherKeyProvider @Inject constructor(
 ) {
 
     fun getPassphrase(): ByteArray {
-        // Check if we''ve already fallen back to unencrypted passphrase
+        // Check if we've already fallen back to unencrypted passphrase
         val plainPrefs = context.getSharedPreferences(PREFS_NAME_FALLBACK, Context.MODE_PRIVATE)
         val wasAlreadyFallback = plainPrefs.getBoolean(KEY_IS_USING_FALLBACK, false)
         
         if (wasAlreadyFallback) {
-            // Once we''ve fallen back, stay in fallback forever
+            // Once we've fallen back, stay in fallback forever
             Log.w(TAG, "SQLCipher passphrase: Using persisted fallback (unencrypted)")
             recoveryManager.setUsingFallbackPassphrase(true)
             return getOrCreateFallbackPassphrase()
@@ -42,13 +44,46 @@ class SqlCipherKeyProvider @Inject constructor(
         if (masterKey != null) {
             // PRIMARY PATH: Keystore is working (hardware or software-backed)
             Log.d(TAG, "SQLCipher passphrase: Using encrypted passphrase via Keystore")
-            return getOrCreateEncryptedPassphrase(masterKey)
+            try {
+                return getOrCreateEncryptedPassphrase(masterKey)
+            } catch (e: AEADBadTagException) {
+                // CRITICAL: EncryptedSharedPreferences couldn't decrypt existing prefs with this key
+                // (key changed, corrupted, or restored from backup with wrong key)
+                Log.e(TAG, "!!! AEADBadTagException during EncryptedSharedPreferences.create() !!!")
+                Log.e(TAG, "!!! Keystore key exists but can't decrypt previously-encrypted data !!!")
+                Log.e(TAG, "!!! This indicates Keystore corruption or key mismatch !!!")
+                Log.e(TAG, "!!! Exception: ${"$"}{e.javaClass.simpleName} - ${"$"}{e.message}", e)
+                
+                // Delete the corrupted prefs file so it doesn't become a permanent orphan
+                recoveryManager.deleteEncryptedSharedPrefs(PREFS_NAME)
+                
+                // Fall back to unencrypted storage
+                Log.e(TAG, "!!! Switching to permanent fallback passphrase !!!")
+                plainPrefs.edit().putBoolean(KEY_IS_USING_FALLBACK, true).apply()
+                recoveryManager.setUsingFallbackPassphrase(true)
+                
+                return getOrCreateFallbackPassphrase()
+            } catch (e: GeneralSecurityException) {
+                // Broader catch for other Keystore-related failures
+                Log.e(TAG, "!!! GeneralSecurityException during EncryptedSharedPreferences.create() !!!")
+                Log.e(TAG, "!!! Exception: ${"$"}{e.javaClass.simpleName} - ${"$"}{e.message}", e)
+                
+                // Delete the corrupted prefs file
+                recoveryManager.deleteEncryptedSharedPrefs(PREFS_NAME)
+                
+                // Fall back to unencrypted storage
+                Log.e(TAG, "!!! Switching to permanent fallback passphrase !!!")
+                plainPrefs.edit().putBoolean(KEY_IS_USING_FALLBACK, true).apply()
+                recoveryManager.setUsingFallbackPassphrase(true)
+                
+                return getOrCreateFallbackPassphrase()
+            }
         } else {
             // FALLBACK PATH: Keystore completely failed
             Log.e(TAG, "!!! SQLCipher FALLBACK TRIGGERED !!!")
             Log.e(TAG, "!!! Keystore initialization failed after full recovery attempt !!!")
             Log.e(TAG, "!!! Switching to unencrypted passphrase fallback !!!")
-            Log.e(TAG, "!!! This device''s secure storage failed and can''t be repaired automatically !!!")
+            Log.e(TAG, "!!! This device's secure storage failed and can't be repaired automatically !!!")
             Log.e(TAG, "!!! Database passphrase will be stored unencrypted !!!")
             
             // Mark as permanently in fallback mode
