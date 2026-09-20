@@ -136,7 +136,7 @@ class KeystoreRecoveryManager @Inject constructor(
         }
     }
 
-    private fun deleteDatabaseFile() {
+    fun deleteDatabaseFile() {
         try {
             val dbFile = context.getDatabasePath(DATABASE_NAME)
             if (dbFile.exists()) {
@@ -181,6 +181,7 @@ fun getDebugForceNullKey(): Boolean = debugForceNullKey
         const val DATABASE_NAME = "teampulse.db"
     }
 }
+
 
 
 

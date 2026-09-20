@@ -56,6 +56,7 @@ class SqlCipherKeyProvider @Inject constructor(
                 
                 // Delete the corrupted prefs file so it doesn't become a permanent orphan
                 recoveryManager.deleteEncryptedSharedPrefs(PREFS_NAME)
+                recoveryManager.deleteDatabaseFile()
                 
                 // Fall back to unencrypted storage
                 Log.e(TAG, "!!! Switching to permanent fallback passphrase !!!")
@@ -70,6 +71,7 @@ class SqlCipherKeyProvider @Inject constructor(
                 
                 // Delete the corrupted prefs file
                 recoveryManager.deleteEncryptedSharedPrefs(PREFS_NAME)
+                recoveryManager.deleteDatabaseFile()
                 
                 // Fall back to unencrypted storage
                 Log.e(TAG, "!!! Switching to permanent fallback passphrase !!!")
@@ -144,3 +146,4 @@ class SqlCipherKeyProvider @Inject constructor(
         const val PASSPHRASE_LENGTH = 32
     }
 }
+
