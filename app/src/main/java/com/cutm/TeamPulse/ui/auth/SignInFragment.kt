@@ -99,6 +99,20 @@ class SignInFragment :
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
 
+                // NEW: Check for existing session first
+                launch {
+                    viewModel.existingSession.collect { session ->
+                        if (session != null) {
+                            android.util.Log.d(
+                                "SignInFragment",
+                                "Found existing session: ${session.email}, role=${session.role} - navigating to home"
+                            )
+                            navigateToHome(session.role)
+                            // Don't collect further - navigation clears this fragment from backstack
+                        }
+                    }
+                }
+
                 launch {
                     viewModel.uiState.collect { state ->
                         render(state)

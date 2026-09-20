@@ -55,6 +55,13 @@
                 app:exitAnim="@android:anim/fade_out"
                 app:popEnterAnim="@android:anim/fade_in"
                 app:popExitAnim="@android:anim/slide_out_right" />
+
+            <!-- Sign out action -->
+            <action
+                android:id="@+id/action_teacherHome_to_signIn"
+                app:destination="@id/auth_graph"
+                app:popUpTo="@id/nav_graph"
+                app:popUpToInclusive="false" />
         </fragment>
 
         <fragment
@@ -100,7 +107,15 @@
             android:id="@+id/studentHomeFragment"
             android:name="com.cutm.TeamPulse.ui.student.StudentHomeFragment"
             android:label="@string/student_home_title"
-            tools:layout="@layout/fragment_student_home" />
+            tools:layout="@layout/fragment_student_home">
+
+            <!-- Sign out action -->
+            <action
+                android:id="@+id/action_studentHome_to_signIn"
+                app:destination="@id/auth_graph"
+                app:popUpTo="@id/nav_graph"
+                app:popUpToInclusive="false" />
+        </fragment>
     </navigation>
 
     <!-- Role Pending State (for users not yet enrolled) -->
