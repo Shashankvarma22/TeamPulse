@@ -1,0 +1,9 @@
+name = "teampulse-getuserrole"
+main = "src/index.js"
+compatibility_date = "2026-01-09"
+
+# Service account JSON key (base64-encoded) stored as secret
+# Set via: wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON
+# Value: base64-encode your service-account-key.json file
+
+# No vars section needed - all config is in the code or secrets

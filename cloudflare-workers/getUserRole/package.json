@@ -1,0 +1,16 @@
+{
+  "name": "teampulse-getuserrole",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for TeamPulse role lookup with Google ID token verification",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": ["cloudflare-workers", "google-auth", "sheets-api"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

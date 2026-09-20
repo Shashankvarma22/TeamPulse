@@ -2,7 +2,7 @@ package com.cutm.TeamPulse.data.repository
 
 import com.cutm.TeamPulse.core.auth.SessionRole
 import com.cutm.TeamPulse.core.network.ApiResult
-import com.cutm.TeamPulse.data.remote.CloudFunctionsApiService
+import com.cutm.TeamPulse.data.remote.UserRoleApiService
 import com.cutm.TeamPulse.data.remote.dto.UserRoleRequest
 import com.cutm.TeamPulse.domain.repository.UserRegistryRepository
 import kotlinx.coroutines.Dispatchers
@@ -11,23 +11,23 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Reads user role from TeamPulse Cloud Function (getUserRole), which internally
- * queries the Users Registry Sheet using a service account.
+ * Looks up user role via Cloudflare Worker (getUserRole), which verifies the Google ID token
+ * and queries the Users Registry Sheet using a service account.
  *
- * The Cloud Function verifies the Google ID token passed in the Authorization header,
+ * The Worker verifies the Google ID token passed in the Authorization header,
  * ensuring only authenticated users can lookup their own role.
  *
- * This replaces direct Sheets API access, eliminating the need for public sheet access.
+ * This replaces direct Cloud Functions, using Cloudflare Workers for better cost/performance.
  */
 @Singleton
 class UserRegistryRepositoryImpl @Inject constructor(
-    private val cloudFunctionsApiService: CloudFunctionsApiService,
+    private val userRoleApiService: UserRoleApiService,
 ) : UserRegistryRepository {
 
     override suspend fun lookupUser(email: String, idToken: String): ApiResult<SessionRole> =
         withContext(Dispatchers.IO) {
             try {
-                val response = cloudFunctionsApiService.getUserRole(
+                val response = userRoleApiService.getUserRole(
                     authorization = "Bearer $idToken",
                     request = UserRoleRequest(email = email),
                 )
@@ -44,7 +44,7 @@ class UserRegistryRepositoryImpl @Inject constructor(
 
                 ApiResult.Success(role)
             } catch (e: retrofit2.HttpException) {
-                // Parse error response from Cloud Function
+                // Parse error response from Worker
                 val errorBody = e.response()?.errorBody()?.string()
                 val errorMessage = when (e.code()) {
                     401 -> "Authentication failed. Please sign in again."

@@ -3,8 +3,8 @@ package com.cutm.TeamPulse.di
 import com.cutm.TeamPulse.core.config.SheetsConfig
 import com.cutm.TeamPulse.core.network.AuthInterceptor
 import com.cutm.TeamPulse.core.network.QuotaBackoffInterceptor
-import com.cutm.TeamPulse.data.remote.CloudFunctionsApiService
 import com.cutm.TeamPulse.data.remote.SheetsApiService
+import com.cutm.TeamPulse.data.remote.UserRoleApiService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -76,9 +76,9 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    @CloudFunctionsRetrofit
-    fun provideCloudFunctionsRetrofit(moshi: Moshi): Retrofit {
-        // Cloud Functions service does NOT use AuthInterceptor (user OAuth token).
+    @WorkerRetrofit
+    fun provideWorkerRetrofit(moshi: Moshi): Retrofit {
+        // Cloudflare Worker for getUserRole does NOT use AuthInterceptor (service account token).
         // Authentication is via Google ID token passed in Authorization header per-request.
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
@@ -99,8 +99,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideCloudFunctionsApiService(@CloudFunctionsRetrofit retrofit: Retrofit): CloudFunctionsApiService {
-        return retrofit.create(CloudFunctionsApiService::class.java)
+    fun provideUserRoleApiService(@WorkerRetrofit retrofit: Retrofit): UserRoleApiService {
+        return retrofit.create(UserRoleApiService::class.java)
     }
 
     // Placeholder base URL until Google API service interfaces are added.
