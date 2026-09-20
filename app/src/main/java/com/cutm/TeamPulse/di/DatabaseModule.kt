@@ -89,39 +89,77 @@ object DatabaseModule {
         sqlCipherKeyProvider: SqlCipherKeyProvider,
     ): TeamPulseDatabase {
         val startTime = System.currentTimeMillis()
-        android.util.Log.d("DatabaseModule", "provideDatabase START at $startTime")
+        android.util.Log.d("DatabaseModule", "provideDatabase START at ${"$"}startTime")
         
         // Load SQLCipher library (thread-safe, one-time)
         ensureSqlCipherLoaded()
         
+        var database = createDatabase(context, sqlCipherKeyProvider)
+        
+        // Measure actual first database access (forces SQLCipher open + verification)
+        val accessStart = System.currentTimeMillis()
+        android.util.Log.d("DatabaseModule", "Triggering first database access at ${"$"}accessStart")
+        try {
+            database.openHelper.writableDatabase // Force database open
+            val accessEnd = System.currentTimeMillis()
+            android.util.Log.d("DatabaseModule", "Database opened at ${"$"}accessEnd (${"$"}{accessEnd - accessStart}ms for open)")
+            android.util.Log.d("DatabaseModule", "TOTAL provideDatabase time: ${"$"}{accessEnd - startTime}ms")
+        } catch (e: Exception) {
+            // SQLCipher failed to open the database with current passphrase
+            // This happens when passphrase changed (e.g., fallback triggered)
+            // and old database is encrypted with different passphrase
+            android.util.Log.e("DatabaseModule", "Database open FAILED: ${"$"}{e.javaClass.simpleName} - ${"$"}{e.message}", e)
+            android.util.Log.e("DatabaseModule", "!!! Old database encrypted with different passphrase !!!")
+            android.util.Log.e("DatabaseModule", "!!! Deleting corrupted database file and starting fresh !!!")
+            
+            // Delete the corrupted database file (it's unrecoverable anyway)
+            val dbFile = context.getDatabasePath(DATABASE_NAME)
+            if (dbFile.exists()) {
+                val deleted = dbFile.delete()
+                android.util.Log.w("DatabaseModule", "Deleted corrupted database file: ${"$"}deleted")
+            }
+            
+            // Delete WAL/SHM files too
+            val dbDir = dbFile.parentFile
+            if (dbDir != null && dbDir.exists()) {
+                dbDir.listFiles()?.forEach { file ->
+                    if (file.name.startsWith(DATABASE_NAME)) {
+                        val deleted = file.delete()
+                        android.util.Log.d("DatabaseModule", "Deleted database file: ${"$"}{file.name} (${"$"}deleted)")
+                    }
+                }
+            }
+            
+            // Recreate database (will be empty with new passphrase)
+            android.util.Log.d("DatabaseModule", "Recreating database with new passphrase")
+            database = createDatabase(context, sqlCipherKeyProvider)
+            
+            // Try opening again
+            try {
+                database.openHelper.writableDatabase
+                val accessEnd = System.currentTimeMillis()
+                android.util.Log.d("DatabaseModule", "Database opened after cleanup at ${"$"}accessEnd (${"$"}{accessEnd - accessStart}ms for open)")
+                android.util.Log.d("DatabaseModule", "TOTAL provideDatabase time after recovery: ${"$"}{accessEnd - startTime}ms")
+            } catch (e2: Exception) {
+                android.util.Log.e("DatabaseModule", "Database open FAILED AGAIN after cleanup: ${"$"}{e2.javaClass.simpleName}", e2)
+                throw e2
+            }
+        }
+        
+        return database
+    }
+
+    private fun createDatabase(context: Context, sqlCipherKeyProvider: SqlCipherKeyProvider): TeamPulseDatabase {
         val factory = SupportOpenHelperFactory(sqlCipherKeyProvider.getPassphrase())
-        val database = Room.databaseBuilder(
+        return Room.databaseBuilder(
             context,
             TeamPulseDatabase::class.java,
             DATABASE_NAME,
         )
             .openHelperFactory(factory)
             .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-            .fallbackToDestructiveMigration(dropAllTables = true)  // Only if migration fails
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
-        
-        val buildTime = System.currentTimeMillis()
-        android.util.Log.d("DatabaseModule", "Database object built at $buildTime (${buildTime - startTime}ms since start)")
-        
-        // Measure actual first database access (forces SQLCipher open + verification)
-        val accessStart = System.currentTimeMillis()
-        android.util.Log.d("DatabaseModule", "Triggering first database access at $accessStart")
-        try {
-            database.openHelper.writableDatabase // Force database open
-            val accessEnd = System.currentTimeMillis()
-            android.util.Log.d("DatabaseModule", "Database opened at $accessEnd (${accessEnd - accessStart}ms for open)")
-            android.util.Log.d("DatabaseModule", "TOTAL provideDatabase time: ${accessEnd - startTime}ms")
-        } catch (e: Exception) {
-            android.util.Log.e("DatabaseModule", "Database open FAILED", e)
-            throw e
-        }
-        
-        return database
     }
 
     @Provides
