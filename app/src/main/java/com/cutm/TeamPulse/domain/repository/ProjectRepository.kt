@@ -104,8 +104,10 @@ interface ProjectRepository {
     ): Boolean
 
     /**
-     * ONE-TIME DATA REPAIR: Remove orphaned team/task from deleted "Blaa" project.
-     * Call once, verify with logcat, then remove this function.
+     * Phase 1: Pull projects/teams/students from Google Sheets → Room (read-only sync).
+     * 
+     * @param spreadsheetId The project's spreadsheet ID
+     * @return Success if sync completed, Error with message if failed
      */
-    suspend fun cleanupOrphanedBlaaData(): ApiResult<Unit>
+    suspend fun syncFromSheets(spreadsheetId: String): ApiResult<Unit>
 }

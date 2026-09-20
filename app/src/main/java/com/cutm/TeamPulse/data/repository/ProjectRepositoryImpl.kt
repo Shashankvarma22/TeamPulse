@@ -36,6 +36,7 @@ class ProjectRepositoryImpl @Inject constructor(
     private val studentDao: com.cutm.TeamPulse.data.local.dao.StudentDao,
     private val database: TeamPulseDatabase,
     private val dispatchers: DispatcherProvider,
+    private val syncRepository: com.cutm.TeamPulse.domain.repository.SyncRepository,
 ) : ProjectRepository {
 
     override fun observeProjects(): Flow<List<Project>> {
@@ -307,36 +308,19 @@ class ProjectRepositoryImpl @Inject constructor(
         return@withContext email in team.memberEmails
     }
 
-    /**
-     * ONE-TIME DATA REPAIR: Remove orphaned team and task from deleted "Blaa" project.
-     * 
-     * Evidence from logcat (Sept 1, 2026):
-     * - Team "alpha" (fde846fc-5717-49e4-901a-cd502592b40c) references dead project 93ab134c-...
-     * - Task "Hi" (73bbd919-387f-40a4-bce9-bb7e6509ab72) references same dead project/team
-     * - Student in both orphaned team AND real team, firstOrNull picks orphaned one
-     * 
-     * This function should be called ONCE, then removed from codebase.
-     */
-    override suspend fun cleanupOrphanedBlaaData(): ApiResult<Unit> = withContext(dispatchers.io) {
-        try {
-            database.withTransaction {
-                // Delete specific orphaned task
-                taskDao.deleteById("73bbd919-387f-40a4-bce9-bb7e6509ab72")
-                
-                // Delete specific orphaned team
-                teamDao.deleteById("fde846fc-5717-49e4-901a-cd502592b40c")
-                
-                // Students table cleanup: students are per-team, so deleting by teamId would be correct
-                // But we don't have deleteByTeam in StudentDao. The orphaned students will remain
-                // but harmless (they reference a teamId that no longer exists).
-                // Real fix is to add ON DELETE CASCADE FK constraint, noted in known-issues.md
+    override suspend fun syncFromSheets(spreadsheetId: String): ApiResult<Unit> = withContext(dispatchers.io) {
+        return@withContext try {
+            // Verify session
+            val session = sessionDao.getActive()
+            if (session == null) {
+                return@withContext ApiResult.Error("Session expired")
             }
-            
-            Log.d("ProjectRepository", "Cleanup: Removed orphaned team fde846fc-... and task 73bbd919-...")
-            ApiResult.Success(Unit)
+
+            // Delegate to SyncRepository
+            syncRepository.pullFromSheets(spreadsheetId)
         } catch (e: Exception) {
-            Log.e("ProjectRepository", "Cleanup failed", e)
-            ApiResult.Error("Cleanup failed: ${e.message}")
+            Log.e("ProjectRepository", "syncFromSheets failed", e)
+            ApiResult.Error("Sync failed: ${e.message}")
         }
     }
 }
