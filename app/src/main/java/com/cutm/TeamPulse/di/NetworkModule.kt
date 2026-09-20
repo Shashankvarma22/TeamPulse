@@ -3,6 +3,7 @@ package com.cutm.TeamPulse.di
 import com.cutm.TeamPulse.core.config.SheetsConfig
 import com.cutm.TeamPulse.core.network.AuthInterceptor
 import com.cutm.TeamPulse.core.network.QuotaBackoffInterceptor
+import com.cutm.TeamPulse.data.remote.CloudFunctionsApiService
 import com.cutm.TeamPulse.data.remote.SheetsApiService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -71,6 +72,35 @@ object NetworkModule {
     @Singleton
     fun provideSheetsApiService(@SheetsRetrofit retrofit: Retrofit): SheetsApiService {
         return retrofit.create(SheetsApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    @CloudFunctionsRetrofit
+    fun provideCloudFunctionsRetrofit(moshi: Moshi): Retrofit {
+        // Cloud Functions service does NOT use AuthInterceptor (user OAuth token).
+        // Authentication is via Google ID token passed in Authorization header per-request.
+        val logging = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+        val client = OkHttpClient.Builder()
+            .addInterceptor(logging)
+            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl(SheetsConfig.CLOUD_FUNCTIONS_BASE_URL)
+            .client(client)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCloudFunctionsApiService(@CloudFunctionsRetrofit retrofit: Retrofit): CloudFunctionsApiService {
+        return retrofit.create(CloudFunctionsApiService::class.java)
     }
 
     // Placeholder base URL until Google API service interfaces are added.

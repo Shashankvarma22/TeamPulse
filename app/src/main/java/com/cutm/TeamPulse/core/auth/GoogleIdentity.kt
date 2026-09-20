@@ -9,4 +9,5 @@ data class GoogleIdentity(
     val email: String,
     val displayName: String,
     val photoUrl: String?,
+    val idToken: String, // Google ID token for server-side verification
 )

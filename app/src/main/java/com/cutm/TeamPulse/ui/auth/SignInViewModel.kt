@@ -17,9 +17,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -51,6 +54,21 @@ class SignInViewModel @Inject constructor(
         _navigateToHome.asSharedFlow()
 
     private var googleIdentity: GoogleIdentity? = null
+
+    // NEW: Expose existing session as StateFlow
+    // Fragment will check this once its collector is guaranteed running
+    val existingSession: StateFlow<UserSession?> = authRepository.observeSession()
+        .onEach { session ->
+            android.util.Log.d(
+                "SignInViewModel",
+                "existingSession check: ${session?.let { "found ${it.email}, role=${it.role}" } ?: "null"}"
+            )
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly, // Start immediately to check session ASAP
+            initialValue = null
+        )
 
     fun onGoogleSignInClicked(activity: Activity) {
         if (_uiState.value is UiState.Loading) return
@@ -97,7 +115,7 @@ class SignInViewModel @Inject constructor(
             }
 
             // Now perform role lookup with authenticated token
-            when (val roleResult = userRegistryRepository.lookupUser(identity.email)) {
+            when (val roleResult = userRegistryRepository.lookupUser(identity.email, identity.idToken)) {
                 is ApiResult.Success -> {
                     val role = roleResult.data
 

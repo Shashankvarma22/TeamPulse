@@ -76,6 +76,7 @@ class GoogleAuthClientImpl @Inject constructor(
                 displayName = googleIdTokenCredential.displayName
                     ?: googleIdTokenCredential.id,
                 photoUrl = googleIdTokenCredential.profilePictureUri?.toString(),
+                idToken = googleIdTokenCredential.idToken, // Capture ID token for Cloud Function auth
             )
 
             ApiResult.Success(identity)

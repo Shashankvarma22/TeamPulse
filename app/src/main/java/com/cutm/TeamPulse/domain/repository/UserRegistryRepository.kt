@@ -5,5 +5,5 @@ import com.cutm.TeamPulse.core.network.ApiResult
 
 interface UserRegistryRepository {
 
-    suspend fun lookupUser(email: String): ApiResult<SessionRole>
+    suspend fun lookupUser(email: String, idToken: String): ApiResult<SessionRole>
 }
