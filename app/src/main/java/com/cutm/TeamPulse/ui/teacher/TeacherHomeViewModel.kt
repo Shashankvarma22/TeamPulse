@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -37,25 +38,61 @@ data class UpcomingDeadline(
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TeacherHomeViewModel @Inject constructor(
-    authRepository: AuthRepository,
+    private val authRepository: AuthRepository,
     private val projectRepository: ProjectRepository,
     private val taskRepository: TaskRepository,
     private val teamRepository: TeamRepository,
 ) : ViewModel() {
 
+    init {
+        val vmStartTime = System.currentTimeMillis()
+        android.util.Log.d("TeacherHomeVM", "ViewModel init START at $vmStartTime")
+        
+        // This is where Hilt constructs the ViewModel and all its dependencies
+        // Any work in constructor parameters or init block happens here
+        
+        val vmEndTime = System.currentTimeMillis()
+        android.util.Log.d("TeacherHomeVM", "ViewModel init COMPLETE (took ${vmEndTime - vmStartTime}ms)")
+    }
+
     val userSession: StateFlow<UserSession?> = authRepository.observeSession()
+        .onEach { 
+            android.util.Log.d("TeacherHomeVM", "userSession emitted at ${System.currentTimeMillis()}: ${it?.email ?: "null"}")
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null
         )
 
+    /**
+     * Phase 1: Sync a specific project from Sheets → Room (read-only).
+     * Called explicitly from UI (e.g., sync button in project detail).
+     * 
+     * @param spreadsheetId The project's spreadsheet ID
+     * @return ApiResult indicating success or error
+     */
+    suspend fun syncProjectFromSheets(spreadsheetId: String) =
+        projectRepository.syncFromSheets(spreadsheetId)
+
+    /**
+     * Sign out: Clear session from Room and CredentialManager cache.
+     * Next sign-in will show Google account picker.
+     */
+    suspend fun signOut() {
+        authRepository.signOut()
+    }
+
     val projectsWithProgress: StateFlow<List<ProjectWithProgress>> = projectRepository.observeProjects()
+        .onEach { android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] observeProjects() emitted: ${it.size} projects") }
         .combine(userSession) { projects, session ->
+            android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] combine: projects=${projects.size}, session=${session?.email}")
             if (session == null) return@combine emptyList()
             projects.filter { it.teacherEmail == session.email }
         }
+        .onEach { android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] After filter: ${it.size} teacher projects") }
         .flatMapLatest { teacherProjects ->
+            android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] flatMapLatest entered with ${teacherProjects.size} projects")
             if (teacherProjects.isEmpty()) {
                 flowOf(emptyList())
             } else {
@@ -105,14 +142,17 @@ class TeacherHomeViewModel @Inject constructor(
                 }
             }
         }
+        .onEach { android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] FINAL projectsWithProgress emitted: ${it.size} items") }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = emptyList()
         )
 
     val upcomingDeadlines: StateFlow<List<UpcomingDeadline>> = projectsWithProgress
+        .onEach { android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] upcomingDeadlines source: ${it.size} projects") }
         .combine(userSession) { projects, _ ->
+            android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] upcomingDeadlines combine: computing from ${projects.size} projects")
             val currentTime = System.currentTimeMillis()
             val deadlines = mutableListOf<UpcomingDeadline>()
 
@@ -132,9 +172,16 @@ class TeacherHomeViewModel @Inject constructor(
 
             // Sort by closest deadline first
             deadlines.sortedBy { it.daysUntil }.take(5)
-        }.stateIn(
+        }
+        .onEach { android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] FINAL upcomingDeadlines emitted: ${it.size} items") }
+        .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = emptyList()
         )
+
+    override fun onCleared() {
+        android.util.Log.d("TeacherHomeVM", "ViewModel cleared at ${System.currentTimeMillis()}")
+        super.onCleared()
+    }
 }

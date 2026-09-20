@@ -37,7 +37,7 @@ data class StudentTaskData(
 
 @HiltViewModel
 class StudentHomeViewModel @Inject constructor(
-    authRepository: AuthRepository,
+    private val authRepository: AuthRepository,
     private val projectRepository: ProjectRepository,
     private val teamRepository: TeamRepository,
     private val taskRepository: TaskRepository,
@@ -49,6 +49,14 @@ class StudentHomeViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null
         )
+
+    /**
+     * Sign out: Clear session from Room and CredentialManager cache.
+     * Next sign-in will show Google account picker.
+     */
+    suspend fun signOut() {
+        authRepository.signOut()
+    }
 
     fun updateTaskStatus(taskId: String, newStatus: TaskStatus) {
         // Students can only set TODO or IN_PROGRESS, not DONE/COMPLETED

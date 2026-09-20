@@ -21,6 +21,8 @@
     <!-- Home Screens -->
     <string name="teacher_home_title">Welcome, %1$s</string>
     <string name="student_home_title">Welcome, %1$s</string>
+    <string name="teacher_home_toolbar_title">Teacher Home</string>
+    <string name="student_home_toolbar_title">Student Home</string>
 
     <!-- Role Pending -->
     <string name="role_pending_title">Account Pending</string>
@@ -37,7 +39,8 @@
     <!-- Common Actions -->
     <string name="action_retry">Retry</string>
     <string name="action_refresh">Refresh</string>
-    <string name="action_sign_out">Sign Out</string>
+    <string name="action_sign_out">Sign out</string>
+    <string name="sign_out_progress">Signing out…</string>
 
     <!-- Navigation -->
     <string name="nav_home">Home</string>
