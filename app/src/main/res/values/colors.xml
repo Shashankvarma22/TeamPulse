@@ -57,8 +57,7 @@
     <color name="status_done">#388E3C</color>
 
     <!-- Role-specific accents -->
-    <color name="teacher_accent">#5E35B1</color>
-    <color name="student_accent">#1565C0</color>
+    <!-- Removed: teacher_accent and student_accent (unused) -->
 
     <!-- Shadow and overlay -->
     <color name="scrim">#80000000</color>
@@ -69,4 +68,12 @@
     <color name="text_secondary">#42474E</color>
     <color name="text_tertiary">#6B7178</color>
     <color name="text_disabled">#9BA1A8</color>
+
+    <!-- Neutral colors for UI elements -->
+    <color name="neutral_200">#E8EEF4</color>
+    <color name="neutral_300">#D0D4DB</color>
+    <color name="neutral_400">#9BA1A8</color>
+    <color name="neutral_500">#757575</color>
+    <color name="transparent">#00000000</color>
+    <color name="on_primary_variant">#E8EEF4</color>
 </resources>
