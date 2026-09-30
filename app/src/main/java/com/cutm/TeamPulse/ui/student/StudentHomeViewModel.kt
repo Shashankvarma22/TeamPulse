@@ -15,6 +15,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -70,68 +72,117 @@ class StudentHomeViewModel @Inject constructor(
         }
     }
 
-    val currentProject: StateFlow<CurrentProjectData?> = userSession
+    /**
+     * Focused project ID for carousel tracking.
+     * Updated when user swipes between project cards.
+     */
+    private val _focusedProjectId = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+    val focusedProjectId: StateFlow<String?> = _focusedProjectId.asStateFlow()
+
+    /**
+     * All projects the student is enrolled in (via team membership).
+     * Replaces single currentProject with list support for carousel.
+     */
+    val currentProjects: StateFlow<List<CurrentProjectData>> = userSession
         .flatMapLatest { session ->
             if (session == null) {
-                return@flatMapLatest flowOf(null)
+                return@flatMapLatest flowOf(emptyList())
             }
 
             teamRepository.observeTeams().flatMapLatest { teams ->
-                val studentTeam = teams.firstOrNull { team ->
+                val studentTeams = teams.filter { team ->
                     team.memberEmails.contains(session.email)
                 }
                 
-                if (studentTeam == null) {
-                    return@flatMapLatest flowOf(null)
+                if (studentTeams.isEmpty()) {
+                    return@flatMapLatest flowOf(emptyList())
                 }
 
-                combine(
-                    projectRepository.observeProject(studentTeam.projectId),
-                    taskRepository.observeTasksForTeam(studentTeam.teamId)
-                ) { project, tasks ->
-                    if (project == null) {
-                        return@combine null
-                    }
+                // Combine all project data for each student team
+                val projectFlows = studentTeams.map { team ->
+                    combine(
+                        projectRepository.observeProject(team.projectId),
+                        taskRepository.observeTasksForTeam(team.teamId)
+                    ) { project, tasks ->
+                        if (project == null) {
+                            return@combine null
+                        }
 
-                    val completedTasks = tasks.count { it.status == TaskStatus.DONE }
-                    val totalTasks = tasks.size
-                    val currentTime = System.currentTimeMillis()
-                    val daysUntil = ((project.dueDate - currentTime) / (1000 * 60 * 60 * 24)).toInt()
-                    
-                    CurrentProjectData(
-                        project = project,
-                        team = studentTeam,
-                        completedTasks = completedTasks,
-                        totalTasks = totalTasks,
-                        daysUntilDeadline = daysUntil
-                    )
+                        val completedTasks = tasks.count { it.status == TaskStatus.DONE }
+                        val totalTasks = tasks.size
+                        val currentTime = System.currentTimeMillis()
+                        val daysUntil = ((project.dueDate - currentTime) / (1000 * 60 * 60 * 24)).toInt()
+                        
+                        CurrentProjectData(
+                            project = project,
+                            team = team,
+                            completedTasks = completedTasks,
+                            totalTasks = totalTasks,
+                            daysUntilDeadline = daysUntil
+                        )
+                    }
+                }
+
+                // Combine all project flows into a single list
+                if (projectFlows.isEmpty()) {
+                    flowOf(emptyList())
+                } else {
+                    combine(projectFlows) { projectArray ->
+                        projectArray.filterNotNull()
+                    }
                 }
             }
+        }.map { projects ->
+            // Auto-focus first project on first emission if not already focused
+            if (projects.isNotEmpty() && _focusedProjectId.value == null) {
+                _focusedProjectId.value = projects[0].project.projectId
+            }
+            projects
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = null
+            initialValue = emptyList()
         )
 
-    val myTasks: StateFlow<List<StudentTaskData>> = userSession
-        .flatMapLatest { session ->
-            if (session == null) {
-                flowOf(emptyList())
+    /**
+     * Update focused project (called when carousel page changes).
+     */
+    fun setFocusedProject(projectId: String) {
+        _focusedProjectId.value = projectId
+    }
+
+    val myTasks: StateFlow<List<StudentTaskData>> = combine(
+        userSession,
+        focusedProjectId,
+        currentProjects
+    ) { session: UserSession?, focusedId: String?, projects: List<CurrentProjectData> ->
+        Triple(session, focusedId, projects)
+    }
+        .flatMapLatest { (session, focusedId, projects) ->
+            if (session == null || focusedId == null) {
+                flowOf(emptyList<TaskAssignment>())
             } else {
-                taskRepository.observeTasksForStudent(session.email)
+                // Find the focused project to get its team ID
+                val focusedProject = projects.find { it.project.projectId == focusedId }
+                if (focusedProject == null) {
+                    flowOf(emptyList<TaskAssignment>())
+                } else {
+                    // Observe only tasks for the focused project's team
+                    taskRepository.observeTasksForTeam(focusedProject.team.teamId)
+                }
             }
         }
-        .map { tasks ->
+        .map { tasks: List<TaskAssignment> ->
             val currentTime = System.currentTimeMillis()
 
             tasks.map { task ->
                 val daysUntil = ((task.dueDate - currentTime) / (1000 * 60 * 60 * 24)).toInt()
                 StudentTaskData(task = task, daysUntilDue = daysUntil)
             }
-            .sortedWith(
-                compareBy<StudentTaskData> { it.task.status == TaskStatus.DONE }
-                    .thenBy { it.daysUntilDue }
-            )
+                .sortedWith(
+                    compareBy<StudentTaskData> { it.task.status == TaskStatus.DONE }
+                        .thenBy { it.daysUntilDue }
+                )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

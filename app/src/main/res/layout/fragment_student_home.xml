@@ -48,88 +48,39 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Welcome, Alex" />
 
-        <!-- ZONE 1: Current Project (Focal) -->
+        <!-- ZONE 1: Project Carousel (ViewPager2 + Indicator) -->
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/projectFocalCard"
-            style="@style/Widget.TeamPulse.Card"
+        <!-- ViewPager2 for project carousel -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/projectCarousel"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="200dp"
             android:layout_marginTop="@dimen/spacing_base"
             android:visibility="gone"
-            app:cardBackgroundColor="@color/primary_light"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/greetingText"
-            tools:visibility="visible">
+            tools:visibility="visible" />
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/spacing_lg">
-
-                <TextView
-                    android:id="@+id/projectNameText"
-                    style="@style/TextAppearance.TeamPulse.TitleLarge"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/on_primary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:text="Mobile App Development" />
-
-                <TextView
-                    android:id="@+id/teamNameText"
-                    style="@style/TextAppearance.TeamPulse.BodyMedium"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/spacing_xxs"
-                    android:textColor="@color/on_primary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/projectNameText"
-                    tools:text="Team Alpha" />
-
-                <TextView
-                    android:id="@+id/projectProgressText"
-                    style="@style/TextAppearance.TeamPulse.NumericLarge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/spacing_md"
-                    android:textColor="@color/on_primary"
-                    android:textSize="32sp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/teamNameText"
-                    tools:text="65%" />
-
-                <TextView
-                    android:id="@+id/projectProgressLabel"
-                    style="@style/TextAppearance.TeamPulse.LabelMedium"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/spacing_sm"
-                    android:text="Complete"
-                    android:textColor="@color/on_primary"
-                    app:layout_constraintBottom_toBottomOf="@id/projectProgressText"
-                    app:layout_constraintStart_toEndOf="@id/projectProgressText"
-                    app:layout_constraintTop_toTopOf="@id/projectProgressText" />
-
-                <TextView
-                    android:id="@+id/projectDeadlineText"
-                    style="@style/TextAppearance.TeamPulse.BodyMedium"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/spacing_sm"
-                    android:textColor="@color/on_primary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/projectProgressText"
-                    tools:text="Due in 12 days" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-        </com.google.android.material.card.MaterialCardView>
+        <!-- Page indicator dots -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/projectIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_sm"
+            android:background="@android:color/transparent"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/projectCarousel"
+            app:tabBackground="@drawable/indicator_dot_selector"
+            app:tabGravity="center"
+            app:tabIconTint="@color/neutral_400"
+            app:tabIndicatorHeight="0dp"
+            app:tabMode="fixed"
+            app:tabPadding="@dimen/spacing_xs"
+            app:tabRippleColor="@color/transparent"
+            tools:visibility="visible" />
 
         <!-- Project Empty State -->
         <com.cutm.TeamPulse.ui.common.EmptyStateView
@@ -152,7 +103,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:barrierDirection="bottom"
-            app:constraint_referenced_ids="projectFocalCard,projectEmptyState" />
+            app:constraint_referenced_ids="projectIndicator,projectEmptyState" />
 
         <!-- ZONE 2: Your Tasks Section (Secondary) -->
 

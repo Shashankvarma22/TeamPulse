@@ -16,11 +16,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
+import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayoutMediator
 import com.cutm.TeamPulse.R
 import com.cutm.TeamPulse.databinding.FragmentStudentHomeBinding
 import com.cutm.TeamPulse.ui.common.BaseFragment
@@ -135,14 +138,14 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
                     }
                 }
 
-                // Collect current project data
+                // Collect current projects and setup carousel
                 launch {
-                    viewModel.currentProject.collect { projectData ->
-                        renderProject(projectData)
+                    viewModel.currentProjects.collect { projects ->
+                        renderProjectCarousel(projects)
                     }
                 }
 
-                // Collect student's tasks
+                // Collect student's tasks filtered by focused project
                 launch {
                     viewModel.myTasks.collect { tasks ->
                         renderTasks(tasks)
@@ -167,8 +170,10 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
             // Immediately show all content
             binding.greetingText.alpha = 1f
             binding.greetingText.translationY = 0f
-            binding.projectFocalCard.alpha = 1f
-            binding.projectFocalCard.translationY = 0f
+            binding.projectCarousel.alpha = 1f
+            binding.projectCarousel.translationY = 0f
+            binding.projectIndicator.alpha = 1f
+            binding.projectIndicator.translationY = 0f
             binding.projectEmptyState.alpha = 1f
             binding.projectEmptyState.translationY = 0f
             binding.tasksSectionHeader.alpha = 1f
@@ -184,7 +189,8 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
         val translationDistance = 32f * resources.displayMetrics.density
         listOf(
             binding.greetingText,
-            binding.projectFocalCard,
+            binding.projectCarousel,
+            binding.projectIndicator,
             binding.projectEmptyState,
             binding.tasksSectionHeader,
             binding.tasksContainer,
@@ -214,7 +220,7 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
         })
 
         // Project zone (stagger 1)
-        listOf(binding.projectFocalCard, binding.projectEmptyState).forEach { view ->
+        listOf(binding.projectCarousel, binding.projectIndicator, binding.projectEmptyState).forEach { view ->
             if (view.visibility == View.VISIBLE) {
                 animators.add(ObjectAnimator.ofFloat(view, View.ALPHA, 0f, 1f).apply {
                     this.duration = duration
@@ -253,29 +259,150 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
         }
     }
 
-    private fun renderProject(projectData: CurrentProjectData?) {
-        val wasVisible = binding.projectFocalCard.isVisible
-        val newVisible = projectData != null
+    private var carouselAdapter: ProjectCarouselAdapter? = null
+    private var maxCarouselHeight = 0
 
-        if (projectData == null) {
-            crossFade(binding.projectFocalCard, binding.projectEmptyState)
-        } else {
-            crossFade(binding.projectEmptyState, binding.projectFocalCard)
+    private val prototypeCard: android.view.View by lazy {
+        layoutInflater.inflate(R.layout.item_project_carousel, null, false)
+    }
 
-            binding.projectNameText.text = projectData.project.name
-            binding.teamNameText.text = projectData.team.teamName
-
-            val progress = if (projectData.totalTasks > 0) {
-                (projectData.completedTasks * 100) / projectData.totalTasks
-            } else 0
-            binding.projectProgressText.text = getString(R.string.progress_percentage, progress)
-
-            val deadlineText = when {
-                projectData.daysUntilDeadline < 0 -> getString(R.string.overdue)
-                projectData.daysUntilDeadline == 0 -> getString(R.string.due_today)
-                else -> getString(R.string.due_in_days, projectData.daysUntilDeadline)
+    private fun measureCarouselHeight(projects: List<CurrentProjectData>) {
+        // Guard: if ViewPager2 hasn't been laid out yet, width will be 0
+        // Skip measurement and re-run once layout is known
+        if (binding.projectCarousel.width <= 0) {
+            binding.projectCarousel.doOnPreDraw {
+                measureCarouselHeight(projects)
             }
-            binding.projectDeadlineText.text = deadlineText
+            return
+        }
+
+        val widthSpec = android.view.View.MeasureSpec.makeMeasureSpec(
+            binding.projectCarousel.width,
+            android.view.View.MeasureSpec.EXACTLY
+        )
+        val heightSpec = android.view.View.MeasureSpec.makeMeasureSpec(0, android.view.View.MeasureSpec.UNSPECIFIED)
+
+        var maxHeight = 0
+
+        for (projectData in projects) {
+            // Bind prototype card with project data
+            val projectNameView = prototypeCard.findViewById<android.widget.TextView>(R.id.projectName)
+            val teamNameView = prototypeCard.findViewById<android.widget.TextView>(R.id.teamName)
+            val progressPercentageView = prototypeCard.findViewById<android.widget.TextView>(R.id.progressPercentage)
+            val progressBarView = prototypeCard.findViewById<android.widget.ProgressBar>(R.id.progressBar)
+            val taskCountView = prototypeCard.findViewById<android.widget.TextView>(R.id.taskCount)
+            val deadlineChipView = prototypeCard.findViewById<com.google.android.material.chip.Chip>(R.id.deadlineChip)
+
+            projectNameView.text = projectData.project.name
+            teamNameView.text = projectData.team.teamName
+
+            val progressPercent = if (projectData.totalTasks > 0) {
+                (projectData.completedTasks * 100) / projectData.totalTasks
+            } else {
+                0
+            }
+
+            progressPercentageView.text = getString(R.string.progress_percentage, progressPercent)
+            progressBarView.progress = progressPercent
+            taskCountView.text = getString(
+                R.string.task_count_format,
+                projectData.completedTasks,
+                projectData.totalTasks
+            )
+
+            val (deadlineText, chipColor) = getDeadlineInfo(projectData.daysUntilDeadline)
+            deadlineChipView.text = deadlineText
+            deadlineChipView.setChipBackgroundColorResource(chipColor)
+
+            // Measure the prototype
+            prototypeCard.measure(widthSpec, heightSpec)
+
+            if (prototypeCard.measuredHeight > maxHeight) {
+                maxHeight = prototypeCard.measuredHeight
+            }
+        }
+
+        if (maxHeight > 0) {
+            val marginSize = resources.getDimensionPixelSize(R.dimen.spacing_md)
+            val totalHeight = maxHeight + (marginSize * 2)
+            val layoutParams = binding.projectCarousel.layoutParams
+            layoutParams.height = totalHeight
+            binding.projectCarousel.layoutParams = layoutParams
+        }
+    }
+
+    private fun getDeadlineInfo(daysUntil: Int): Pair<String, Int> {
+        return when {
+            daysUntil < 0 -> {
+                val daysOverdue = -daysUntil
+                Pair(
+                    getString(R.string.overdue_days, daysOverdue),
+                    R.color.error
+                )
+            }
+            daysUntil == 0 -> {
+                Pair(
+                    getString(R.string.due_today),
+                    R.color.warning
+                )
+            }
+            daysUntil <= 3 -> {
+                Pair(
+                    getString(R.string.due_soon_days, daysUntil),
+                    R.color.warning
+                )
+            }
+            else -> {
+                Pair(
+                    getString(R.string.due_in_days, daysUntil),
+                    R.color.success
+                )
+            }
+        }
+    }
+
+    private fun renderProjectCarousel(projects: List<CurrentProjectData>) {
+        val wasVisible = binding.projectCarousel.isVisible
+        val newVisible = projects.isNotEmpty()
+
+        if (projects.isEmpty()) {
+            crossFade(binding.projectCarousel, binding.projectEmptyState)
+            binding.projectIndicator.isVisible = false
+        } else {
+            crossFade(binding.projectEmptyState, binding.projectCarousel)
+            binding.projectIndicator.isVisible = projects.size > 1
+            binding.projectIndicator.alpha = 1f
+
+            // Measure carousel height against real project data
+            measureCarouselHeight(projects)
+
+            // Setup or update carousel adapter
+            if (carouselAdapter == null) {
+                carouselAdapter = ProjectCarouselAdapter(requireContext(), projects) { projectId ->
+                    viewModel.setFocusedProject(projectId)
+                }
+                binding.projectCarousel.adapter = carouselAdapter
+
+                // Connect indicator dots to carousel
+                if (projects.size > 1) {
+                    TabLayoutMediator(binding.projectIndicator, binding.projectCarousel) { tab, position ->
+                        // Tab styling is handled by layout attributes
+                    }.attach()
+                }
+
+                // Listen for page changes and update focused project
+                binding.projectCarousel.registerOnPageChangeCallback(
+                    object : ViewPager2.OnPageChangeCallback() {
+                        override fun onPageSelected(position: Int) {
+                            if (position < projects.size) {
+                                viewModel.setFocusedProject(projects[position].project.projectId)
+                            }
+                        }
+                    }
+                )
+            } else {
+                carouselAdapter?.updateProjects(projects)
+            }
         }
     }
 

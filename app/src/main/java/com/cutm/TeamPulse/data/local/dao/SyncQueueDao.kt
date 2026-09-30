@@ -22,4 +22,13 @@ interface SyncQueueDao {
 
     @Query("UPDATE sync_queue SET status = :status WHERE queueId = :queueId")
     suspend fun updateStatus(queueId: Long, status: SyncQueueStatus)
+
+    @Query("DELETE FROM sync_queue WHERE queueId = :queueId")
+    suspend fun delete(queueId: Long)
+
+    @Query("UPDATE sync_queue SET retryCount = :retryCount WHERE queueId = :queueId")
+    suspend fun updateRetryCount(queueId: Long, retryCount: Int)
+
+    @Query("UPDATE sync_queue SET status = :status, failureReason = :failureReason WHERE queueId = :queueId")
+    suspend fun updateStatusAndReason(queueId: Long, status: SyncQueueStatus, failureReason: String)
 }

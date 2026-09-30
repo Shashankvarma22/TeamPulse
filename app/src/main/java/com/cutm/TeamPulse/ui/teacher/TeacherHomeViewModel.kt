@@ -2,24 +2,28 @@ package com.cutm.TeamPulse.ui.teacher
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cutm.TeamPulse.core.network.ApiResult
 import com.cutm.TeamPulse.domain.model.Project
 import com.cutm.TeamPulse.domain.model.TaskAssignment
 import com.cutm.TeamPulse.domain.model.TaskStatus
 import com.cutm.TeamPulse.domain.model.UserSession
 import com.cutm.TeamPulse.domain.repository.AuthRepository
 import com.cutm.TeamPulse.domain.repository.ProjectRepository
+import com.cutm.TeamPulse.domain.repository.SyncRepository
 import com.cutm.TeamPulse.domain.repository.TaskRepository
 import com.cutm.TeamPulse.domain.repository.TeamRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ProjectWithProgress(
@@ -42,6 +46,7 @@ class TeacherHomeViewModel @Inject constructor(
     private val projectRepository: ProjectRepository,
     private val taskRepository: TaskRepository,
     private val teamRepository: TeamRepository,
+    private val syncRepository: SyncRepository,
 ) : ViewModel() {
 
     init {
@@ -74,6 +79,115 @@ class TeacherHomeViewModel @Inject constructor(
      */
     suspend fun syncProjectFromSheets(spreadsheetId: String) =
         projectRepository.syncFromSheets(spreadsheetId)
+
+    /**
+     * Phase 6: Push pending local changes to Sheets.
+     * Processes the sync_queue: write pending tasks, achievements, etc.
+     * 
+     * @return ApiResult indicating success or error
+     */
+    suspend fun pushPendingChanges() = syncRepository.processQueue()
+
+    /**
+     * Phase 6: Pull latest data from Sheets to Room.
+     * Reads projects, teams, students, and tasks for the current teacher.
+     * 
+     * @return ApiResult indicating success or error
+     */
+    suspend fun pullFromSheets(): ApiResult<Unit> {
+        val email = userSession.value?.email ?: return ApiResult.Error("No active session")
+        return syncRepository.pullFromSheets(teacherEmail = email)
+    }
+
+    /**
+     * Phase 6: Sync-in-progress state. Exposed so Fragment can survive rotation.
+     * Separate from observeSyncStatus().isSyncing (which is hardcoded false).
+     */
+    private val _isSyncing = kotlinx.coroutines.flow.MutableStateFlow(false)
+    val isSyncing: kotlinx.coroutines.flow.StateFlow<Boolean> = _isSyncing.asStateFlow()
+
+    /**
+     * Phase 6: Sync outcome (success or error with stage and message).
+     * Exposed so Fragment can show real feedback to teacher.
+     * Value is null when not actively syncing, or after outcome has been shown.
+     */
+    private val _syncOutcome = kotlinx.coroutines.flow.MutableStateFlow<SyncOutcome?>(null)
+    val syncOutcome: kotlinx.coroutines.flow.StateFlow<SyncOutcome?> = _syncOutcome.asStateFlow()
+
+    /**
+     * Sync result: success or error with specific stage and message.
+     */
+    sealed class SyncOutcome {
+        object Success : SyncOutcome()
+        data class Error(
+            val stage: String,  // "push" or "pull"
+            val message: String
+        ) : SyncOutcome()
+    }
+
+    /**
+     * Clear sync outcome after it's been displayed.
+     * Prevents re-showing the same message on screen rotation.
+     */
+    fun clearSyncOutcome() {
+        _syncOutcome.value = null
+    }
+
+    /**
+     * Phase 6: Trigger a full sync cycle (push then pull).
+     * Runs in viewModelScope so it survives rotation.
+     * Updates isSyncing state for Fragment to re-collect after rotation.
+     * Exposes actual sync outcome (success or error with stage) to UI.
+     */
+    fun triggerSync() {
+        // Bug A Fix: Re-entrancy guard at function entry (before launch)
+        if (_isSyncing.value) {
+            android.util.Log.d("TeacherHomeVM", "triggerSync: Already syncing, ignoring tap")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                _isSyncing.value = true
+                android.util.Log.d("TeacherHomeVM", "triggerSync: Starting push")
+                val pushResult = pushPendingChanges()
+                
+                if (pushResult is ApiResult.Error) {
+                    android.util.Log.e("TeacherHomeVM", "triggerSync: Push failed - ${pushResult.message}")
+                    _syncOutcome.value = SyncOutcome.Error(
+                        stage = "push",
+                        message = pushResult.message ?: "Push failed for unknown reason"
+                    )
+                    _isSyncing.value = false
+                    return@launch
+                }
+
+                android.util.Log.d("TeacherHomeVM", "triggerSync: Push succeeded, starting pull")
+                val pullResult = pullFromSheets()
+                
+                if (pullResult is ApiResult.Error) {
+                    android.util.Log.e("TeacherHomeVM", "triggerSync: Pull failed - ${pullResult.message}")
+                    _syncOutcome.value = SyncOutcome.Error(
+                        stage = "pull",
+                        message = pullResult.message ?: "Pull failed for unknown reason"
+                    )
+                    _isSyncing.value = false
+                    return@launch
+                }
+
+                android.util.Log.d("TeacherHomeVM", "triggerSync: Push and pull both succeeded")
+                _syncOutcome.value = SyncOutcome.Success
+                _isSyncing.value = false
+            } catch (e: Exception) {
+                android.util.Log.e("TeacherHomeVM", "triggerSync: Unexpected error", e)
+                _syncOutcome.value = SyncOutcome.Error(
+                    stage = "unknown",
+                    message = e.message ?: "Sync failed with unexpected error"
+                )
+                _isSyncing.value = false
+            }
+        }
+    }
 
     /**
      * Sign out: Clear session from Room and CredentialManager cache.

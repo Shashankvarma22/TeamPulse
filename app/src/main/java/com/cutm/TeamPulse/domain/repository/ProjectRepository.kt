@@ -104,9 +104,10 @@ interface ProjectRepository {
     ): Boolean
 
     /**
-     * Phase 1: Pull projects/teams/students from Google Sheets → Room (read-only sync).
+     * Phase 1: Pull projects/teams/students from shared Google Sheets → Room (read-only sync).
+     * Data is filtered by the currently signed-in teacher's email.
      * 
-     * @param spreadsheetId The project's spreadsheet ID
+     * @param spreadsheetId Deprecated — no longer used (kept for signature compatibility)
      * @return Success if sync completed, Error with message if failed
      */
     suspend fun syncFromSheets(spreadsheetId: String): ApiResult<Unit>

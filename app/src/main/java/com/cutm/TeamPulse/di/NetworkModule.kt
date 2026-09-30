@@ -103,6 +103,26 @@ object NetworkModule {
         return retrofit.create(UserRoleApiService::class.java)
     }
 
+    @Provides
+    @Singleton
+    fun provideSheetsWriter(
+        sheetsApiService: SheetsApiService,
+        syncMetadataDao: com.cutm.TeamPulse.data.local.dao.SyncMetadataDao,
+        teamDao: com.cutm.TeamPulse.data.local.dao.TeamDao,
+        studentDao: com.cutm.TeamPulse.data.local.dao.StudentDao,
+        projectDao: com.cutm.TeamPulse.data.local.dao.ProjectDao,
+        moshi: Moshi
+    ): com.cutm.TeamPulse.data.remote.SheetsWriter {
+        return com.cutm.TeamPulse.data.remote.SheetsWriterImpl(
+            sheetsApiService = sheetsApiService,
+            syncMetadataDao = syncMetadataDao,
+            teamDao = teamDao,
+            studentDao = studentDao,
+            projectDao = projectDao,
+            moshi = moshi
+        )
+    }
+
     // Placeholder base URL until Google API service interfaces are added.
     private const val BASE_URL = "https://placeholder.invalid/"
     private const val TIMEOUT_SECONDS = 30L

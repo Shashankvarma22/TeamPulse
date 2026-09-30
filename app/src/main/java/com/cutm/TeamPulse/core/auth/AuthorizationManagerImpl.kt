@@ -17,8 +17,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 /**
  * Real incremental-authorization implementation backed by the Play Services
  * Identity Authorization API (`Identity.getAuthorizationClient`). Requests
- * ONLY the Sheets read-only scope — this is deliberately scoped down from
- * general Drive/account access, per the PRD's least-privilege guidance.
+ * the Sheets read-write scope to enable both reading from and writing to
+ * Google Sheets for sync operations.
  *
  * This class never stores tokens itself (that's TokenManager, driven by the
  * ViewModel) and never launches an IntentSender (that's the Fragment, via
@@ -31,7 +31,7 @@ class AuthorizationManagerImpl @Inject constructor(
 
     override suspend fun requestSheetsReadAuthorization(activity: Activity): AuthorizationOutcome {
         val request = AuthorizationRequest.builder()
-            .setRequestedScopes(listOf(Scope(SHEETS_READONLY_SCOPE)))
+            .setRequestedScopes(listOf(Scope(SHEETS_SCOPE)))
             .build()
 
         return suspendCancellableCoroutine { continuation ->
@@ -90,6 +90,6 @@ class AuthorizationManagerImpl @Inject constructor(
     }
 
     private companion object {
-        const val SHEETS_READONLY_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly"
+        const val SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets"
     }
 }

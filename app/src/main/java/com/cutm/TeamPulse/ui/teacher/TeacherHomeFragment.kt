@@ -1,4 +1,4 @@
-package com.cutm.TeamPulse.ui.teacher
+﻿package com.cutm.TeamPulse.ui.teacher
 
 import android.animation.ObjectAnimator
 import android.os.Bundle
@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.MenuProvider
@@ -45,6 +46,18 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
     
     private var hasAnimatedEntrance = false
 
+    // Track all active animators so we can cancel them on destroy
+    private val activeAnimators = mutableListOf<ObjectAnimator>()
+    
+    // Track whether this is the first render after fragment creation (post-rotation or initial load)
+    // Used to skip crossFade and force correct state directly on first render, avoiding animation
+    // race conditions where rapid rotation fires onDestroyView/onViewCreated while crossFade is mid-transition
+    private var isFirstProjectRender = true
+    private var isFirstDeadlineRender = true
+
+    // Bug B Fix: Track previous isSyncing state to detect true → false transition (completion)
+    private var wasSyncing = false
+
     private fun setupMenu() {
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -53,6 +66,10 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
+                    R.id.action_sync -> {
+                        triggerSync()
+                        true
+                    }
                     R.id.action_sign_out -> {
                         signOut()
                         true
@@ -71,6 +88,17 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
             // Navigate back to sign-in, clearing backstack
             findNavController().navigate(R.id.action_teacherHome_to_signIn)
         }
+    }
+
+    private fun triggerSync() {
+        // Bug A Fix: Defense-in-depth check (ViewModel also guards)
+        if (viewModel.isSyncing.value) {
+            android.util.Log.d("TeacherHomeFragment", "triggerSync: Already syncing, ignoring tap")
+            return
+        }
+
+        // Delegate to ViewModel which runs in viewModelScope (survives rotation)
+        viewModel.triggerSync()
     }
 
     private fun setupSecurityWarningBanner(parent: ViewGroup) {
@@ -108,6 +136,27 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
         val fragmentStart = System.currentTimeMillis()
         android.util.Log.d("TeacherHomeFragment", "onViewCreated START at $fragmentStart")
         
+        // CRITICAL: Initialize ALL views to clean state BEFORE any animations
+        // This prevents views from being in partial states from animation interruptions
+        binding.projectsContainer.alpha = 1f
+        binding.projectsContainer.isVisible = false  // Match layout default (gone)
+        binding.projectsEmptyState.alpha = 1f
+        binding.projectsEmptyState.isVisible = true  // Match layout default (visible)
+        binding.deadlinesContainer.alpha = 1f
+        binding.deadlinesContainer.isVisible = true
+        binding.deadlinesEmptyState.alpha = 1f
+        binding.deadlinesEmptyState.isVisible = true
+        
+        // VERIFY: Read back immediately to confirm values were set
+        android.util.Log.d("TeacherHomeFragment", "onViewCreated INIT_CHECK: projectsContainer alpha=${String.format("%.10f", binding.projectsContainer.alpha)} visible=${binding.projectsContainer.isVisible}")
+        android.util.Log.d("TeacherHomeFragment", "onViewCreated INIT_CHECK: projectsEmptyState alpha=${String.format("%.10f", binding.projectsEmptyState.alpha)} visible=${binding.projectsEmptyState.isVisible}")
+        android.util.Log.d("TeacherHomeFragment", "onViewCreated INIT_CHECK: deadlinesContainer alpha=${String.format("%.10f", binding.deadlinesContainer.alpha)} visible=${binding.deadlinesContainer.isVisible}")
+        android.util.Log.d("TeacherHomeFragment", "onViewCreated INIT_CHECK: deadlinesEmptyState alpha=${String.format("%.10f", binding.deadlinesEmptyState.alpha)} visible=${binding.deadlinesEmptyState.isVisible}")
+        
+        // Reset first-render flags so render methods know this is the first time after fragment creation
+        isFirstProjectRender = true
+        isFirstDeadlineRender = true
+        
         val superStart = System.currentTimeMillis()
         super.onViewCreated(view, savedInstanceState)
         val superEnd = System.currentTimeMillis()
@@ -135,7 +184,7 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
         val animStart = System.currentTimeMillis()
         animateEntrance()
         val animEnd = System.currentTimeMillis()
-        android.util.Log.d("TeacherHomeFragment", "animateEntrance took ${animEnd - animStart}ms")
+        android.util.Log.d("TeacherHomeFragment", "animateEntrance took ${animEnd - animStart}ms, ${activeAnimators.size} animators started")
 
         // Setup FAB for creating new project
         val fabStart = System.currentTimeMillis()
@@ -146,38 +195,11 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
         val fabEnd = System.currentTimeMillis()
         android.util.Log.d("TeacherHomeFragment", "FAB setup took ${fabEnd - fabStart}ms")
 
-        // PHASE 1 TESTING: Temporary sync button (long-press greeting to trigger)
-        // TODO: Move to proper UI location (project detail menu) after Phase 1 verification
-        binding.greetingText.setOnLongClickListener {
-            lifecycleScope.launch {
-                // For Phase 1, sync the first project's spreadsheet as a test
-                // In production, this would be per-project from detail screen
-                val firstProject = viewModel.projectsWithProgress.value.firstOrNull()
-                if (firstProject != null) {
-                    android.util.Log.d("TeacherHome", "PHASE 1 SYNC: Starting for ${firstProject.project.spreadsheetId}")
-                    val result = viewModel.syncProjectFromSheets(firstProject.project.spreadsheetId)
-                    android.widget.Toast.makeText(
-                        requireContext(),
-                        when (result) {
-                            is com.cutm.TeamPulse.core.network.ApiResult.Success -> "Sync completed successfully"
-                            is com.cutm.TeamPulse.core.network.ApiResult.Error -> "Sync failed: ${result.message}"
-                        },
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    android.widget.Toast.makeText(
-                        requireContext(),
-                        "No projects to sync",
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-            true
-        }
-
         val collectorsStart = System.currentTimeMillis()
         viewLifecycleOwner.lifecycleScope.launch {
+            android.util.Log.d("TeacherHomeFragment", "Flow collectors coroutine launched")
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                android.util.Log.d("TeacherHomeFragment", "repeatOnLifecycle(STARTED) block entered")
                 // Collect user session for greeting
                 launch {
                     viewModel.userSession.collect { session ->
@@ -192,8 +214,9 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
 
                 // Collect projects with progress
                 launch {
+                    android.util.Log.d("TeacherHomeFragment", "projectsWithProgress collector launched, active animators = ${activeAnimators.size}")
                     viewModel.projectsWithProgress.collect { projects ->
-                        android.util.Log.d("TeacherHomeFragment", "Collected projectsWithProgress: ${projects.size} projects")
+                        android.util.Log.d("TeacherHomeFragment", "Collected projectsWithProgress: ${projects.size} projects, active animators = ${activeAnimators.size}")
                         renderProjects(projects)
                     }
                 }
@@ -203,6 +226,66 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
                     viewModel.upcomingDeadlines.collect { deadlines ->
                         android.util.Log.d("TeacherHomeFragment", "Collected upcomingDeadlines: ${deadlines.size} deadlines")
                         renderDeadlines(deadlines)
+                    }
+                }
+
+                // Bug B Fix: Collect isSyncing state once per view lifecycle (not per tap)
+                // Track previous state to only show completion Toast on true → false transition
+                launch {
+                    android.util.Log.d("TeacherHomeFragment", "isSyncing collector launched")
+                    viewModel.isSyncing.collect { isSyncing ->
+                        android.util.Log.d("TeacherHomeFragment", "isSyncing state: $isSyncing (was: $wasSyncing)")
+                        
+                        // Show "Sync in progress" Toast on false → true transition
+                        if (!wasSyncing && isSyncing) {
+                            Toast.makeText(
+                                requireContext(),
+                                "Sync in progress...",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        
+                        wasSyncing = isSyncing
+                    }
+                }
+
+                // NEW: Collect sync outcome (success or error with stage)
+                launch {
+                    android.util.Log.d("TeacherHomeFragment", "syncOutcome collector launched")
+                    viewModel.syncOutcome.collect { outcome ->
+                        if (outcome != null) {
+                            android.util.Log.d("TeacherHomeFragment", "Sync outcome: $outcome")
+                            
+                            when (outcome) {
+                                is TeacherHomeViewModel.SyncOutcome.Success -> {
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "Sync completed successfully",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    android.util.Log.d("TeacherHomeFragment", "Sync succeeded")
+                                }
+                                is TeacherHomeViewModel.SyncOutcome.Error -> {
+                                    val stageLabel = when (outcome.stage) {
+                                        "push" -> "Sending changes"
+                                        "pull" -> "Loading latest data"
+                                        else -> "Sync"
+                                    }
+                                    val errorMessage = "Sync failed ($stageLabel): ${outcome.message}"
+                                    
+                                    Toast.makeText(
+                                        requireContext(),
+                                        errorMessage,
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    
+                                    android.util.Log.e("TeacherHomeFragment", errorMessage)
+                                }
+                            }
+                            
+                            // Clear the outcome after displaying so rotation doesn't re-show it
+                            viewModel.clearSyncOutcome()
+                        }
                     }
                 }
             }
@@ -222,6 +305,29 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
         android.util.Log.d("TeacherHomeFragment", "onStart() complete (${endTime - startTime}ms)")
     }
 
+    override fun onDestroyView() {
+        // CRITICAL: Cancel all active animators before view is destroyed
+        // Otherwise they keep running on orphaned views after rotation
+        android.util.Log.d("TeacherHomeFragment", "onDestroyView: Canceling ${activeAnimators.size} active animators")
+        activeAnimators.forEach { animator ->
+            animator.cancel()
+        }
+        activeAnimators.clear()
+        
+        // Reset view states to clean baseline for ALL data views
+        // Ensures new fragment created after rotation starts with clean state, not partial animation frames
+        binding.projectsContainer.alpha = 1f
+        binding.projectsContainer.isVisible = false
+        binding.projectsEmptyState.alpha = 1f
+        binding.projectsEmptyState.isVisible = true
+        binding.deadlinesContainer.alpha = 1f
+        binding.deadlinesContainer.isVisible = true
+        binding.deadlinesEmptyState.alpha = 1f
+        binding.deadlinesEmptyState.isVisible = true
+        
+        super.onDestroyView()
+    }
+
     private fun animateEntrance() {
         if (hasAnimatedEntrance) return
         hasAnimatedEntrance = true
@@ -239,8 +345,6 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
             binding.greetingText.alpha = 1f
             binding.attentionEmptyState.alpha = 1f
             binding.projectsSectionHeader.alpha = 1f
-            // projectsContainer - EXCLUDED (data-dependent)
-            // projectsEmptyState - EXCLUDED (data-dependent)
             binding.deadlinesSectionHeader.alpha = 1f
             binding.deadlinesContainer.alpha = 1f
             binding.deadlinesEmptyState.alpha = 1f
@@ -248,15 +352,10 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
         }
 
         // Very subtle fade-in for dense content
-        // No translation - just alpha for minimal distraction
-        // Exclude data-dependent mutually-exclusive views (projectsContainer/projectsEmptyState)
-        // whose visibility is managed exclusively by renderProjects()/crossFade()
         val views = listOf(
             binding.greetingText,
             binding.attentionEmptyState,
             binding.projectsSectionHeader,
-            // projectsContainer - EXCLUDED (data-dependent)
-            // projectsEmptyState - EXCLUDED (data-dependent)
             binding.deadlinesSectionHeader,
             binding.deadlinesContainer,
             binding.deadlinesEmptyState
@@ -271,23 +370,49 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
             ObjectAnimator.ofFloat(view, View.ALPHA, 0f, 1f).apply {
                 this.duration = duration
                 this.interpolator = interpolator
-                this.startDelay = index * 30L  // Very short stagger
+                this.startDelay = index * 30L
+                activeAnimators.add(this)
                 start()
             }
         }
     }
 
     private fun renderProjects(projects: List<ProjectWithProgress>) {
-        android.util.Log.d("TeacherHomeFragment", "renderProjects: ${projects.size} projects, projectsContainer visible=${binding.projectsContainer.isVisible} alpha=${binding.projectsContainer.alpha}, projectsEmptyState visible=${binding.projectsEmptyState.isVisible} alpha=${binding.projectsEmptyState.alpha}")
+        android.util.Log.d("TeacherHomeFragment", "renderProjects: ${projects.size} projects, isFirstRender=$isFirstProjectRender")
         
         binding.projectsContainer.removeAllViews()
 
         if (projects.isEmpty()) {
-            android.util.Log.d("TeacherHomeFragment", "renderProjects: Calling crossFade(projectsContainer â†’ projectsEmptyState)")
-            crossFade(binding.projectsContainer, binding.projectsEmptyState)
+            // Empty state: show projectsEmptyState, hide projectsContainer
+            if (isFirstProjectRender) {
+                // FIRST RENDER: Force state directly without animation
+                // This prevents fractional alpha from interrupted prior rotations
+                android.util.Log.d("TeacherHomeFragment", "renderProjects: FIRST RENDER - forcing empty state (no crossfade)")
+                binding.projectsEmptyState.alpha = 1f
+                binding.projectsEmptyState.isVisible = true
+                binding.projectsContainer.alpha = 1f
+                binding.projectsContainer.isVisible = false
+                isFirstProjectRender = false
+            } else {
+                // SUBSEQUENT RENDER: Animate the data-driven transition
+                android.util.Log.d("TeacherHomeFragment", "renderProjects: DATA CHANGE - animating to empty state (crossfade)")
+                crossFade(binding.projectsContainer, binding.projectsEmptyState)
+            }
         } else {
-            android.util.Log.d("TeacherHomeFragment", "renderProjects: Calling crossFade(projectsEmptyState â†’ projectsContainer)")
-            crossFade(binding.projectsEmptyState, binding.projectsContainer)
+            // Data state: show projectsContainer, hide projectsEmptyState
+            if (isFirstProjectRender) {
+                // FIRST RENDER: Force state directly without animation
+                android.util.Log.d("TeacherHomeFragment", "renderProjects: FIRST RENDER - forcing data state (no crossfade)")
+                binding.projectsContainer.alpha = 1f
+                binding.projectsContainer.isVisible = true
+                binding.projectsEmptyState.alpha = 1f
+                binding.projectsEmptyState.isVisible = false
+                isFirstProjectRender = false
+            } else {
+                // SUBSEQUENT RENDER: Animate the data-driven transition
+                android.util.Log.d("TeacherHomeFragment", "renderProjects: DATA CHANGE - animating to data state (crossfade)")
+                crossFade(binding.projectsEmptyState, binding.projectsContainer)
+            }
 
             projects.forEach { projectData ->
                 val card = ProjectProgressCard(requireContext()).apply {
@@ -307,7 +432,6 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
                         deadline = deadlineText
                     )
 
-                    // Make card clickable to navigate to project detail
                     setOnClickListener {
                         val action = TeacherHomeFragmentDirections
                             .actionTeacherHomeToProjectDetail(
@@ -330,12 +454,39 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
     }
 
     private fun renderDeadlines(deadlines: List<UpcomingDeadline>) {
+        android.util.Log.d("TeacherHomeFragment", "renderDeadlines: ${deadlines.size} deadlines, isFirstRender=$isFirstDeadlineRender")
         binding.deadlinesContainer.removeAllViews()
 
         if (deadlines.isEmpty()) {
-            crossFade(binding.deadlinesContainer, binding.deadlinesEmptyState)
+            // Empty state
+            if (isFirstDeadlineRender) {
+                // FIRST RENDER: Force state directly without animation
+                android.util.Log.d("TeacherHomeFragment", "renderDeadlines: FIRST RENDER - forcing empty state (no crossfade)")
+                binding.deadlinesEmptyState.alpha = 1f
+                binding.deadlinesEmptyState.isVisible = true
+                binding.deadlinesContainer.alpha = 1f
+                binding.deadlinesContainer.isVisible = false
+                isFirstDeadlineRender = false
+            } else {
+                // SUBSEQUENT RENDER: Animate
+                android.util.Log.d("TeacherHomeFragment", "renderDeadlines: DATA CHANGE - animating to empty state (crossfade)")
+                crossFade(binding.deadlinesContainer, binding.deadlinesEmptyState)
+            }
         } else {
-            crossFade(binding.deadlinesEmptyState, binding.deadlinesContainer)
+            // Data state
+            if (isFirstDeadlineRender) {
+                // FIRST RENDER: Force state directly without animation
+                android.util.Log.d("TeacherHomeFragment", "renderDeadlines: FIRST RENDER - forcing data state (no crossfade)")
+                binding.deadlinesContainer.alpha = 1f
+                binding.deadlinesContainer.isVisible = true
+                binding.deadlinesEmptyState.alpha = 1f
+                binding.deadlinesEmptyState.isVisible = false
+                isFirstDeadlineRender = false
+            } else {
+                // SUBSEQUENT RENDER: Animate
+                android.util.Log.d("TeacherHomeFragment", "renderDeadlines: DATA CHANGE - animating to data state (crossfade)")
+                crossFade(binding.deadlinesEmptyState, binding.deadlinesContainer)
+            }
 
             deadlines.forEach { deadline ->
                 val deadlineCard = createDeadlineCard(deadline)
@@ -371,7 +522,6 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
             else -> getString(R.string.due_in_days, deadline.daysUntil)
         }
 
-        // Color-code urgency
         val textColor = when {
             deadline.daysUntil <= 2 -> requireContext().getColor(R.color.error)
             deadline.daysUntil <= 7 -> requireContext().getColor(R.color.warning)
@@ -384,9 +534,8 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
     }
 
     private fun crossFade(fromView: View, toView: View) {
-        android.util.Log.d("TeacherHomeFragment", "crossFade START: from=${viewName(fromView)} (visible=${fromView.isVisible}, alpha=${fromView.alpha}), to=${viewName(toView)} (visible=${toView.isVisible}, alpha=${toView.alpha})")
+        android.util.Log.d("TeacherHomeFragment", "crossFade START: from=${viewName(fromView)} (visible=${fromView.isVisible}, alpha=${String.format("%.10f", fromView.alpha)}), to=${viewName(toView)} (visible=${toView.isVisible}, alpha=${String.format("%.10f", toView.alpha)}) - ACTIVE_ANIMATORS=${activeAnimators.size}")
         
-        // Check if animations are disabled
         val animationScale = Settings.Global.getFloat(
             requireContext().contentResolver,
             Settings.Global.ANIMATOR_DURATION_SCALE,
@@ -396,13 +545,12 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
         if (animationScale == 0f) {
             android.util.Log.d("TeacherHomeFragment", "crossFade: Animations disabled, immediate transition")
             fromView.isVisible = false
-            fromView.alpha = 1f  // Reset alpha to clean state
+            fromView.alpha = 1f
             toView.isVisible = true
-            toView.alpha = 1f    // Ensure fully opaque
+            toView.alpha = 1f
             return
         }
 
-        // Guard: Both-GONE is a genuine no-op (nothing to show)
         if (!fromView.isVisible && !toView.isVisible) {
             android.util.Log.d("TeacherHomeFragment", "crossFade: Both views GONE, no-op")
             return
@@ -410,43 +558,39 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
 
         val duration = 200L
 
-        // Fade out fromView if visible AND has non-zero alpha
-        // (Animation could have been interrupted, leaving it partially transparent)
         if (fromView.isVisible && fromView.alpha > 0f) {
             android.util.Log.d("TeacherHomeFragment", "crossFade: Fading out ${viewName(fromView)} from alpha=${fromView.alpha}")
             ObjectAnimator.ofFloat(fromView, View.ALPHA, fromView.alpha, 0f).apply {
                 this.duration = duration
+                activeAnimators.add(this)
                 start()
                 doOnEnd { 
                     fromView.isVisible = false
-                    fromView.alpha = 1f  // Reset to clean state for next time
+                    fromView.alpha = 1f
                     android.util.Log.d("TeacherHomeFragment", "crossFade: ${viewName(fromView)} hidden after fade-out, alpha reset to 1f")
                 }
             }
         } else {
             android.util.Log.d("TeacherHomeFragment", "crossFade: ${viewName(fromView)} already hidden or transparent, skipping fade-out")
-            // Ensure clean state even if skipping animation
             fromView.isVisible = false
             fromView.alpha = 1f
         }
 
-        // Fade in toView if not visible OR has non-1f alpha
-        // (Animation could have been interrupted, leaving it partially transparent)
         if (!toView.isVisible || toView.alpha < 1f) {
             android.util.Log.d("TeacherHomeFragment", "crossFade: Fading in ${viewName(toView)} from alpha=${toView.alpha} to 1f")
-            toView.alpha = if (!toView.isVisible) 0f else toView.alpha  // Start from current alpha if partially visible
+            toView.alpha = if (!toView.isVisible) 0f else toView.alpha
             toView.isVisible = true
             ObjectAnimator.ofFloat(toView, View.ALPHA, toView.alpha, 1f).apply {
                 this.duration = duration
+                activeAnimators.add(this)
                 start()
                 doOnEnd {
-                    toView.alpha = 1f  // Ensure exactly 1f, not 0.9999...
+                    toView.alpha = 1f
                     android.util.Log.d("TeacherHomeFragment", "crossFade: ${viewName(toView)} visible after fade-in, alpha=${toView.alpha}")
                 }
             }
         } else {
             android.util.Log.d("TeacherHomeFragment", "crossFade: ${viewName(toView)} already visible with alpha=${toView.alpha}")
-            // FIX: Force alpha = 1f explicitly, don't assume it's already fully opaque
             toView.alpha = 1f
             android.util.Log.d("TeacherHomeFragment", "crossFade: ${viewName(toView)} alpha forced to 1f")
         }
@@ -473,7 +617,3 @@ class TeacherHomeFragment : BaseFragment<FragmentTeacherHomeBinding>(FragmentTea
         else -> "unknown(${view.id})"
     }
 }
-
-
-
-

@@ -82,6 +82,43 @@ object DatabaseModule {
         }
     }
 
+    /**
+     * Migration from version 3 to version 4: 
+     * 1. Add rowIndexCache column to sync_metadata (Phase 3 write-back optimization)
+     * 2. Cleanup old sync_queue status values (IN_FLIGHT=1, FAILED=2, DONE=3 → PENDING=0)
+     */
+    private val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Add rowIndexCache column to sync_metadata
+            db.execSQL("""
+                ALTER TABLE sync_metadata 
+                ADD COLUMN rowIndexCache TEXT DEFAULT NULL
+            """)
+            
+            // Cleanup old sync_queue status values
+            // Map IN_FLIGHT (1), FAILED (2), and DONE (3) back to PENDING (0)
+            // This ensures graceful migration: incomplete syncs retry, invalid states reset
+            db.execSQL("""
+                UPDATE sync_queue 
+                SET status = 0 
+                WHERE status IN (1, 2, 3)
+            """)
+        }
+    }
+
+    /**
+     * Migration from version 4 to version 5: Add failureReason to sync_queue
+     * (Phase 3: Capture error messages when queue items fail permanently)
+     */
+    private val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                ALTER TABLE sync_queue 
+                ADD COLUMN failureReason TEXT DEFAULT NULL
+            """)
+        }
+    }
+
     @Provides
     @Singleton
     fun provideDatabase(
@@ -157,7 +194,7 @@ object DatabaseModule {
             DATABASE_NAME,
         )
             .openHelperFactory(factory)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }

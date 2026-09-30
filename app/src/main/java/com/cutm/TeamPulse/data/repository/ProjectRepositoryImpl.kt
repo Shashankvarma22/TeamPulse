@@ -37,6 +37,7 @@ class ProjectRepositoryImpl @Inject constructor(
     private val database: TeamPulseDatabase,
     private val dispatchers: DispatcherProvider,
     private val syncRepository: com.cutm.TeamPulse.domain.repository.SyncRepository,
+    private val moshi: com.squareup.moshi.Moshi,
 ) : ProjectRepository {
 
     override fun observeProjects(): Flow<List<Project>> {
@@ -77,6 +78,21 @@ class ProjectRepositoryImpl @Inject constructor(
             )
             projectDao.upsert(entity)
             
+            // Enqueue sync operation for new project (FIX 1: serialize full entity)
+            syncQueueDao.insert(
+                SyncQueueEntity(
+                    queueId = 0,
+                    operationType = SyncOperationType.APPEND,
+                    targetTab = "Projects",
+                    entityType = "PROJECT",
+                    entityId = entity.projectId,
+                    payloadJson = moshi.adapter(ProjectEntity::class.java).toJson(entity),
+                    retryCount = 0,
+                    createdAt = System.currentTimeMillis(),
+                    status = SyncQueueStatus.PENDING
+                )
+            )
+            
             ApiResult.Success(Unit)
         } catch (e: Exception) {
             Log.e("ProjectRepository", "Failed to create project", e)
@@ -110,15 +126,15 @@ class ProjectRepositoryImpl @Inject constructor(
 
             teamDao.upsert(teamEntity)
 
-            // Enqueue sync (stubbed - no actual Sheets call yet)
+            // Enqueue sync (FIX 1: serialize full entity, not empty string)
             syncQueueDao.insert(
                 SyncQueueEntity(
                     queueId = 0, // Auto-generated
                     operationType = SyncOperationType.APPEND,
                     targetTab = "Teams",
-                    entityType = "team",
+                    entityType = "TEAM",
                     entityId = teamId,
-                    payloadJson = "", // Stubbed - will be populated by sync processor
+                    payloadJson = moshi.adapter(TeamEntity::class.java).toJson(teamEntity),
                     retryCount = 0,
                     createdAt = now,
                     status = SyncQueueStatus.PENDING
@@ -264,6 +280,37 @@ class ProjectRepositoryImpl @Inject constructor(
             database.withTransaction {
                 studentDao.upsert(student)
                 teamDao.upsert(updatedTeam)
+                
+                // Enqueue sync operations for both student creation and team member list update
+                // Student creation
+                syncQueueDao.insert(
+                    SyncQueueEntity(
+                        queueId = 0,
+                        operationType = SyncOperationType.APPEND,
+                        targetTab = "Students",
+                        entityType = "STUDENT",
+                        entityId = student.studentEmail,
+                        payloadJson = moshi.adapter(com.cutm.TeamPulse.data.local.entity.StudentEntity::class.java).toJson(student),
+                        retryCount = 0,
+                        createdAt = now,
+                        status = SyncQueueStatus.PENDING
+                    )
+                )
+                
+                // Team member list update
+                syncQueueDao.insert(
+                    SyncQueueEntity(
+                        queueId = 0,
+                        operationType = SyncOperationType.UPDATE,
+                        targetTab = "Teams",
+                        entityType = "TEAM",
+                        entityId = updatedTeam.teamId,
+                        payloadJson = moshi.adapter(TeamEntity::class.java).toJson(updatedTeam),
+                        retryCount = 0,
+                        createdAt = now,
+                        status = SyncQueueStatus.PENDING
+                    )
+                )
             }
 
             ApiResult.Success(Unit)
@@ -294,6 +341,37 @@ class ProjectRepositoryImpl @Inject constructor(
             database.withTransaction {
                 studentDao.deleteByEmail(studentEmail)
                 teamDao.upsert(updatedTeam)
+                
+                // Enqueue sync operations for student deletion and team member list update
+                // Student deletion
+                syncQueueDao.insert(
+                    SyncQueueEntity(
+                        queueId = 0,
+                        operationType = SyncOperationType.DELETE,
+                        targetTab = "Students",
+                        entityType = "STUDENT",
+                        entityId = studentEmail,
+                        payloadJson = "", // DELETE operations don't need payload
+                        retryCount = 0,
+                        createdAt = now,
+                        status = SyncQueueStatus.PENDING
+                    )
+                )
+                
+                // Team member list update
+                syncQueueDao.insert(
+                    SyncQueueEntity(
+                        queueId = 0,
+                        operationType = SyncOperationType.UPDATE,
+                        targetTab = "Teams",
+                        entityType = "TEAM",
+                        entityId = updatedTeam.teamId,
+                        payloadJson = moshi.adapter(TeamEntity::class.java).toJson(updatedTeam),
+                        retryCount = 0,
+                        createdAt = now,
+                        status = SyncQueueStatus.PENDING
+                    )
+                )
             }
 
             ApiResult.Success(Unit)
@@ -316,8 +394,8 @@ class ProjectRepositoryImpl @Inject constructor(
                 return@withContext ApiResult.Error("Session expired")
             }
 
-            // Delegate to SyncRepository
-            syncRepository.pullFromSheets(spreadsheetId)
+            // Delegate to SyncRepository with teacher email for filtering
+            syncRepository.pullFromSheets(teacherEmail = session.email)
         } catch (e: Exception) {
             Log.e("ProjectRepository", "syncFromSheets failed", e)
             ApiResult.Error("Sync failed: ${e.message}")

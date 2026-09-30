@@ -22,6 +22,9 @@ interface ProjectDao {
     @Query("SELECT * FROM projects WHERE projectId = :projectId")
     suspend fun getById(projectId: String): ProjectEntity?
 
+    @Query("SELECT * FROM projects WHERE projectId = :projectId")
+    fun getByIdSync(projectId: String): ProjectEntity?
+
     @Query("DELETE FROM projects WHERE projectId = :projectId")
     suspend fun deleteById(projectId: String)
 

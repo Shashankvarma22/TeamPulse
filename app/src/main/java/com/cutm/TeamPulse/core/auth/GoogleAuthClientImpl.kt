@@ -113,10 +113,23 @@ class GoogleAuthClientImpl @Inject constructor(
     }
 
     override suspend fun refreshTokenIfNeeded(): ApiResult<Unit> {
-        return if (tokenManager.hasStoredToken()) {
+        val expiry = tokenManager.getAccessTokenExpiry()
+        val isExpired = expiry != null && System.currentTimeMillis() >= expiry
+        val hasToken = tokenManager.hasStoredToken()
+
+        return if (hasToken && !isExpired) {
+            // Token exists and is not expired — no refresh needed
             ApiResult.Success(Unit)
+        } else if (!hasToken) {
+            // No token available at all — re-authorization required
+            ApiResult.Error(
+                message = "No stored token available. Re-authorization required via sign-in flow."
+            )
         } else {
-            ApiResult.Error(message = "No stored token available for refresh.")
+            // Token exists but is expired — re-authorization required
+            ApiResult.Error(
+                message = "Access token expired. Re-authorization required via sign-in flow."
+            )
         }
     }
 

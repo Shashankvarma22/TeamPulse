@@ -16,4 +16,9 @@ data class SyncQueueEntity(
     val retryCount: Int,
     val createdAt: Long,
     val status: SyncQueueStatus,
+    
+    // NEW (Phase 3): Failure reason when status = FAILED_PERMANENTLY
+    // Populated with error message on permanent failure (retryCount >= 10)
+    // Default null for PENDING items
+    val failureReason: String? = null,
 )

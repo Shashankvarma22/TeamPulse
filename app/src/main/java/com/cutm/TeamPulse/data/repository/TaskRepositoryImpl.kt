@@ -5,13 +5,18 @@ import androidx.room.withTransaction
 import com.cutm.TeamPulse.data.local.TeamPulseDatabase
 import com.cutm.TeamPulse.data.local.dao.StudentDao
 import com.cutm.TeamPulse.data.local.dao.StudentProgressDao
+import com.cutm.TeamPulse.data.local.dao.SyncQueueDao
 import com.cutm.TeamPulse.data.local.dao.TaskAssignmentDao
 import com.cutm.TeamPulse.data.local.entity.StudentProgressEntity
 import com.cutm.TeamPulse.data.local.entity.TaskAssignmentEntity
+import com.cutm.TeamPulse.data.local.entity.SyncQueueEntity
 import com.cutm.TeamPulse.data.mapper.toDomain
 import com.cutm.TeamPulse.domain.model.TaskAssignment
 import com.cutm.TeamPulse.domain.model.TaskStatus
+import com.cutm.TeamPulse.domain.model.SyncOperationType
+import com.cutm.TeamPulse.domain.model.SyncQueueStatus
 import com.cutm.TeamPulse.domain.repository.TaskRepository
+import com.squareup.moshi.Moshi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -22,7 +27,9 @@ class TaskRepositoryImpl @Inject constructor(
     private val taskAssignmentDao: TaskAssignmentDao,
     private val studentDao: com.cutm.TeamPulse.data.local.dao.StudentDao,
     private val studentProgressDao: com.cutm.TeamPulse.data.local.dao.StudentProgressDao,
+    private val syncQueueDao: com.cutm.TeamPulse.data.local.dao.SyncQueueDao,
     private val database: TeamPulseDatabase,
+    private val moshi: com.squareup.moshi.Moshi,
 ) : TaskRepository {
 
     override fun observeTasksForTeam(teamId: String): Flow<List<TaskAssignment>> {
@@ -74,6 +81,21 @@ class TaskRepositoryImpl @Inject constructor(
         )
 
         taskAssignmentDao.upsert(entity)
+
+        // Enqueue sync operation for new task (FIX 1: serialize full entity)
+        syncQueueDao.insert(
+            SyncQueueEntity(
+                queueId = 0,
+                operationType = SyncOperationType.APPEND,
+                targetTab = "TaskAssignments",
+                entityType = "TASK",
+                entityId = entity.taskId,
+                payloadJson = moshi.adapter(TaskAssignmentEntity::class.java).toJson(entity),
+                retryCount = 0,
+                createdAt = System.currentTimeMillis(),
+                status = SyncQueueStatus.PENDING
+            )
+        )
     }
 
     override suspend fun updateTask(task: TaskAssignment) {
@@ -141,6 +163,21 @@ class TaskRepositoryImpl @Inject constructor(
             
             // 5. Persist (atomic with guard check)
             taskAssignmentDao.upsert(finalEntity)
+
+            // Enqueue sync operation for task update (FIX 1: serialize full entity)
+            syncQueueDao.insert(
+                SyncQueueEntity(
+                    queueId = 0,
+                    operationType = SyncOperationType.UPDATE,
+                    targetTab = "TaskAssignments",
+                    entityType = "TASK",
+                    entityId = finalEntity.taskId,
+                    payloadJson = moshi.adapter(TaskAssignmentEntity::class.java).toJson(finalEntity),
+                    retryCount = 0,
+                    createdAt = System.currentTimeMillis(),
+                    status = SyncQueueStatus.PENDING
+                )
+            )
             
             // 6. Award XP if first-time completion
             if (justCompletedForFirstTime && finalEntity.assigneeEmail.isNotEmpty()) {

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    style="@style/Widget.TeamPulse.Card"
+    android:layout_margin="@dimen/spacing_md"
+    app:cardBackgroundColor="@color/primary_light">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/spacing_lg">
+
+        <!-- Project Name -->
+        <TextView
+            android:id="@+id/projectName"
+            style="@style/TextAppearance.TeamPulse.TitleLarge"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/on_primary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Mobile App Development" />
+
+        <!-- Team Name -->
+        <TextView
+            android:id="@+id/teamName"
+            style="@style/TextAppearance.TeamPulse.BodyMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_xxs"
+            android:textColor="@color/on_primary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/projectName"
+            tools:text="Team Alpha" />
+
+        <!-- Progress Percentage Text -->
+        <TextView
+            android:id="@+id/progressPercentage"
+            style="@style/TextAppearance.TeamPulse.NumericLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:textColor="@color/on_primary"
+            android:textSize="28sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/teamName"
+            tools:text="65%" />
+
+        <!-- Progress Bar (linear) -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="8dp"
+            android:layout_marginTop="@dimen/spacing_sm"
+            android:progressDrawable="@drawable/progress_bar_rounded"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/progressPercentage"
+            tools:progress="65" />
+
+        <!-- Completed / Total Tasks Count -->
+        <TextView
+            android:id="@+id/taskCount"
+            style="@style/TextAppearance.TeamPulse.LabelSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_xs"
+            android:textColor="@color/on_primary_variant"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/progressBar"
+            tools:text="13 of 20 tasks" />
+
+        <!-- Deadline Section (Urgency Pill) -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/deadlineChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:textColor="@color/white"
+            app:chipBackgroundColor="@color/neutral_500"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/taskCount"
+            tools:text="Due in 5 days" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

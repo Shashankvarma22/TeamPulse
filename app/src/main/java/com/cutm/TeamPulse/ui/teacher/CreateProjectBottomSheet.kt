@@ -13,6 +13,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.cutm.TeamPulse.R
+import com.cutm.TeamPulse.core.config.SheetsConfig
 import com.cutm.TeamPulse.core.network.ApiResult
 import com.cutm.TeamPulse.databinding.BottomSheetCreateProjectBinding
 import com.cutm.TeamPulse.domain.repository.ProjectRepository
@@ -155,7 +156,7 @@ class CreateProjectBottomSheet : BottomSheetDialogFragment() {
                     name = name,
                     teacherEmail = session.email,
                     dueDate = dueDate,
-                    spreadsheetId = "placeholder-$projectId",
+                    spreadsheetId = SheetsConfig.SHARED_DATA_SPREADSHEET_ID,
                     driveFolderId = "placeholder-$projectId"
                 )
 

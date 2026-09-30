@@ -11,10 +11,11 @@ interface SyncRepository {
     suspend fun processQueue(): ApiResult<Unit>
 
     /**
-     * Phase 1: Pull projects/teams/students from Sheets → Room (read-only sync).
+     * Phase 1: Pull projects/teams/students from shared Sheets → Room (read-only sync).
+     * Data is filtered by teacher_email since the sheet contains all teachers' data.
      * 
-     * @param spreadsheetId The project's spreadsheet ID
+     * @param teacherEmail The teacher's email to filter projects, teams, and students
      * @return Success if all three tabs synced successfully, Error otherwise
      */
-    suspend fun pullFromSheets(spreadsheetId: String): ApiResult<Unit>
+    suspend fun pullFromSheets(teacherEmail: String): ApiResult<Unit>
 }

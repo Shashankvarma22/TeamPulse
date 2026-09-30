@@ -7,10 +7,8 @@ enum class SyncOperationType {
 }
 
 enum class SyncQueueStatus {
-    PENDING,
-    IN_FLIGHT,
-    FAILED,
-    DONE,
+    PENDING,              // Awaiting sync, or retrying (retryCount < 10)
+    FAILED_PERMANENTLY,   // Retry limit exceeded (retryCount >= 10), manual intervention needed
 }
 
 data class SyncStatus(
