@@ -2,6 +2,7 @@ package com.cutm.TeamPulse.core.auth
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -11,6 +12,8 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
 import com.cutm.TeamPulse.R
 import com.cutm.TeamPulse.core.network.ApiResult
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -19,6 +22,8 @@ import java.security.MessageDigest
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private const val TAG = "TEAM_PULSE_AUTH"
 
 /**
  * Google Sign-In via Credential Manager API.
@@ -43,6 +48,16 @@ class GoogleAuthClientImpl @Inject constructor(
 
     override suspend fun signIn(activity: Activity): ApiResult<GoogleIdentity> {
         val serverClientId = context.getString(R.string.default_web_client_id)
+
+        // Check Google Play Services availability
+        val availability = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)
+        if (availability != ConnectionResult.SUCCESS) {
+            Log.e(TAG, "Google Play Services not available: code=$availability")
+            return ApiResult.Error("Google Play Services not available (code $availability). Please update Play Services.")
+        }
+
+        Log.d(TAG, "signIn: serverClientId=$serverClientId")
+        Log.d(TAG, "signIn: calling credentialManager.getCredential")
 
         val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(
             serverClientId = serverClientId,
@@ -81,16 +96,19 @@ class GoogleAuthClientImpl @Inject constructor(
 
             ApiResult.Success(identity)
         } catch (e: GetCredentialCancellationException) {
+            Log.w(TAG, "Sign-in cancelled: ${e.message}")
             ApiResult.Error(
                 message = context.getString(R.string.sign_in_error_cancelled),
                 cause = e,
             )
         } catch (e: NoCredentialException) {
+            Log.e(TAG, "NoCredentialException: ${e.message}", e)
             ApiResult.Error(
                 message = context.getString(R.string.sign_in_error_no_google_account),
                 cause = e,
             )
         } catch (e: GetCredentialException) {
+            Log.e(TAG, "GetCredentialException: type=${e.javaClass.simpleName}, message=${e.message}", e)
             ApiResult.Error(
                 message = context.getString(R.string.sign_in_error_generic),
                 cause = e,
