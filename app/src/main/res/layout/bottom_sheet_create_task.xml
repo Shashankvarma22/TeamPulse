@@ -29,8 +29,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_md"
-            android:text="@string/create_task_title"
             android:textColor="@color/text_primary"
+            android:letterSpacing="-0.01"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/dragHandle" />
@@ -168,7 +168,8 @@
             android:layout_marginTop="@dimen/spacing_xs"
             android:gravity="start|center_vertical"
             android:textAlignment="textStart"
-            app:icon="@android:drawable/ic_menu_my_calendar"
+            app:icon="@drawable/ic_calendar_today"
+            app:iconTint="@color/primary"
             app:iconGravity="start"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -203,19 +204,19 @@
             app:layout_constraintTop_toBottomOf="@id/errorText">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/cancelButton"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/spacing_sm"
-                android:text="@string/create_task_button_cancel" />
+            android:id="@+id/cancelButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/spacing_sm"
+            android:text="@string/create_task_button_cancel" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/saveButton"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/create_task_button_save" />
+            android:id="@+id/saveButton"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/create_task_button_save" />
 
         </LinearLayout>
 

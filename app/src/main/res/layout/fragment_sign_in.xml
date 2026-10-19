@@ -1,180 +1,208 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:background="@color/background">
+    android:background="@color/background"
+    android:fitsSystemWindows="true"
+    android:clipToPadding="false">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingStart="@dimen/screen_padding_horizontal"
-        android:paddingEnd="@dimen/screen_padding_horizontal"
-        android:paddingTop="@dimen/spacing_xxxl"
-        android:paddingBottom="@dimen/spacing_xl"
-        tools:context=".ui.auth.SignInFragment">
+    <!-- Premium atmospheric background -->
+    <ImageView
+        android:id="@+id/backgroundAtmosphere"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_header_atmosphere"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- App Branding Section -->
-        <ImageView
-            android:id="@+id/appLogoIcon"
-            android:layout_width="@dimen/icon_size_xxl"
-            android:layout_height="@dimen/icon_size_xxl"
-            android:layout_marginTop="@dimen/spacing_xxxl"
-            android:src="@drawable/ic_trophy"
-            android:contentDescription="@string/cd_app_logo"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/primary" />
+    <!-- Scrollable content container -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/appNameText"
-            style="@style/TextAppearance.TeamPulse.HeadlineLarge"
-            android:layout_width="0dp"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_base"
-            android:gravity="center"
-            android:text="@string/app_name"
-            android:textColor="@color/primary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/appLogoIcon" />
+            android:paddingHorizontal="28dp"
+            android:paddingTop="80dp"
+            android:paddingBottom="40dp">
 
-        <!-- Welcome Section -->
-        <TextView
-            android:id="@+id/titleText"
-            style="@style/TextAppearance.TeamPulse.HeadlineMedium"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_xxxl"
-            android:gravity="center"
-            android:text="@string/sign_in_title"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/appNameText" />
+            <!-- Pulse motif -->
+            <ImageView
+                android:id="@+id/pulseMotif"
+                android:layout_width="70dp"
+                android:layout_height="22dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_pulse_motif"
+                android:alpha="0.85"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/subtitleText"
-            style="@style/TextAppearance.TeamPulse.BodyLarge"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:gravity="center"
-            android:text="@string/sign_in_subtitle"
-            android:textColor="@color/text_secondary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/titleText" />
-
-        <!-- Sign-In Action -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/googleSignInButton"
-            style="@style/Widget.TeamPulse.Button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_xxxl"
-            android:paddingTop="@dimen/spacing_md"
-            android:paddingBottom="@dimen/spacing_md"
-            android:text="@string/sign_in_google_button"
-            android:textSize="16sp"
-            app:icon="@drawable/ic_google_logo"
-            app:iconGravity="textStart"
-            app:iconPadding="@dimen/spacing_sm"
-            app:iconSize="@dimen/icon_size_md"
-            app:iconTint="@null"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/subtitleText"
-            app:layout_constraintWidth_max="400dp" />
-
-        <!-- Loading State -->
-        <LinearLayout
-            android:id="@+id/loadingLayout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_xl"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/googleSignInButton"
-            tools:visibility="visible">
-
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/signInProgress"
-                style="@style/Widget.TeamPulse.CircularProgressIndicator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="@string/cd_loading"
-                android:indeterminate="true" />
-
+            <!-- TeamPulse branding -->
             <TextView
-                android:id="@+id/loadingText"
-                style="@style/TextAppearance.TeamPulse.BodyMedium"
+                android:id="@+id/brandText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_base"
-                android:text="@string/sign_in_loading"
-                android:textColor="@color/text_secondary" />
+                android:layout_marginTop="16dp"
+                android:text="TeamPulse"
+                android:textColor="@color/text_primary"
+                android:textSize="32sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="-0.01"
+                android:gravity="center"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/pulseMotif"
+                tools:ignore="HardcodedText" />
 
-        </LinearLayout>
-
-        <!-- Error/Success Status Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/statusCard"
-            style="@style/Widget.TeamPulse.Card.Outlined"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_xl"
-            android:visibility="gone"
-            app:cardBackgroundColor="@color/surface"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/loadingLayout"
-            app:layout_constraintWidth_max="400dp"
-            tools:visibility="visible">
-
-            <LinearLayout
-                android:layout_width="match_parent"
+            <!-- Tagline -->
+            <TextView
+                android:id="@+id/taglineText"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="@dimen/spacing_base">
+                android:layout_marginTop="8dp"
+                android:text="Collaborate. Track progress.\nDeliver together."
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif"
+                android:letterSpacing="0.02"
+                android:lineSpacingExtra="2dp"
+                android:gravity="center"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/brandText"
+                tools:ignore="HardcodedText" />
 
-                <ImageView
-                    android:id="@+id/statusIcon"
-                    android:layout_width="@dimen/icon_size_md"
-                    android:layout_height="@dimen/icon_size_md"
-                    android:layout_marginEnd="@dimen/spacing_md"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_alert"
-                    tools:tint="@color/error" />
+            <!-- Premium authentication card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/authCard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="48dp"
+                app:cardBackgroundColor="#1A1D27"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp"
+                app:strokeColor="#2A3B5A"
+                app:strokeWidth="1.5dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/taglineText">
 
-                <TextView
-                    android:id="@+id/statusText"
-                    style="@style/TextAppearance.TeamPulse.BodyMedium"
-                    android:layout_width="0dp"
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textColor="@color/text_primary"
-                    tools:text="Something went wrong signing in. Please try again." />
+                    android:padding="28dp">
 
-            </LinearLayout>
+                    <!-- Welcome heading -->
+                    <TextView
+                        android:id="@+id/welcomeHeading"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Welcome to\nTeamPulse"
+                        android:textColor="@color/text_primary"
+                        android:textSize="26sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="-0.01"
+                        android:lineSpacingExtra="2dp"
+                        android:gravity="center"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:ignore="HardcodedText" />
 
-        </com.google.android.material.card.MaterialCardView>
+                    <!-- Supporting copy -->
+                    <TextView
+                        android:id="@+id/welcomeSubtext"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Track team collaboration, projects and progress in one place."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif"
+                        android:lineSpacingExtra="3dp"
+                        android:letterSpacing="0.01"
+                        android:gravity="center"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/welcomeHeading"
+                        tools:ignore="HardcodedText" />
 
-        <!-- Spacer to push content towards top on large screens -->
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/statusCard"
-            app:layout_constraintVertical_weight="1" />
+                    <!-- Google Sign-In Button with premium gradient -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/googleSignInButton"
+                        android:layout_width="0dp"
+                        android:layout_height="58dp"
+                        android:layout_marginTop="32dp"
+                        android:text="Sign in with Google"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textAllCaps="false"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0"
+                        app:backgroundTint="@null"
+                        android:background="@drawable/btn_google_signin_gradient"
+                        app:icon="@drawable/ic_google_logo"
+                        app:iconGravity="textStart"
+                        app:iconPadding="10dp"
+                        app:iconSize="22dp"
+                        app:iconTint="@null"
+                        app:cornerRadius="29dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/welcomeSubtext"
+                        tools:ignore="HardcodedText" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                    <!-- Loading indicator -->
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/signInProgress"
+                        style="@style/Widget.TeamPulse.CircularProgressIndicator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:contentDescription="@string/cd_loading"
+                        android:indeterminate="true"
+                        android:visibility="gone"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/googleSignInButton" />
 
-</ScrollView>
+                    <!-- Status message -->
+                    <TextView
+                        android:id="@+id/statusText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp"
+                        android:fontFamily="sans-serif"
+                        android:gravity="center"
+                        android:maxLines="2"
+                        android:visibility="gone"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/signInProgress"
+                        tools:text="Sign-in was cancelled."
+                        tools:visibility="visible" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

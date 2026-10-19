@@ -1,6 +1,7 @@
 ﻿package com.cutm.TeamPulse.ui.auth
 
 import android.app.Activity
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cutm.TeamPulse.core.auth.GoogleAuthClient
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -54,42 +54,49 @@ class SignInViewModel @Inject constructor(
         _navigateToHome.asSharedFlow()
 
     private var googleIdentity: GoogleIdentity? = null
+    private var isSigningIn = false
 
-    // NEW: Expose existing session as StateFlow
-    // Fragment will check this once its collector is guaranteed running
     val existingSession: StateFlow<UserSession?> = authRepository.observeSession()
-        .onEach { session ->
-            android.util.Log.d(
-                "SignInViewModel",
-                "existingSession check: ${session?.let { "found ${it.email}, role=${it.role}" } ?: "null"}"
-            )
-        }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Eagerly, // Start immediately to check session ASAP
+            started = SharingStarted.Eagerly,
             initialValue = null
         )
 
     fun onGoogleSignInClicked(activity: Activity) {
-        if (_uiState.value is UiState.Loading) return
+        if (isSigningIn) {
+            Log.d("TEAM_PULSE_AUTH", "Sign-in already in progress, ignoring click")
+            return
+        }
+
+        if (_uiState.value is UiState.Loading) {
+            Log.d("TEAM_PULSE_AUTH", "Loading state, ignoring click")
+            return
+        }
 
         viewModelScope.launch {
-            _uiState.value = UiState.Loading
+            try {
+                isSigningIn = true
+                _uiState.value = UiState.Loading
 
-            val result = googleAuthClient.signIn(activity)
+                val result = googleAuthClient.signIn(activity)
+                Log.d("TEAM_PULSE_AUTH", "onGoogleSignInClicked: googleAuthClient.signIn() result: $result")
 
-            when (result) {
-                is ApiResult.Success -> {
-                    // Store identity temporarily until role is resolved
-                    googleIdentity = result.data
-                    _uiState.value = UiState.Success(result.data)
-                    // Request Sheets authorization before role lookup
-                    _requestSheetsAuthorization.tryEmit(Unit)
+                when (result) {
+                    is ApiResult.Success -> {
+                        Log.d("TEAM_PULSE_AUTH", "GOOGLE_CREDENTIAL_SUCCESS: email=${result.data.email}")
+                        googleIdentity = result.data
+                        Log.d("TEAM_PULSE_AUTH", "SHEETS_AUTHORIZATION_REQUESTED")
+                        _requestSheetsAuthorization.tryEmit(Unit)
+                    }
+
+                    is ApiResult.Error -> {
+                        Log.e("TEAM_PULSE_AUTH", "onGoogleSignInClicked: GOOGLE_CREDENTIAL_ERROR: ${result.message}", result.cause)
+                        _uiState.value = UiState.Error(result.message)
+                    }
                 }
-
-                is ApiResult.Error -> {
-                    _uiState.value = UiState.Error(result.message)
-                }
+            } finally {
+                isSigningIn = false
             }
         }
     }
@@ -99,52 +106,62 @@ class SignInViewModel @Inject constructor(
         expiresAtMillis: Long?,
     ) {
         viewModelScope.launch {
-            _uiState.value = UiState.Loading
+            try {
+                Log.d("TEAM_PULSE_AUTH", "onAuthorizationToken called")
+                _uiState.value = UiState.Loading
 
-            // Save access token first
-            tokenManager.saveAccessToken(
-                token = token,
-                expiresAtMillis = expiresAtMillis,
-            )
+                tokenManager.saveAccessToken(
+                    token = token,
+                    expiresAtMillis = expiresAtMillis,
+                )
 
-            // Retrieve the stored identity
-            val identity = googleIdentity
-            if (identity == null) {
-                _uiState.value = UiState.Error("Authentication state lost. Please sign in again.")
-                return@launch
-            }
-
-            // Now perform role lookup with authenticated token
-            when (val roleResult = userRegistryRepository.lookupUser(identity.email, identity.idToken)) {
-                is ApiResult.Success -> {
-                    val role = roleResult.data
-
-                    // Create UserSession with resolved role
-                    val session = UserSession(
-                        email = identity.email,
-                        displayName = identity.displayName,
-                        role = role,
-                        photoUrl = identity.photoUrl,
-                        lastSignInAt = System.currentTimeMillis(),
-                    )
-
-                    android.util.Log.d("SignInViewModel", "Session created: email=${session.email}, role=$role")
-
-                    // Persist session with real role
-                    authRepository.saveSession(session)
-
-                    // Navigate to appropriate home
-                    _navigateToHome.tryEmit(role)
+                val identity = googleIdentity
+                if (identity == null) {
+                    Log.e("TEAM_PULSE_AUTH", "GOOGLE_IDENTITY_LOST: authentication state lost")
+                    _uiState.value = UiState.Error("Authentication state lost. Please sign in again.")
+                    return@launch
                 }
 
-                is ApiResult.Error -> {
-                    _uiState.value = UiState.Error(roleResult.message)
+                Log.d("TEAM_PULSE_AUTH", "USER_LOOKUP_STARTED: email=${identity.email}")
+
+                when (val roleResult = userRegistryRepository.lookupUser(identity.email, identity.idToken)) {
+                    is ApiResult.Success -> {
+                        val role = roleResult.data
+                        Log.d("TEAM_PULSE_AUTH", "USER_LOOKUP_SUCCESS: role=$role")
+
+                        val session = UserSession(
+                            email = identity.email,
+                            displayName = identity.displayName,
+                            role = role,
+                            photoUrl = identity.photoUrl,
+                            lastSignInAt = System.currentTimeMillis(),
+                        )
+
+                        Log.d("TEAM_PULSE_AUTH", "SESSION_SAVE_STARTED: email=${session.email}, role=$role")
+
+                        authRepository.saveSession(session)
+                        Log.d("TEAM_PULSE_AUTH", "SESSION_SAVE_SUCCESS")
+
+                        _uiState.value = UiState.Success(identity)
+                        Log.d("TEAM_PULSE_AUTH", "SIGN_IN_SUCCESS: navigating to role=$role")
+
+                        _navigateToHome.tryEmit(role)
+                    }
+
+                    is ApiResult.Error -> {
+                        Log.e("TEAM_PULSE_AUTH", "USER_LOOKUP_FAILED: ${roleResult.message}", roleResult.cause)
+                        _uiState.value = UiState.Error(roleResult.message)
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e("TEAM_PULSE_AUTH", "Unexpected error in onAuthorizationToken", e)
+                _uiState.value = UiState.Error("Sign-in failed. Please try again.")
             }
         }
     }
 
     fun onAuthorizationError(message: String) {
+        Log.e("TEAM_PULSE_AUTH", "Authorization error: $message")
         _uiState.value = UiState.Error(message)
     }
 }

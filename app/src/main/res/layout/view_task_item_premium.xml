@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Premium Task Card - Enhanced with dark navy surface, task description,
+    weight display, and status action buttons.
+    Match reference screenshot design.
+-->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="24dp"
+    android:layout_marginEnd="24dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="@color/surface_navy"
+    app:strokeColor="@color/border_primary"
+    app:strokeWidth="1dp"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="18dp">
+
+        <!-- Status badge positioned to prevent text clipping -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/statusChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="28dp"
+            android:minWidth="0dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:clickable="false"
+            android:focusable="false"
+            app:chipCornerRadius="14dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="IN PROGRESS" />
+
+        <!-- Task title - multi-line, prominent -->
+        <TextView
+            android:id="@+id/taskTitleText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/text_primary"
+            android:textSize="17sp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.01"
+            android:maxLines="3"
+            android:ellipsize="end"
+            app:layout_constraintEnd_toStartOf="@id/statusChip"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Implement user authentication flow with biometric support" />
+
+        <!-- Task description if available -->
+        <TextView
+            android:id="@+id/taskDescriptionText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            android:textColor="@color/text_muted"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif"
+            android:lineSpacingExtra="2sp"
+            android:maxLines="3"
+            android:ellipsize="end"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/taskTitleText"
+            tools:text="Create secure login with fingerprint/face authentication and session management" />
+
+        <!-- Metadata row: weight ? due date -->
+        <LinearLayout
+            android:id="@+id/metadataRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/taskDescriptionText">
+
+            <!-- Weight indicator if supported -->
+            <TextView
+                android:id="@+id/weightText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:textColor="@color/secondary"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.03"
+                android:background="@drawable/bg_weight_pill"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                tools:text="Weight 2" />
+
+            <!-- Spacer dot when weight is shown -->
+            <TextView
+                android:id="@+id/metadataSeparator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone"
+                android:text="?"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp" />
+
+            <!-- Due date with calendar icon -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_calendar_today"
+                    app:tint="@color/text_muted" />
+
+                <TextView
+                    android:id="@+id/dueDateText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif"
+                    android:letterSpacing="0.03"
+                    tools:text="Due in 5 days" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Action buttons row - contextual based on task status -->
+        <LinearLayout
+            android:id="@+id/actionButtonsRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/metadataRow">
+
+            <!-- First action button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/actionButton1"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:textAllCaps="false"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="13sp"
+                android:letterSpacing="0.02"
+                app:strokeColor="@color/border_accent"
+                app:strokeWidth="1dp"
+                tools:text="In Progress" />
+
+            <!-- Second action button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/actionButton2"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAllCaps="false"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="13sp"
+                android:letterSpacing="0.02"
+                tools:text="? Complete" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

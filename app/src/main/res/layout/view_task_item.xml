@@ -6,48 +6,99 @@
     android:layout_height="wrap_content"
     tools:parentTag="com.google.android.material.card.MaterialCardView">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="@dimen/spacing_base">
+        style="@style/Widget.TeamPulse.Card"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:cardBackgroundColor="@color/surface"
+        app:strokeColor="@color/border_accent"
+        app:strokeWidth="1dp">
 
-        <TextView
-            android:id="@+id/taskTitleText"
-            style="@style/TextAppearance.TeamPulse.BodyLarge"
-            android:layout_width="0dp"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/spacing_sm"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textColor="@color/text_primary"
-            app:layout_constraintEnd_toStartOf="@id/statusChip"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Implement user authentication" />
+            android:padding="20dp">
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/statusChip"
-            style="@style/Widget.TeamPulse.Chip.Status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:clickable="false"
-            android:focusable="false"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="To Do" />
+            <!-- Left status accent -->
+            <View
+                android:id="@+id/statusAccent"
+                android:layout_width="4dp"
+                android:layout_height="0dp"
+                android:background="@color/status_todo"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/dueDateText"
-            style="@style/TextAppearance.TeamPulse.LabelMedium"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_xs"
-            android:textColor="@color/text_tertiary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/taskTitleText"
-            tools:text="Due in 3 days" />
+            <!-- Task title -->
+            <TextView
+                android:id="@+id/taskTitleText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="12dp"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.01"
+                android:maxLines="2"
+                android:ellipsize="end"
+                app:layout_constraintEnd_toStartOf="@id/statusChip"
+                app:layout_constraintStart_toEndOf="@id/statusAccent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Complete the frontend login screens with validation" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- Status chip -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/statusChip"
+                style="@style/Widget.TeamPulse.Chip.Status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:clickable="false"
+                android:focusable="false"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="In Progress" />
+
+            <!-- Due date row -->
+            <LinearLayout
+                android:id="@+id/dueDateRow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/statusAccent"
+                app:layout_constraintTop_toBottomOf="@id/taskTitleText">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_calendar_today"
+                    app:tint="@color/text_muted" />
+
+                <TextView
+                    android:id="@+id/dueDateText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif"
+                    android:letterSpacing="0.03"
+                    tools:text="Due in 17 days" />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
 </merge>

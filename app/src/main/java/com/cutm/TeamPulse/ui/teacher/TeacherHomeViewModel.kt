@@ -39,6 +39,13 @@ data class UpcomingDeadline(
     val isProject: Boolean
 )
 
+data class TeacherMetrics(
+    val totalTeams: Int,
+    val activeProjects: Int,
+    val assignedTasks: Int,
+    val pendingReviews: Int
+)
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TeacherHomeViewModel @Inject constructor(
@@ -51,18 +58,18 @@ class TeacherHomeViewModel @Inject constructor(
 
     init {
         val vmStartTime = System.currentTimeMillis()
-        android.util.Log.d("TeacherHomeVM", "ViewModel init START at $vmStartTime")
+        android.util.Log.d("TeacherHomeVM", "ViewModel init START at ")
         
         // This is where Hilt constructs the ViewModel and all its dependencies
         // Any work in constructor parameters or init block happens here
         
         val vmEndTime = System.currentTimeMillis()
-        android.util.Log.d("TeacherHomeVM", "ViewModel init COMPLETE (took ${vmEndTime - vmStartTime}ms)")
+        android.util.Log.d("TeacherHomeVM", "ViewModel init COMPLETE (took ms)")
     }
 
     val userSession: StateFlow<UserSession?> = authRepository.observeSession()
         .onEach { 
-            android.util.Log.d("TeacherHomeVM", "userSession emitted at ${System.currentTimeMillis()}: ${it?.email ?: "null"}")
+            android.util.Log.d("TeacherHomeVM", "userSession emitted at : ")
         }
         .stateIn(
             scope = viewModelScope,
@@ -153,7 +160,7 @@ class TeacherHomeViewModel @Inject constructor(
                 val pushResult = pushPendingChanges()
                 
                 if (pushResult is ApiResult.Error) {
-                    android.util.Log.e("TeacherHomeVM", "triggerSync: Push failed - ${pushResult.message}")
+                    android.util.Log.e("TeacherHomeVM", "triggerSync: Push failed - ")
                     _syncOutcome.value = SyncOutcome.Error(
                         stage = "push",
                         message = pushResult.message ?: "Push failed for unknown reason"
@@ -166,7 +173,7 @@ class TeacherHomeViewModel @Inject constructor(
                 val pullResult = pullFromSheets()
                 
                 if (pullResult is ApiResult.Error) {
-                    android.util.Log.e("TeacherHomeVM", "triggerSync: Pull failed - ${pullResult.message}")
+                    android.util.Log.e("TeacherHomeVM", "triggerSync: Pull failed - ")
                     _syncOutcome.value = SyncOutcome.Error(
                         stage = "pull",
                         message = pullResult.message ?: "Pull failed for unknown reason"
@@ -197,16 +204,52 @@ class TeacherHomeViewModel @Inject constructor(
         authRepository.signOut()
     }
 
+        val teacherMetrics: StateFlow<TeacherMetrics> = combine(
+        userSession,
+        teamRepository.observeTeams(),
+        projectRepository.observeProjects()
+    ) { session, allTeams, allProjects ->
+        if (session == null) {
+            TeacherMetrics(0, 0, 0, 0)
+        } else {
+            // Filter for current teacher
+            val teacherProjects = allProjects.filter { it.teacherEmail == session.email }
+            val teacherProjectIds = teacherProjects.map { it.projectId }.toSet()
+            val teacherTeams = allTeams.filter { it.projectId in teacherProjectIds }
+            val teacherTeamIds = teacherTeams.map { it.teamId }.toSet()
+            
+            android.util.Log.d("TeacherHomeVM", "teacherMetrics: session=, teacherTeams=, teacherProjects=")
+            
+            // Calculate assigned tasks count (will be updated when we have task data)
+            // For now using placeholder, but the infrastructure supports task counting via a separate flow
+            TeacherMetrics(
+                totalTeams = teacherTeams.size,
+                activeProjects = teacherProjects.size,
+                assignedTasks = 0, // TODO: Count tasks from teacher's teams when task data is available
+                pendingReviews = 0 // TODO: Count pending review tasks when task data is available
+            )
+        }
+    }
+    .onEach { metrics ->
+        android.util.Log.d("TeacherHomeVM", "teacherMetrics emitted: teams=, projects=, tasks=, reviews=")
+    }
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = TeacherMetrics(0, 0, 0, 0)
+    )
+
+
     val projectsWithProgress: StateFlow<List<ProjectWithProgress>> = projectRepository.observeProjects()
-        .onEach { android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] observeProjects() emitted: ${it.size} projects") }
+        .onEach { android.util.Log.d("TeacherHomeVM", "[] observeProjects() emitted:  projects") }
         .combine(userSession) { projects, session ->
-            android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] combine: projects=${projects.size}, session=${session?.email}")
+            android.util.Log.d("TeacherHomeVM", "[] combine: projects=, session=")
             if (session == null) return@combine emptyList()
             projects.filter { it.teacherEmail == session.email }
         }
-        .onEach { android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] After filter: ${it.size} teacher projects") }
+        .onEach { android.util.Log.d("TeacherHomeVM", "[] After filter:  teacher projects") }
         .flatMapLatest { teacherProjects ->
-            android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] flatMapLatest entered with ${teacherProjects.size} projects")
+            android.util.Log.d("TeacherHomeVM", "[] flatMapLatest entered with  projects")
             if (teacherProjects.isEmpty()) {
                 flowOf(emptyList())
             } else {
@@ -256,7 +299,7 @@ class TeacherHomeViewModel @Inject constructor(
                 }
             }
         }
-        .onEach { android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] FINAL projectsWithProgress emitted: ${it.size} items") }
+        .onEach { android.util.Log.d("TeacherHomeVM", "[] FINAL projectsWithProgress emitted:  items") }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -264,9 +307,9 @@ class TeacherHomeViewModel @Inject constructor(
         )
 
     val upcomingDeadlines: StateFlow<List<UpcomingDeadline>> = projectsWithProgress
-        .onEach { android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] upcomingDeadlines source: ${it.size} projects") }
+        .onEach { android.util.Log.d("TeacherHomeVM", "[] upcomingDeadlines source:  projects") }
         .combine(userSession) { projects, _ ->
-            android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] upcomingDeadlines combine: computing from ${projects.size} projects")
+            android.util.Log.d("TeacherHomeVM", "[] upcomingDeadlines combine: computing from  projects")
             val currentTime = System.currentTimeMillis()
             val deadlines = mutableListOf<UpcomingDeadline>()
 
@@ -287,7 +330,7 @@ class TeacherHomeViewModel @Inject constructor(
             // Sort by closest deadline first
             deadlines.sortedBy { it.daysUntil }.take(5)
         }
-        .onEach { android.util.Log.d("TeacherHomeVM", "[${System.currentTimeMillis()}] FINAL upcomingDeadlines emitted: ${it.size} items") }
+        .onEach { android.util.Log.d("TeacherHomeVM", "[] FINAL upcomingDeadlines emitted:  items") }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -295,7 +338,8 @@ class TeacherHomeViewModel @Inject constructor(
         )
 
     override fun onCleared() {
-        android.util.Log.d("TeacherHomeVM", "ViewModel cleared at ${System.currentTimeMillis()}")
+        android.util.Log.d("TeacherHomeVM", "ViewModel cleared at ")
         super.onCleared()
     }
 }
+

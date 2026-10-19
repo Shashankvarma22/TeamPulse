@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Base: Deep navy to near-black -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="160"
+                android:startColor="#0A0D1A"
+                android:centerColor="#070A14"
+                android:endColor="#050609"
+                android:type="linear" />
+        </shape>
+    </item>
+    
+    <!-- Warm atmospheric orange glow (top-center) -->
+    <item
+        android:top="-60dp"
+        android:gravity="center_horizontal">
+        <shape android:shape="oval">
+            <gradient
+                android:angle="90"
+                android:startColor="#38FF7F4A"
+                android:centerColor="#28FF9366"
+                android:endColor="#00000000"
+                android:type="radial"
+                android:gradientRadius="220dp" />
+            <size
+                android:width="440dp"
+                android:height="440dp" />
+        </shape>
+    </item>
+    
+    <!-- Subtle coral accent (top-left) -->
+    <item
+        android:top="-40dp"
+        android:left="-80dp">
+        <rotate
+            android:fromDegrees="20"
+            android:pivotX="50%"
+            android:pivotY="50%">
+            <shape android:shape="oval">
+                <gradient
+                    android:angle="45"
+                    android:startColor="#25FFA576"
+                    android:centerColor="#18FFB088"
+                    android:endColor="#00000000"
+                    android:type="linear" />
+                <size
+                    android:width="360dp"
+                    android:height="480dp" />
+            </shape>
+        </rotate>
+    </item>
+    
+    <!-- Restrained indigo depth (provides continuity with app palette) -->
+    <item
+        android:top="60dp"
+        android:right="-60dp">
+        <shape android:shape="oval">
+            <gradient
+                android:angle="225"
+                android:startColor="#183A5BFF"
+                android:centerColor="#0C4A6BFF"
+                android:endColor="#00000000"
+                android:type="linear" />
+            <size
+                android:width="320dp"
+                android:height="420dp" />
+        </shape>
+    </item>
+    
+</layer-list>

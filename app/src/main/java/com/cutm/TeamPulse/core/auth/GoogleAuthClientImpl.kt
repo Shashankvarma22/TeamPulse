@@ -26,17 +26,18 @@ import javax.inject.Singleton
 private const val TAG = "TEAM_PULSE_AUTH"
 
 /**
- * Google Sign-In via Credential Manager API.
+ * Rebuilt Google Credential Manager integration for Sign-In with Google.
  *
- * This class is responsible ONLY for Google identity authentication.
- * It does NOT perform role lookup or session persistence — those happen
- * later in the sign-in flow after OAuth authorization is complete.
+ * Strictly responsible for:
+ * - Requesting Google ID token credential via CredentialManager
+ * - Parsing and validating the credential
+ * - Returning GoogleIdentity on success
  *
- * Flow:
- * 1. Generate nonce for ID token validation
- * 2. Request Google ID token credential
- * 3. Validate and extract user info
- * 4. Return GoogleIdentity
+ * Explicitly NOT responsible for:
+ * - Role lookup or authorization
+ * - Session persistence
+ * - Google Sheets authorization
+ * - Dashboard navigation
  */
 @Singleton
 class GoogleAuthClientImpl @Inject constructor(
@@ -44,117 +45,123 @@ class GoogleAuthClientImpl @Inject constructor(
     private val tokenManager: TokenManager,
 ) : GoogleAuthClient {
 
-    private val credentialManager by lazy { CredentialManager.create(context) }
+    private val credentialManager: CredentialManager by lazy {
+        CredentialManager.create(context)
+    }
 
     override suspend fun signIn(activity: Activity): ApiResult<GoogleIdentity> {
-        val serverClientId = context.getString(R.string.default_web_client_id)
+        Log.d(TAG, "SIGN_IN_STARTED")
 
-        // Check Google Play Services availability
-        val availability = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)
-        if (availability != ConnectionResult.SUCCESS) {
-            Log.e(TAG, "Google Play Services not available: code=$availability")
-            return ApiResult.Error("Google Play Services not available (code $availability). Please update Play Services.")
+        // Verify Google Play Services
+        val gmsAvailability = GoogleApiAvailability.getInstance()
+            .isGooglePlayServicesAvailable(context)
+        if (gmsAvailability != ConnectionResult.SUCCESS) {
+            Log.e(TAG, "Google Play Services unavailable: code=$gmsAvailability")
+            return ApiResult.Error(context.getString(R.string.sign_in_error_generic))
         }
 
-        Log.d(TAG, "signIn: serverClientId=$serverClientId")
-        Log.d(TAG, "signIn: calling credentialManager.getCredential")
+        // Configure credential request with Web OAuth client
+        val serverClientId = context.getString(R.string.default_web_client_id)
+        Log.d(TAG, "Web OAuth client: $serverClientId")
 
-        val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(
-            serverClientId = serverClientId,
-        )
-            .setNonce(generateNonce())
+        val signInOption = GetSignInWithGoogleOption.Builder(serverClientId)
+            .setNonce(generateSecureNonce())
             .build()
 
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(signInWithGoogleOption)
+        val credentialRequest = GetCredentialRequest.Builder()
+            .addCredentialOption(signInOption)
             .build()
 
         return try {
-            val response = credentialManager.getCredential(
+            Log.d(TAG, "CREDENTIAL_MANAGER_CALLED")
+            val credentialResponse = credentialManager.getCredential(
                 context = activity,
-                request = request,
+                request = credentialRequest
             )
+            Log.d(TAG, "CREDENTIAL_RETURNED")
+            parseGoogleIdToken(credentialResponse.credential)
 
-            val credential = response.credential
-            if (credential !is CustomCredential ||
-                credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-            ) {
-                return ApiResult.Error(
-                    message = context.getString(R.string.sign_in_error_unexpected_credential),
-                )
-            }
+        } catch (e: GetCredentialCancellationException) {
+            Log.d(TAG, "User cancelled sign-in")
+            ApiResult.Error(context.getString(R.string.sign_in_error_cancelled), e)
 
+        } catch (e: NoCredentialException) {
+            Log.e(TAG, "No Google account on device", e)
+            ApiResult.Error(context.getString(R.string.sign_in_error_no_google_account), e)
+
+        } catch (e: GetCredentialException) {
+            Log.e(TAG, "GetCredentialException: type=${e.javaClass.simpleName}, credType=${e.type}, message=${e.message}", e)
+            ApiResult.Error(context.getString(R.string.sign_in_error_generic), e)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error: ${e.javaClass.simpleName}", e)
+            ApiResult.Error(context.getString(R.string.sign_in_error_generic), e)
+        }
+    }
+
+    private fun parseGoogleIdToken(credential: androidx.credentials.Credential): ApiResult<GoogleIdentity> {
+        Log.d(TAG, "GOOGLE_ID_PARSE_START")
+
+        if (credential !is CustomCredential) {
+            Log.e(TAG, "Not a CustomCredential: ${credential::class.simpleName}")
+            return ApiResult.Error(context.getString(R.string.sign_in_error_generic))
+        }
+
+        if (credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+            Log.e(TAG, "Credential type mismatch: ${credential.type}")
+            return ApiResult.Error(context.getString(R.string.sign_in_error_generic))
+        }
+
+        return try {
             val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+            Log.d(TAG, "GOOGLE_ID_PARSE_SUCCESS")
 
             val identity = GoogleIdentity(
                 email = googleIdTokenCredential.id,
-                displayName = googleIdTokenCredential.displayName
-                    ?: googleIdTokenCredential.id,
+                displayName = googleIdTokenCredential.displayName ?: googleIdTokenCredential.id,
                 photoUrl = googleIdTokenCredential.profilePictureUri?.toString(),
-                idToken = googleIdTokenCredential.idToken, // Capture ID token for Cloud Function auth
+                idToken = googleIdTokenCredential.idToken
             )
 
+            Log.d(TAG, "User authenticated: ${identity.email}")
             ApiResult.Success(identity)
-        } catch (e: GetCredentialCancellationException) {
-            Log.w(TAG, "Sign-in cancelled: ${e.message}")
-            ApiResult.Error(
-                message = context.getString(R.string.sign_in_error_cancelled),
-                cause = e,
-            )
-        } catch (e: NoCredentialException) {
-            Log.e(TAG, "NoCredentialException: ${e.message}", e)
-            ApiResult.Error(
-                message = context.getString(R.string.sign_in_error_no_google_account),
-                cause = e,
-            )
-        } catch (e: GetCredentialException) {
-            Log.e(TAG, "GetCredentialException: type=${e.javaClass.simpleName}, message=${e.message}", e)
-            ApiResult.Error(
-                message = context.getString(R.string.sign_in_error_generic),
-                cause = e,
-            )
+
         } catch (e: GoogleIdTokenParsingException) {
-            ApiResult.Error(
-                message = context.getString(R.string.sign_in_error_unexpected_credential),
-                cause = e,
-            )
+            Log.e(TAG, "Failed to parse Google ID token", e)
+            ApiResult.Error(context.getString(R.string.sign_in_error_unexpected_credential), e)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing credential: ${e::class.simpleName}", e)
+            ApiResult.Error(context.getString(R.string.sign_in_error_generic), e)
         }
     }
 
     override suspend fun signOut() {
+        Log.d(TAG, "SIGN_OUT_STARTED")
         try {
             credentialManager.clearCredentialState(ClearCredentialStateRequest())
-        } catch (_: Exception) {
-            // Best-effort: clearing credential state must never block local sign-out.
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to clear credential state: ${e.message}")
         }
         tokenManager.clearTokens()
+        Log.d(TAG, "Sign-out complete")
     }
 
     override suspend fun refreshTokenIfNeeded(): ApiResult<Unit> {
+        val hasToken = tokenManager.hasStoredToken()
         val expiry = tokenManager.getAccessTokenExpiry()
         val isExpired = expiry != null && System.currentTimeMillis() >= expiry
-        val hasToken = tokenManager.hasStoredToken()
 
-        return if (hasToken && !isExpired) {
-            // Token exists and is not expired — no refresh needed
-            ApiResult.Success(Unit)
-        } else if (!hasToken) {
-            // No token available at all — re-authorization required
-            ApiResult.Error(
-                message = "No stored token available. Re-authorization required via sign-in flow."
-            )
-        } else {
-            // Token exists but is expired — re-authorization required
-            ApiResult.Error(
-                message = "Access token expired. Re-authorization required via sign-in flow."
-            )
+        return when {
+            hasToken && !isExpired -> ApiResult.Success(Unit)
+            !hasToken -> ApiResult.Error("No access token available")
+            else -> ApiResult.Error("Access token expired")
         }
     }
 
-    private fun generateNonce(): String {
-        val rawNonce = UUID.randomUUID().toString()
-        val bytes = rawNonce.toByteArray()
-        val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
+    private fun generateSecureNonce(): String {
+        val uuid = UUID.randomUUID().toString()
+        val digest = MessageDigest.getInstance("SHA-256").digest(uuid.toByteArray())
         return digest.joinToString("") { "%02x".format(it) }
     }
 }

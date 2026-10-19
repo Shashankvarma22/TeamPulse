@@ -1,53 +1,72 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.TeamPulse" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Base application theme - Premium Dark -->
+    <style name="Base.Theme.TeamPulse" parent="Theme.Material3.Dark.NoActionBar">
         <!-- Primary colors -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
-        <item name="colorPrimaryContainer">@color/primary_light</item>
-        <item name="colorOnPrimaryContainer">@color/primary_dark</item>
+        <item name="colorPrimaryContainer">@color/primary_dark</item>
+        <item name="colorOnPrimaryContainer">@color/primary_light</item>
 
         <!-- Secondary colors -->
         <item name="colorSecondary">@color/secondary</item>
         <item name="colorOnSecondary">@color/on_secondary</item>
-        <item name="colorSecondaryContainer">@color/secondary_light</item>
-        <item name="colorOnSecondaryContainer">@color/secondary_dark</item>
+        <item name="colorSecondaryContainer">@color/secondary_dark</item>
+        <item name="colorOnSecondaryContainer">@color/secondary_light</item>
 
         <!-- Tertiary colors -->
         <item name="colorTertiary">@color/tertiary</item>
         <item name="colorOnTertiary">@color/on_tertiary</item>
-        <item name="colorTertiaryContainer">@color/tertiary_light</item>
-        <item name="colorOnTertiaryContainer">@color/tertiary_dark</item>
+        <item name="colorTertiaryContainer">@color/tertiary_dark</item>
+        <item name="colorOnTertiaryContainer">@color/tertiary_light</item>
 
         <!-- Error colors -->
         <item name="colorError">@color/error</item>
         <item name="colorOnError">@color/on_error</item>
-        <item name="colorErrorContainer">@color/error_light</item>
+        <item name="colorErrorContainer">@color/error_dark</item>
+        <item name="colorOnErrorContainer">@color/error_light</item>
 
         <!-- Surface and background -->
         <item name="android:colorBackground">@color/background</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorSurfaceVariant">@color/surface_variant</item>
-        <item name="colorOnSurface">@color/on_surface</item>
-        <item name="colorOnSurfaceVariant">@color/on_surface_variant</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
 
         <!-- Outline -->
-        <item name="colorOutline">@color/outline</item>
-        <item name="colorOutlineVariant">@color/outline_variant</item>
+        <item name="colorOutline">@color/border</item>
+        <item name="colorOutlineVariant">@color/border_accent</item>
 
         <!-- Status bar and navigation bar -->
-        <item name="android:statusBarColor">@color/primary_dark</item>
-        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
 
         <!-- Shape appearances -->
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.TeamPulse.SmallComponent</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.TeamPulse.MediumComponent</item>
         <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.TeamPulse.LargeComponent</item>
+        
+        <!-- Typography -->
+        <item name="materialThemeOverlay">@style/ThemeOverlay.TeamPulse.Typography</item>
     </style>
 
     <style name="Theme.TeamPulse" parent="Base.Theme.TeamPulse" />
+    
+    <!-- Base theme overlay -->
+    <style name="ThemeOverlay.TeamPulse" parent="ThemeOverlay.Material3.Dark" />
+    
+    <!-- Typography overlay -->
+    <style name="ThemeOverlay.TeamPulse.Typography">
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.TeamPulse.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.TeamPulse.HeadlineMedium</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.TeamPulse.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.TeamPulse.TitleMedium</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.TeamPulse.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.TeamPulse.BodyMedium</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.TeamPulse.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.TeamPulse.LabelMedium</item>
+    </style>
 
     <!-- Shape appearances -->
     <style name="ShapeAppearance.TeamPulse.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
@@ -65,41 +84,45 @@
         <item name="cornerSize">16dp</item>
     </style>
 
-    <!-- Typography styles -->
+    <!-- Typography styles - Premium Dark -->
     <style name="TextAppearance.TeamPulse.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
         <item name="android:textSize">57sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="fontFamily">sans-serif</item>
         <item name="android:fontWeight" tools:targetApi="p">400</item>
+        <item name="android:letterSpacing">-0.02</item>
     </style>
 
     <style name="TextAppearance.TeamPulse.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:textSize">38sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontWeight" tools:targetApi="p">600</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+
+    <style name="TextAppearance.TeamPulse.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
         <item name="android:textSize">32sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="fontFamily">sans-serif-medium</item>
         <item name="android:fontWeight" tools:targetApi="p">600</item>
-    </style>
-
-    <style name="TextAppearance.TeamPulse.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
-        <item name="android:textSize">28sp</item>
-        <item name="android:textColor">@color/text_primary</item>
-        <item name="fontFamily">sans-serif-medium</item>
-        <item name="android:fontWeight" tools:targetApi="p">600</item>
+        <item name="android:letterSpacing">-0.01</item>
     </style>
 
     <style name="TextAppearance.TeamPulse.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
-        <item name="android:textSize">22sp</item>
+        <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="fontFamily">sans-serif-medium</item>
         <item name="android:fontWeight" tools:targetApi="p">500</item>
+        <item name="android:letterSpacing">0</item>
     </style>
 
     <style name="TextAppearance.TeamPulse.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="fontFamily">sans-serif-medium</item>
         <item name="android:fontWeight" tools:targetApi="p">500</item>
-        <item name="android:letterSpacing">0.015</item>
+        <item name="android:letterSpacing">0.01</item>
     </style>
 
     <style name="TextAppearance.TeamPulse.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
@@ -107,118 +130,138 @@
         <item name="android:textColor">@color/text_secondary</item>
         <item name="fontFamily">sans-serif</item>
         <item name="android:lineSpacingExtra">4sp</item>
+        <item name="android:letterSpacing">0.02</item>
     </style>
 
     <style name="TextAppearance.TeamPulse.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/text_secondary</item>
         <item name="fontFamily">sans-serif</item>
-        <item name="android:lineSpacingExtra">4sp</item>
+        <item name="android:lineSpacingExtra">3sp</item>
+        <item name="android:letterSpacing">0.03</item>
     </style>
 
     <style name="TextAppearance.TeamPulse.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">14sp</item>
-        <item name="android:textColor">@color/text_tertiary</item>
+        <item name="android:textColor">@color/text_muted</item>
         <item name="fontFamily">sans-serif-medium</item>
         <item name="android:fontWeight" tools:targetApi="p">500</item>
         <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0.04</item>
     </style>
 
     <style name="TextAppearance.TeamPulse.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
         <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/text_tertiary</item>
+        <item name="android:textColor">@color/text_muted</item>
         <item name="fontFamily">sans-serif-medium</item>
         <item name="android:fontWeight" tools:targetApi="p">500</item>
+        <item name="android:letterSpacing">0.05</item>
     </style>
 
     <!-- Data-focused typography -->
     <style name="TextAppearance.TeamPulse.NumericLarge" parent="TextAppearance.Material3.TitleLarge">
-        <item name="android:textSize">32sp</item>
+        <item name="android:textSize">48sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="fontFamily">sans-serif</item>
         <item name="android:fontWeight" tools:targetApi="p">400</item>
         <item name="android:fontFeatureSettings">tnum</item>
-        <item name="android:letterSpacing">-0.01</item>
+        <item name="android:letterSpacing">-0.03</item>
+        <item name="android:includeFontPadding">false</item>
     </style>
 
     <style name="TextAppearance.TeamPulse.DataLabel" parent="TextAppearance.Material3.LabelSmall">
-        <item name="android:textSize">11sp</item>
-        <item name="android:textColor">@color/text_tertiary</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textColor">@color/text_muted</item>
         <item name="fontFamily">sans-serif-medium</item>
         <item name="android:fontWeight" tools:targetApi="p">500</item>
         <item name="android:textAllCaps">true</item>
-        <item name="android:letterSpacing">0.08</item>
+        <item name="android:letterSpacing">0.12</item>
     </style>
 
     <style name="TextAppearance.TeamPulse.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:textSize">11sp</item>
         <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:letterSpacing">0.06</item>
     </style>
 
-    <!-- Button styles -->
+    <!-- Button styles - Premium Dark -->
     <style name="Widget.TeamPulse.Button" parent="Widget.Material3.Button">
-        <item name="cornerRadius">@dimen/button_corner_radius</item>
-        <item name="android:minHeight">@dimen/button_height</item>
-        <item name="android:paddingStart">@dimen/button_padding_horizontal</item>
-        <item name="android:paddingEnd">@dimen/button_padding_horizontal</item>
+        <item name="cornerRadius">28dp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingStart">32dp</item>
+        <item name="android:paddingEnd">32dp</item>
         <item name="android:textAppearance">@style/TextAppearance.TeamPulse.LabelLarge</item>
         <item name="android:textColor">@color/on_primary</item>
-        <item name="elevation">2dp</item>
+        <item name="elevation">4dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
     </style>
 
     <style name="Widget.TeamPulse.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="cornerRadius">@dimen/button_corner_radius</item>
-        <item name="android:minHeight">@dimen/button_height</item>
-        <item name="strokeColor">@color/outline</item>
-        <item name="strokeWidth">1dp</item>
+        <item name="cornerRadius">28dp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="strokeColor">@color/border_accent</item>
+        <item name="strokeWidth">1.5dp</item>
         <item name="android:textAppearance">@style/TextAppearance.TeamPulse.LabelLarge</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:paddingStart">32dp</item>
+        <item name="android:paddingEnd">32dp</item>
     </style>
 
     <style name="Widget.TeamPulse.Button.Text" parent="Widget.Material3.Button.TextButton">
-        <item name="android:minHeight">@dimen/button_height</item>
+        <item name="android:minHeight">48dp</item>
         <item name="android:textAppearance">@style/TextAppearance.TeamPulse.LabelLarge</item>
+        <item name="android:textColor">@color/text_primary</item>
     </style>
 
-    <!-- Card styles -->
+    <!-- Card styles - Premium Dark -->
     <style name="Widget.TeamPulse.Card" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
-        <item name="cardElevation">@dimen/card_elevation</item>
-        <item name="cardBackgroundColor">@color/card_background</item>
-        <item name="contentPadding">@dimen/card_padding</item>
+        <item name="cardCornerRadius">24dp</item>
+        <item name="cardElevation">8dp</item>
+        <item name="cardBackgroundColor">@color/surface_elevated</item>
+        <item name="contentPadding">24dp</item>
+        <item name="strokeColor">@color/card_stroke</item>
+        <item name="strokeWidth">1dp</item>
     </style>
 
     <style name="Widget.TeamPulse.Card.Outlined" parent="Widget.Material3.CardView.Outlined">
-        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
-        <item name="strokeColor">@color/card_stroke</item>
-        <item name="strokeWidth">@dimen/card_stroke_width</item>
-        <item name="cardBackgroundColor">@color/card_background</item>
-        <item name="contentPadding">@dimen/card_padding</item>
+        <item name="cardCornerRadius">20dp</item>
+        <item name="strokeColor">@color/border_accent</item>
+        <item name="strokeWidth">1.5dp</item>
+        <item name="cardBackgroundColor">@color/surface</item>
+        <item name="contentPadding">20dp</item>
     </style>
 
-    <!-- Chip styles -->
+    <!-- Chip styles - Premium Dark -->
     <style name="Widget.TeamPulse.Chip" parent="Widget.Material3.Chip.Assist">
-        <item name="chipCornerRadius">@dimen/chip_corner_radius</item>
-        <item name="chipMinHeight">@dimen/chip_height</item>
+        <item name="chipCornerRadius">16dp</item>
+        <item name="chipMinHeight">32dp</item>
         <item name="android:textAppearance">@style/TextAppearance.TeamPulse.LabelMedium</item>
+        <item name="chipStartPadding">12dp</item>
+        <item name="chipEndPadding">12dp</item>
     </style>
 
     <!-- Progress indicator styles -->
     <style name="Widget.TeamPulse.CircularProgressIndicator" parent="Widget.Material3.CircularProgressIndicator">
-        <item name="indicatorSize">@dimen/progress_indicator_size</item>
+        <item name="indicatorSize">48dp</item>
         <item name="indicatorColor">@color/primary</item>
         <item name="trackColor">@color/surface_variant</item>
     </style>
 
     <!-- Status chip styles -->
     <style name="Widget.TeamPulse.Chip.Status" parent="Widget.Material3.Chip.Assist">
-        <item name="chipCornerRadius">@dimen/chip_corner_radius</item>
-        <item name="chipMinHeight">@dimen/chip_height</item>
+        <item name="chipCornerRadius">16dp</item>
+        <item name="chipMinHeight">32dp</item>
         <item name="android:textAppearance">@style/TextAppearance.TeamPulse.LabelMedium</item>
+        <item name="chipStartPadding">14dp</item>
+        <item name="chipEndPadding">14dp</item>
+        <item name="strokeColor">@color/transparent</item>
+        <item name="strokeWidth">0dp</item>
     </style>
 
     <style name="Widget.TeamPulse.Chip.Status.Todo">
         <item name="chipBackgroundColor">@color/status_todo</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">@color/text_primary</item>
     </style>
 
     <style name="Widget.TeamPulse.Chip.Status.InProgress">
@@ -230,4 +273,43 @@
         <item name="chipBackgroundColor">@color/status_done</item>
         <item name="android:textColor">@color/white</item>
     </style>
+
+    <style name="Widget.TeamPulse.Chip.Status.Overdue">
+        <item name="chipBackgroundColor">@color/status_overdue</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- Status toggle button styles for Task Detail BottomSheet -->
+    <style name="Widget.TeamPulse.Button.Outlined.Status" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">16dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="strokeWidth">1.5dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.TeamPulse.LabelMedium</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="iconPadding">8dp</item>
+        <item name="iconSize">16dp</item>
+        <item name="iconGravity">textStart</item>
+    </style>
+
+    <!-- Elevated card style for premium sections -->
+    <style name="Widget.TeamPulse.Card.Elevated" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">12dp</item>
+        <item name="cardBackgroundColor">@color/surface_elevated</item>
+        <item name="contentPadding">0dp</item>
+        <item name="strokeColor">@color/border_primary</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- TitleSmall text style -->
+    <style name="TextAppearance.TeamPulse.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontWeight" tools:targetApi="p">500</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+
 </resources>

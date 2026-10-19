@@ -190,9 +190,13 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
             ).apply {
                 bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_md)
             }
+            // Premium styling
+            setCardBackgroundColor(resources.getColor(R.color.surface_elevated, null))
+            strokeColor = resources.getColor(R.color.border_accent, null)
+            strokeWidth = resources.getDimensionPixelSize(R.dimen.card_stroke_width)
             cardElevation = resources.getDimension(R.dimen.card_elevation)
             radius = resources.getDimension(R.dimen.card_corner_radius)
-            val padding = resources.getDimensionPixelSize(R.dimen.spacing_base)
+            val padding = resources.getDimensionPixelSize(R.dimen.card_padding)
             setContentPadding(padding, padding, padding, padding)
         }
 
@@ -238,7 +242,7 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
                 getString(R.string.project_detail_team_members, team.memberEmails.size)
             }
             setTextAppearance(R.style.TextAppearance_TeamPulse_BodyMedium)
-            setTextColor(resources.getColor(R.color.on_surface_variant, null))
+            setTextColor(resources.getColor(R.color.text_secondary, null))
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -328,7 +332,7 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
                         val emptyText = TextView(requireContext()).apply {
                             text = getString(R.string.member_list_empty)
                             setTextAppearance(R.style.TextAppearance_TeamPulse_BodyMedium)
-                            setTextColor(resources.getColor(R.color.on_surface_variant, null))
+                            setTextColor(resources.getColor(R.color.text_secondary, null))
                             layoutParams = LinearLayout.LayoutParams(
                                 LinearLayout.LayoutParams.MATCH_PARENT,
                                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -402,7 +406,7 @@ class ProjectDetailFragment : BaseFragment<FragmentProjectDetailBinding>(
         val emailText = TextView(requireContext()).apply {
             text = student.studentEmail
             setTextAppearance(R.style.TextAppearance_TeamPulse_BodyMedium)
-            setTextColor(resources.getColor(R.color.on_surface_variant, null))
+            setTextColor(resources.getColor(R.color.text_secondary, null))
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT

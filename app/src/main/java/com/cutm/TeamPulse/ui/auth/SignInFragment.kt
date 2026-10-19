@@ -1,9 +1,12 @@
 ﻿package com.cutm.TeamPulse.ui.auth
 
+import com.cutm.TeamPulse.BuildConfig
 import com.cutm.TeamPulse.core.auth.GoogleIdentity
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,16 +38,23 @@ class SignInFragment :
 
     private lateinit var authorizationLauncher:
         ActivityResultLauncher<IntentSenderRequest>
+    
+    // Flag to track if we've already navigated away from this fragment
+    // Prevents checking existing session multiple times after navigation
+    private var hasNavigatedAway = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("TEAM_PULSE_SIGNIN", "SignInFragment.onCreate() - hasNavigatedAway=$hasNavigatedAway")
 
         authorizationLauncher =
             registerForActivityResult(
                 ActivityResultContracts.StartIntentSenderForResult()
             ) { result ->
+                Log.d("TEAM_PULSE_SIGNIN", "Authorization launcher callback: resultCode=${result.resultCode}, data=${result.data}")
 
                 if (result.resultCode != Activity.RESULT_OK) {
+                    Log.d("TEAM_PULSE_SIGNIN", "Authorization cancelled or failed: resultCode=${result.resultCode}")
                     viewModel.onAuthorizationError(
                         getString(R.string.sign_in_error_cancelled)
                     )
@@ -54,6 +64,7 @@ class SignInFragment :
                 val resultIntent = result.data
 
                 if (resultIntent == null) {
+                    Log.d("TEAM_PULSE_SIGNIN", "Authorization result intent is null")
                     viewModel.onAuthorizationError(
                         getString(R.string.sign_in_error_generic)
                     )
@@ -61,11 +72,13 @@ class SignInFragment :
                 }
 
                 lifecycleScope.launch {
+                    Log.d("TEAM_PULSE_SIGNIN", "Processing authorization result")
                     when (
                         val outcome =
                             authorizationManager.handleAuthorizationResult(resultIntent)
                     ) {
                         is AuthorizationOutcome.Authorized -> {
+                            Log.d("TEAM_PULSE_SIGNIN", "Authorization successful: token length=${outcome.accessToken.length}, expiresAt=${outcome.expiresAtMillis}")
                             viewModel.onAuthorizationToken(
                                 token = outcome.accessToken,
                                 expiresAtMillis = outcome.expiresAtMillis,
@@ -73,12 +86,14 @@ class SignInFragment :
                         }
 
                         is AuthorizationOutcome.ResolutionRequired -> {
+                            Log.d("TEAM_PULSE_SIGNIN", "Authorization resolution required")
                             viewModel.onAuthorizationError(
                                 getString(R.string.sign_in_error_generic)
                             )
                         }
 
                         is AuthorizationOutcome.Error -> {
+                            Log.d("TEAM_PULSE_SIGNIN", "Authorization error: ${outcome.message}")
                             viewModel.onAuthorizationError(outcome.message)
                         }
                     }
@@ -91,42 +106,66 @@ class SignInFragment :
         savedInstanceState: Bundle?,
     ) {
         super.onViewCreated(view, savedInstanceState)
+        Log.d("TEAM_PULSE_SIGNIN", "SignInFragment.onViewCreated() - hasNavigatedAway=$hasNavigatedAway")
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    Log.d("TEAM_PULSE_SIGNIN", "Back pressed, navigating up to Welcome")
+                    findNavController().navigateUp()
+                }
+            }
+        )
 
         binding.googleSignInButton.setOnClickListener {
+            Log.d("TEAM_PULSE_SIGNIN", "Google Sign-In button clicked")
             viewModel.onGoogleSignInClicked(requireActivity())
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                Log.d("TEAM_PULSE_SIGNIN", "Lifecycle.STARTED - setting up collectors")
 
-                // NEW: Check for existing session first
-                launch {
-                    viewModel.existingSession.collect { session ->
-                        if (session != null) {
-                            android.util.Log.d(
-                                "SignInFragment",
-                                "Found existing session: ${session.email}, role=${session.role} - navigating to home"
-                            )
-                            navigateToHome(session.role)
-                            // Don't collect further - navigation clears this fragment from backstack
+                // Check for existing session ONLY if we haven't already navigated away
+                if (!hasNavigatedAway) {
+                    launch {
+                        Log.d("TEAM_PULSE_SIGNIN", "Starting existingSession collector")
+                        viewModel.existingSession.collect { session ->
+                            if (session != null) {
+                                Log.d("TEAM_PULSE_SIGNIN", "Found existing session: ${session.email}, role=${session.role} - navigating to home")
+                                hasNavigatedAway = true
+                                navigateToHome(session.role)
+                            } else {
+                                Log.d("TEAM_PULSE_SIGNIN", "No existing session found")
+                            }
                         }
                     }
+                } else {
+                    Log.d("TEAM_PULSE_SIGNIN", "Skipping existingSession check - already navigated away")
                 }
 
                 launch {
+                    Log.d("TEAM_PULSE_SIGNIN", "Starting uiState collector")
                     viewModel.uiState.collect { state ->
+                        Log.d("TEAM_PULSE_SIGNIN", "UI State changed: $state")
                         render(state)
                     }
                 }
 
                 launch {
+                    Log.d("TEAM_PULSE_SIGNIN", "Starting requestSheetsAuthorization collector")
                     viewModel.requestSheetsAuthorization.collect {
+                        Log.d("TEAM_PULSE_SIGNIN", "Requesting Sheets authorization")
                         requestSheetsAuthorization()
                     }
                 }
 
                 launch {
+                    Log.d("TEAM_PULSE_SIGNIN", "Starting navigateToHome collector")
                     viewModel.navigateToHome.collect { role ->
+                        Log.d("TEAM_PULSE_SIGNIN", "Navigation event received: role=$role")
+                        hasNavigatedAway = true
                         navigateToHome(role)
                     }
                 }
@@ -135,6 +174,7 @@ class SignInFragment :
     }
 
     private fun requestSheetsAuthorization() {
+        Log.d("TEAM_PULSE_SIGNIN", "requestSheetsAuthorization() called")
         viewLifecycleOwner.lifecycleScope.launch {
 
             when (
@@ -144,6 +184,7 @@ class SignInFragment :
                     )
             ) {
                 is AuthorizationOutcome.Authorized -> {
+                    Log.d("TEAM_PULSE_SIGNIN", "Sheets authorization successful")
                     viewModel.onAuthorizationToken(
                         token = outcome.accessToken,
                         expiresAtMillis = outcome.expiresAtMillis,
@@ -151,6 +192,7 @@ class SignInFragment :
                 }
 
                 is AuthorizationOutcome.ResolutionRequired -> {
+                    Log.d("TEAM_PULSE_SIGNIN", "Sheets resolution required, launching intent")
                     authorizationLauncher.launch(
                         IntentSenderRequest.Builder(
                             outcome.pendingIntent.intentSender
@@ -159,6 +201,7 @@ class SignInFragment :
                 }
 
                 is AuthorizationOutcome.Error -> {
+                    Log.d("TEAM_PULSE_SIGNIN", "Sheets authorization error: ${outcome.message}")
                     viewModel.onAuthorizationError(outcome.message)
                 }
             }
@@ -167,32 +210,45 @@ class SignInFragment :
 
     private fun navigateToHome(role: SessionRole) {
         val navController = findNavController()
-        
-        // Navigate to appropriate home based on role, clearing auth back stack
-        when (role) {
-            SessionRole.TEACHER -> {
-                navController.navigate(R.id.action_signIn_to_teacher_graph)
+
+        Log.d("TEAM_PULSE_SIGNIN", "NAVIGATION_REQUESTED: role=$role")
+
+        try {
+            when (role) {
+                SessionRole.TEACHER -> {
+                    Log.d("TEAM_PULSE_SIGNIN", "Navigating to teacher_graph")
+                    navController.navigate(R.id.action_signIn_to_teacher_graph)
+                    Log.d("TEAM_PULSE_SIGNIN", "NAVIGATION_SUCCESS: teacher_graph")
+                }
+                SessionRole.STUDENT -> {
+                    Log.d("TEAM_PULSE_SIGNIN", "Navigating to student_graph")
+                    navController.navigate(R.id.action_signIn_to_student_graph)
+                    Log.d("TEAM_PULSE_SIGNIN", "NAVIGATION_SUCCESS: student_graph")
+                }
             }
-            SessionRole.STUDENT -> {
-                navController.navigate(R.id.action_signIn_to_student_graph)
-            }
+        } catch (e: Exception) {
+            Log.e("TEAM_PULSE_SIGNIN", "NAVIGATION_FAILED: ${e.message}", e)
         }
     }
 
     private fun render(state: UiState<GoogleIdentity>) {
-        // Update button state
-        binding.googleSignInButton.isEnabled = state !is UiState.Loading
+        Log.d("TEAM_PULSE_SIGNIN", "render() called with state: $state")
 
-        // Update loading visibility
-        binding.loadingLayout.visibility = if (state is UiState.Loading) {
+        val buttonEnabled = state !is UiState.Loading
+        Log.d("TEAM_PULSE_SIGNIN", "Setting button enabled=$buttonEnabled (state=${state::class.simpleName})")
+        binding.googleSignInButton.isEnabled = buttonEnabled
+
+        binding.signInProgress.visibility = if (state is UiState.Loading) {
+            Log.d("TEAM_PULSE_SIGNIN", "Showing loading progress")
             View.VISIBLE
         } else {
+            Log.d("TEAM_PULSE_SIGNIN", "Hiding loading progress")
             View.GONE
         }
 
-        // Update status card
         when (state) {
             is UiState.Error -> {
+                Log.d("TEAM_PULSE_SIGNIN", "Showing error: ${state.message}")
                 showStatus(
                     message = state.message,
                     isError = true
@@ -200,6 +256,7 @@ class SignInFragment :
             }
 
             is UiState.Success -> {
+                Log.d("TEAM_PULSE_SIGNIN", "Showing success message")
                 showStatus(
                     message = getString(R.string.sign_in_success),
                     isError = false
@@ -207,27 +264,20 @@ class SignInFragment :
             }
 
             else -> {
-                binding.statusCard.visibility = View.GONE
+                Log.d("TEAM_PULSE_SIGNIN", "Clearing status text")
+                binding.statusText.visibility = View.GONE
             }
         }
     }
 
     private fun showStatus(message: String, isError: Boolean) {
-        binding.statusCard.visibility = View.VISIBLE
+        binding.statusText.visibility = View.VISIBLE
         binding.statusText.text = message
 
         if (isError) {
-            binding.statusIcon.setImageResource(R.drawable.ic_alert)
-            binding.statusIcon.setColorFilter(
-                ContextCompat.getColor(requireContext(), R.color.error)
-            )
-            binding.statusCard.strokeColor = ContextCompat.getColor(requireContext(), R.color.error)
+            binding.statusText.setTextColor(ContextCompat.getColor(requireContext(), R.color.error))
         } else {
-            binding.statusIcon.setImageResource(R.drawable.ic_progress)
-            binding.statusIcon.setColorFilter(
-                ContextCompat.getColor(requireContext(), R.color.success)
-            )
-            binding.statusCard.strokeColor = ContextCompat.getColor(requireContext(), R.color.success)
+            binding.statusText.setTextColor(ContextCompat.getColor(requireContext(), R.color.success))
         }
     }
 }

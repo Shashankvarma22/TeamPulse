@@ -11,7 +11,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+        <!-- Premium Atmospheric Gradient Header (added as first child) -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:background="@drawable/bg_header_atmosphere" />
+
+<androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingStart="@dimen/screen_padding_horizontal"
@@ -26,6 +32,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textColor="@color/text_primary"
+            android:letterSpacing="-0.01"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -39,6 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_xxs"
             android:textColor="@color/text_secondary"
+            android:letterSpacing="0.02"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/projectNameText"
@@ -50,10 +58,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_lg"
+            app:sectionTitle="Tasks"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/teamNameText"
-            app:sectionTitle="Tasks" />
+            app:layout_constraintTop_toBottomOf="@id/teamNameText" />
 
         <!-- Tasks Container -->
         <LinearLayout
@@ -69,32 +77,69 @@
             tools:visibility="visible" />
 
         <!-- Tasks Empty State -->
-        <com.cutm.TeamPulse.ui.common.EmptyStateView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/tasksEmptyState"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_md"
-            android:background="@drawable/bg_empty_state"
-            android:padding="@dimen/spacing_lg"
-            app:emptyIcon="@drawable/ic_empty_tasks"
-            app:emptyMessage="No tasks have been created for this project yet."
-            app:emptyTitle="No Tasks"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/surface_elevated"
+            app:strokeColor="@color/border_accent"
+            app:strokeWidth="1dp"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:contentPadding="@dimen/spacing_xl"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tasksSectionHeader" />
+            app:layout_constraintTop_toBottomOf="@id/tasksSectionHeader">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <ImageView
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_marginBottom="@dimen/spacing_lg"
+                    android:tint="@color/text_muted"
+                    app:srcCompat="@drawable/ic_empty_tasks" />
+
+                <TextView
+                    style="@style/TextAppearance.TeamPulse.TitleMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No Tasks"
+                    android:textColor="@color/text_muted"
+                    android:letterSpacing="-0.01" />
+
+                <TextView
+                    style="@style/TextAppearance.TeamPulse.BodyMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:text="No tasks have been created for this project yet."
+                    android:textColor="@color/text_muted"
+                    android:letterSpacing="0.02"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/createTaskFab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/spacing_lg"
         android:contentDescription="@string/action_create_task"
-        app:srcCompat="@android:drawable/ic_input_add" />
+        app:backgroundTint="@color/secondary"
+        app:tint="@color/on_secondary"
+        app:srcCompat="@drawable/ic_add" />
 
     </FrameLayout>
-
 </ScrollView>

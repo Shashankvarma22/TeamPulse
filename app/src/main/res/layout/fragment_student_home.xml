@@ -1,191 +1,353 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fitsSystemWindows="true"
+    android:clipToPadding="false">
 
-    <!-- App Bar with Toolbar -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <!-- Premium header background with subtle gradient -->
+    <View
+        android:id="@+id/headerBackground"
+        android:layout_width="0dp"
+        android:layout_height="140dp"
+        android:background="@drawable/bg_header_atmosphere"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="@string/student_home_toolbar_title" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- Existing ScrollView content -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:background="@color/background"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <!-- Time-based greeting -->
+    <TextView
+        android:id="@+id/greetingLabel"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingStart="@dimen/screen_padding_horizontal"
-        android:paddingEnd="@dimen/screen_padding_horizontal"
-        android:paddingTop="@dimen/spacing_xl"
-        android:paddingBottom="@dimen/spacing_xl"
-        tools:context=".ui.student.StudentHomeFragment">
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="36dp"
+        android:textColor="@color/text_muted"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.03"
+        app:layout_constraintEnd_toStartOf="@id/accountMenuButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Good evening," />
 
-        <!-- Header -->
-        <TextView
-            android:id="@+id/greetingText"
-            style="@style/TextAppearance.TeamPulse.HeadlineMedium"
-            android:layout_width="0dp"
+    <!-- Premium account button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/accountMenuButton"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="28dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:padding="0dp"
+        app:backgroundTint="@color/surface_elevated"
+        app:icon="@drawable/ic_account_circle_24"
+        app:iconTint="@color/text_primary"
+        app:iconSize="22dp"
+        app:iconPadding="0dp"
+        app:iconGravity="textStart"
+        app:cornerRadius="22dp"
+        app:strokeColor="@color/border_accent"
+        app:strokeWidth="1dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- User name - prominent but controlled -->
+    <TextView
+        android:id="@+id/greetingText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="24dp"
+        android:textColor="@color/text_primary"
+        android:textSize="28sp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="-0.01"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintEnd_toStartOf="@id/accountMenuButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/greetingLabel"
+        tools:text="Akash" />
+
+    <!-- Optional contextual line -->
+    <TextView
+        android:id="@+id/contextLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="2dp"
+        android:text="Student Dashboard"
+        android:textColor="@color/text_muted"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif"
+        android:letterSpacing="0.02"
+        app:layout_constraintEnd_toStartOf="@id/accountMenuButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/greetingText"
+        tools:visibility="visible" />
+
+    <!-- Vertical scrolling content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerBackground">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/student_home_title"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Welcome, Alex" />
+            android:paddingBottom="80dp">
 
-        <!-- ZONE 1: Project Carousel (ViewPager2 + Indicator) -->
+            <!-- ============================================== -->
+            <!-- ACTIVE PROJECTS SECTION -->
+            <!-- ============================================== -->
 
-        <!-- ViewPager2 for project carousel -->
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/projectCarousel"
-            android:layout_width="0dp"
-            android:layout_height="200dp"
-            android:layout_marginTop="@dimen/spacing_base"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/greetingText"
-            tools:visibility="visible" />
+            <!-- Section label -->
+            <TextView
+                android:id="@+id/projectSectionLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="36dp"
+                android:layout_marginEnd="24dp"
+                android:text="ACTIVE PROJECTS"
+                android:textColor="@color/text_muted"
+                android:textSize="10sp"
+                android:fontFamily="sans-serif-medium"
+                android:textAllCaps="true"
+                android:letterSpacing="0.12"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Page indicator dots -->
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/projectIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_sm"
-            android:background="@android:color/transparent"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/projectCarousel"
-            app:tabBackground="@drawable/indicator_dot_selector"
-            app:tabGravity="center"
-            app:tabIconTint="@color/neutral_400"
-            app:tabIndicatorHeight="0dp"
-            app:tabMode="fixed"
-            app:tabPadding="@dimen/spacing_xs"
-            app:tabRippleColor="@color/transparent"
-            tools:visibility="visible" />
+            <!-- Horizontal project carousel -->
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/projectCarousel"
+                android:layout_width="0dp"
+                android:layout_height="240dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:clipToPadding="false"
+                android:clipChildren="false"
+                android:overScrollMode="never"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/projectSectionLabel"
+                tools:visibility="visible" />
 
-        <!-- Project Empty State -->
-        <com.cutm.TeamPulse.ui.common.EmptyStateView
-            android:id="@+id/projectEmptyState"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_base"
-            android:background="@drawable/bg_empty_state"
-            android:padding="@dimen/spacing_xl"
-            app:emptyIcon="@drawable/ic_project"
-            app:emptyMessage="@string/no_active_project_message"
-            app:emptyTitle="@string/no_active_project"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/greetingText" />
+            <!-- Carousel indicators -->
+            <LinearLayout
+                android:id="@+id/projectIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="16dp"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/projectCarousel"
+                tools:visibility="visible" />
 
-        <!-- Barrier: Ensures tasks section positions after whichever project view is visible -->
-        <androidx.constraintlayout.widget.Barrier
-            android:id="@+id/projectSectionBarrier"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:barrierDirection="bottom"
-            app:constraint_referenced_ids="projectIndicator,projectEmptyState" />
+            <!-- Premium project empty state -->
+            <com.cutm.TeamPulse.ui.common.EmptyStateView
+                android:id="@+id/projectEmptyState"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:emptyIcon="@drawable/ic_aurora_workspace"
+                app:emptyTitle="@string/no_active_project"
+                app:emptyMessage="@string/no_active_project_message"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/projectSectionLabel" />
 
-        <!-- ZONE 2: Your Tasks Section (Secondary) -->
+            <!-- Barrier for project section -->
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/projectSectionBarrier"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="projectCarousel,projectEmptyState" />
 
-        <com.cutm.TeamPulse.ui.common.SectionHeaderView
-            android:id="@+id/tasksSectionHeader"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_xl"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/projectSectionBarrier"
-            app:sectionTitle="@string/your_tasks_section" />
+            <!-- ============================================== -->
+            <!-- MY ASSIGNED TASKS SECTION -->
+            <!-- ============================================== -->
 
-        <!-- Tasks List Container -->
-        <LinearLayout
-            android:id="@+id/tasksContainer"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:orientation="vertical"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tasksSectionHeader"
-            tools:visibility="visible">
+            <!-- Section header with real task count -->
+            <LinearLayout
+                android:id="@+id/tasksSectionHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="24dp"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/projectSectionBarrier">
 
-            <!-- Task items will be added programmatically -->
+                <!-- Main section title with count badge -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
-        </LinearLayout>
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="My Assigned Tasks"
+                        android:textColor="@color/text_primary"
+                        android:textSize="18sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="-0.01" />
 
-        <!-- Tasks Empty State -->
-        <com.cutm.TeamPulse.ui.common.EmptyStateView
-            android:id="@+id/tasksEmptyState"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:background="@drawable/bg_empty_state"
-            android:padding="@dimen/spacing_lg"
-            app:emptyIcon="@drawable/ic_empty_tasks"
-            app:emptyMessage=""
-            app:emptyTitle="No Tasks Assigned"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tasksSectionHeader" />
+                    <TextView
+                        android:id="@+id/taskCountBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:text="0"
+                        android:textColor="@color/text_muted"
+                        android:textSize="12sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:background="@drawable/bg_task_count"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        tools:visibility="visible"
+                        tools:text="5" />
 
-        <!-- Barrier: Ensures progress section positions after whichever tasks view is visible -->
-        <androidx.constraintlayout.widget.Barrier
-            android:id="@+id/tasksSectionBarrier"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:barrierDirection="bottom"
-            app:constraint_referenced_ids="tasksContainer,tasksEmptyState" />
+                </LinearLayout>
 
-        <!-- ZONE 3: Gamification (Demoted) -->
+                <!-- Supporting text -->
+                <TextView
+                    android:id="@+id/tasksSupportingText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Update task statuses as you complete project milestones."
+                    android:textColor="@color/text_muted"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif"
+                    android:letterSpacing="0.02" />
 
-        <com.cutm.TeamPulse.ui.common.SectionHeaderView
-            android:id="@+id/progressSectionHeader"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/section_spacing_compact"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tasksSectionBarrier"
-            app:sectionTitle="Your Progress" />
+            </LinearLayout>
 
-        <!-- XP/Badges Placeholder (honest empty state) -->
-        <com.cutm.TeamPulse.ui.common.EmptyStateView
-            android:id="@+id/xpEmptyState"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:background="@drawable/bg_empty_state"
-            android:padding="@dimen/spacing_lg"
-            app:emptyIcon="@drawable/ic_trophy"
-            app:emptyMessage="Complete tasks to earn experience points and unlock achievements."
-            app:emptyTitle="Progress Tracking Coming Soon"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/progressSectionHeader" />
+            <!-- Filter tabs container -->
+            <include
+                android:id="@+id/taskFilterContainer"
+                layout="@layout/view_task_filters"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="24dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tasksSectionHeader" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- Tasks container with RecyclerView for better performance -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/tasksRecyclerView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="24dp"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/taskFilterContainer"
+                tools:listitem="@layout/view_task_item_premium"
+                tools:visibility="visible"
+                tools:itemCount="3" />
 
-</ScrollView>
+            <!-- Premium empty states for each filter -->
+            <com.cutm.TeamPulse.ui.common.EmptyStateView
+                android:id="@+id/tasksEmptyStateAll"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:emptyIcon="@drawable/ic_aurora_tasks"
+                app:emptyTitle="No assigned tasks yet"
+                app:emptyMessage=""
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/taskFilterContainer" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+            <com.cutm.TeamPulse.ui.common.EmptyStateView
+                android:id="@+id/tasksEmptyStateTodo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:emptyIcon="@drawable/ic_filter_todo"
+                app:emptyTitle="No tasks to do"
+                app:emptyMessage=""
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/taskFilterContainer" />
+
+            <com.cutm.TeamPulse.ui.common.EmptyStateView
+                android:id="@+id/tasksEmptyStateInProgress"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:emptyIcon="@drawable/ic_filter_in_progress"
+                app:emptyTitle="No tasks in progress"
+                app:emptyMessage=""
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/taskFilterContainer" />
+
+            <com.cutm.TeamPulse.ui.common.EmptyStateView
+                android:id="@+id/tasksEmptyStateDone"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:emptyIcon="@drawable/ic_filter_done"
+                app:emptyTitle="No completed tasks yet"
+                app:emptyMessage=""
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/taskFilterContainer" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

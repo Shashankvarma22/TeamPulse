@@ -1,94 +1,155 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    Project hero card — premium dark productivity hero component.
+    All ViewHolder IDs are preserved exactly:
+      projectName, teamName, progressPercentage, progressBar, taskCount, deadlineChip
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    style="@style/Widget.TeamPulse.Card"
-    android:layout_margin="@dimen/spacing_md"
-    app:cardBackgroundColor="@color/primary_light">
+    android:paddingBottom="4dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/cardContent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="@dimen/spacing_lg">
+    <!-- Premium hero card with indigo → blue gradient -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/heroCard"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_project_hero"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="8dp"
+        app:strokeColor="@color/border_accent"
+        app:strokeWidth="1dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Project Name -->
-        <TextView
-            android:id="@+id/projectName"
-            style="@style/TextAppearance.TeamPulse.TitleLarge"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textColor="@color/on_primary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Mobile App Development" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="24dp">
 
-        <!-- Team Name -->
-        <TextView
-            android:id="@+id/teamName"
-            style="@style/TextAppearance.TeamPulse.BodyMedium"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_xxs"
-            android:textColor="@color/on_primary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/projectName"
-            tools:text="Team Alpha" />
+            <!-- Project status label -->
+            <TextView
+                android:id="@+id/projectStatusLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ACTIVE PROJECT"
+                android:textColor="@color/secondary"
+                android:textSize="10sp"
+                android:fontFamily="sans-serif-medium"
+                android:textAllCaps="true"
+                android:letterSpacing="0.12"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="ACTIVE PROJECT" />
 
-        <!-- Progress Percentage Text -->
-        <TextView
-            android:id="@+id/progressPercentage"
-            style="@style/TextAppearance.TeamPulse.NumericLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:textColor="@color/on_primary"
-            android:textSize="28sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/teamName"
-            tools:text="65%" />
+            <!-- Project name — large, prominent -->
+            <TextView
+                android:id="@+id/projectName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/text_primary"
+                android:textSize="24sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="-0.02"
+                android:maxLines="2"
+                android:ellipsize="end"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/projectStatusLabel"
+                tools:text="Mobile App Development" />
 
-        <!-- Progress Bar (linear) -->
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="8dp"
-            android:layout_marginTop="@dimen/spacing_sm"
-            android:progressDrawable="@drawable/progress_bar_rounded"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/progressPercentage"
-            tools:progress="65" />
+            <!-- Team name with icon -->
+            <TextView
+                android:id="@+id/teamName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:drawableStart="@drawable/ic_team"
+                android:drawablePadding="6dp"
+                android:drawableTint="@color/text_muted"
+                android:textColor="@color/text_muted"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif"
+                android:maxLines="1"
+                android:ellipsize="end"
+                app:layout_constraintEnd_toStartOf="@id/deadlineChip"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/projectName"
+                tools:text="Team Alpha" />
 
-        <!-- Completed / Total Tasks Count -->
-        <TextView
-            android:id="@+id/taskCount"
-            style="@style/TextAppearance.TeamPulse.LabelSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_xs"
-            android:textColor="@color/on_primary_variant"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/progressBar"
-            tools:text="13 of 20 tasks" />
+            <!-- Deadline chip — premium cyan edge -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/deadlineChip"
+                style="@style/Widget.TeamPulse.Chip.Status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_primary"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-medium"
+                app:chipCornerRadius="14dp"
+                app:chipMinHeight="28dp"
+                app:chipStartPadding="10dp"
+                app:chipEndPadding="10dp"
+                app:chipBackgroundColor="@color/surface_accent"
+                app:chipStrokeColor="@color/secondary"
+                app:chipStrokeWidth="1dp"
+                app:layout_constraintBottom_toBottomOf="@id/teamName"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/teamName"
+                tools:text="Due in 5 days" />
 
-        <!-- Deadline Section (Urgency Pill) -->
-        <com.google.android.material.chip.Chip
-            android:id="@+id/deadlineChip"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:textColor="@color/white"
-            app:chipBackgroundColor="@color/neutral_500"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/taskCount"
-            tools:text="Due in 5 days" />
+            <!-- Hero progress section -->
+            <TextView
+                android:id="@+id/progressPercentage"
+                style="@style/TextAppearance.TeamPulse.NumericLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:textColor="@color/text_primary"
+                android:textSize="48sp"
+                android:fontFamily="sans-serif"
+                android:letterSpacing="-0.03"
+                android:includeFontPadding="false"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/teamName"
+                tools:text="67%" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- Task count label -->
+            <TextView
+                android:id="@+id/taskCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/text_muted"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif"
+                android:lineSpacingExtra="2sp"
+                app:layout_constraintStart_toEndOf="@id/progressPercentage"
+                app:layout_constraintTop_toBottomOf="@id/teamName"
+                tools:text="13 of 20\ntasks completed" />
 
-</com.google.android.material.card.MaterialCardView>
+            <!-- Premium progress bar -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="12dp"
+                android:layout_marginTop="20dp"
+                android:progressDrawable="@drawable/progress_bar_premium"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/progressPercentage"
+                tools:progress="67" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

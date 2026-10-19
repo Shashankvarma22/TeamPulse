@@ -1,380 +1,181 @@
 ﻿package com.cutm.TeamPulse.ui.student
 
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.provider.Settings
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
+import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AlertDialog
-import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
-import androidx.core.view.doOnPreDraw
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.tabs.TabLayoutMediator
 import com.cutm.TeamPulse.R
 import com.cutm.TeamPulse.databinding.FragmentStudentHomeBinding
-import com.cutm.TeamPulse.ui.common.BaseFragment
-import com.cutm.TeamPulse.ui.common.TaskItemView
-import com.cutm.TeamPulse.core.security.KeystoreRecoveryManager
-import com.cutm.TeamPulse.ui.debug.DebugMenuProvider
+import com.cutm.TeamPulse.domain.model.TaskStatus
+import com.cutm.TeamPulse.ui.student.TaskAdapter.TaskStatusFilter
+import com.google.android.material.button.MaterialButtonToggleGroup
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import java.util.Calendar
 
 @AndroidEntryPoint
-class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStudentHomeBinding::inflate) {
+class StudentHomeFragment : Fragment() {
+
+    private var _binding: FragmentStudentHomeBinding? = null
+    private val binding get() = _binding!!
 
     private val viewModel: StudentHomeViewModel by viewModels()
     
-    @Inject
-    lateinit var keystoreRecoveryManager: KeystoreRecoveryManager
+    private var taskAdapter: TaskAdapter? = null
+    private var currentTaskFilter: TaskStatusFilter = TaskStatusFilter.ALL
+    private var carouselAdapter: ProjectCarouselAdapter? = null
+    private var carouselPageChangeCallback: androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback? = null
     
-    @Inject
-    lateinit var debugMenuProvider: DebugMenuProvider
-    
-    private var hasAnimatedEntrance = false
+    // Track if session was ever received (to distinguish between init delay and actual sign-out)
+    private var sessionWasReceived = false
 
-    private fun setupMenu() {
-        requireActivity().addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.menu_home, menu)
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.action_sign_out -> {
-                        signOut()
-                        true
-                    }
-                    else -> false
-                }
-            }
-        }, viewLifecycleOwner)
-    }
-
-    private fun signOut() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            // Call repository sign-out (clears Room + CredentialManager)
-            viewModel.signOut()
-            
-            // Navigate back to sign-in, clearing backstack
-            findNavController().navigate(R.id.action_studentHome_to_signIn)
-        }
-    }
-
-    private fun setupSecurityWarningBanner(parent: ViewGroup) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                keystoreRecoveryManager.isUsingFallbackPassphrase.collect { isUsingFallback ->
-                    // Check if banner already exists
-                    val existingBanner = parent.findViewWithTag<TextView>("security_banner")
-                    
-                    if (isUsingFallback) {
-                        // Show banner if not already present
-                        if (existingBanner == null) {
-                            val banner = TextView(requireContext()).apply {
-                                tag = "security_banner"
-                                text = "This device's secure storage failed and can't be repaired automatically — local data on this device is no longer hardware-encrypted"
-                                setTextColor(android.graphics.Color.WHITE)
-                                setBackgroundColor(requireContext().getColor(R.color.warning))
-                                setPadding(32, 32, 32, 32)
-                                textSize = 14f
-                            }
-                            parent.addView(banner, 0)
-                        }
-                    } else {
-                        // Hide banner if present
-                        if (existingBanner != null) {
-                            parent.removeView(existingBanner)
-                        }
-                    }
-                }
-            }
-        }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        Log.d("StudentHomeFragment", "onCreateView()")
+        _binding = FragmentStudentHomeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.d("StudentHomeFragment", "onViewCreated()")
 
-        // Setup security warning banner
-        setupSecurityWarningBanner(binding.root as ViewGroup)
-
-        // Attach debug menu (no-op in release builds)
-        debugMenuProvider.attach(this, keystoreRecoveryManager, binding.greetingText)
-
-        // Set toolbar as activity's action bar so MenuProvider can attach
-        (requireActivity() as AppCompatActivity).setSupportActionBar(binding.toolbar)
-
-        // Setup menu (MenuProvider now has a toolbar to attach to)
-        setupMenu()
-
-        // Animate entrance once
-        animateEntrance()
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Collect user session for greeting
-                launch {
-                    viewModel.userSession.collect { session ->
-                        session?.let {
-                            binding.greetingText.text = getString(
-                                R.string.student_home_greeting,
-                                it.displayName.split(" ").firstOrNull() ?: it.displayName
-                            )
-                        }
-                    }
-                }
-
-                // Collect current projects and setup carousel
-                launch {
-                    viewModel.currentProjects.collect { projects ->
-                        renderProjectCarousel(projects)
-                    }
-                }
-
-                // Collect student's tasks filtered by focused project
-                launch {
-                    viewModel.myTasks.collect { tasks ->
-                        renderTasks(tasks)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun animateEntrance() {
-        if (hasAnimatedEntrance) return
-        hasAnimatedEntrance = true
-
-        // Check if animations are disabled
-        val animationScale = Settings.Global.getFloat(
-            requireContext().contentResolver,
-            Settings.Global.ANIMATOR_DURATION_SCALE,
-            1f
+        setupGreeting()
+        setupAccountButton()
+        
+        // Setup task adapter and filtering
+        taskAdapter = TaskAdapter(
+            onTaskClicked = { task -> onTaskClicked(task) },
+            onStatusAction = { taskId, newStatus -> onStatusAction(taskId, newStatus) }
         )
+        binding.tasksRecyclerView.adapter = taskAdapter
+        setupTaskFiltering()
+        
+        observeViewModel()
+    }
 
-        if (animationScale == 0f) {
-            // Immediately show all content
-            binding.greetingText.alpha = 1f
-            binding.greetingText.translationY = 0f
-            binding.projectCarousel.alpha = 1f
-            binding.projectCarousel.translationY = 0f
-            binding.projectIndicator.alpha = 1f
-            binding.projectIndicator.translationY = 0f
-            binding.projectEmptyState.alpha = 1f
-            binding.projectEmptyState.translationY = 0f
-            binding.tasksSectionHeader.alpha = 1f
-            binding.tasksSectionHeader.translationY = 0f
-            binding.tasksContainer.alpha = 1f
-            binding.tasksContainer.translationY = 0f
-            binding.tasksEmptyState.alpha = 1f
-            binding.tasksEmptyState.translationY = 0f
-            return
+    private fun setupGreeting() {
+        val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        
+        val greetingRes = when (hour) {
+            in 5..11 -> R.string.student_home_greeting_morning
+            in 12..17 -> R.string.student_home_greeting_afternoon
+            else -> R.string.student_home_greeting_evening
         }
+        
+        binding.greetingLabel.setText(greetingRes)
+    }
 
-        // Prepare views for animation
-        val translationDistance = 32f * resources.displayMetrics.density
-        listOf(
-            binding.greetingText,
-            binding.projectCarousel,
-            binding.projectIndicator,
-            binding.projectEmptyState,
-            binding.tasksSectionHeader,
-            binding.tasksContainer,
-            binding.tasksEmptyState
-        ).forEach { view ->
-            view.alpha = 0f
-            view.translationY = translationDistance
+    private fun setupAccountButton() {
+        binding.accountMenuButton.setOnClickListener {
+            showSignOutConfirmation()
         }
+    }
 
-        // Staggered entrance animation
-        val interpolator = DecelerateInterpolator()
-        val duration = 300L
-        val staggerDelay = 80L
-
-        val animators = mutableListOf<ObjectAnimator>()
-
-        // Greeting (immediate)
-        animators.add(ObjectAnimator.ofFloat(binding.greetingText, View.ALPHA, 0f, 1f).apply {
-            this.duration = duration
-            this.interpolator = interpolator
-            startDelay = 0L
-        })
-        animators.add(ObjectAnimator.ofFloat(binding.greetingText, View.TRANSLATION_Y, translationDistance, 0f).apply {
-            this.duration = duration
-            this.interpolator = interpolator
-            startDelay = 0L
-        })
-
-        // Project zone (stagger 1)
-        listOf(binding.projectCarousel, binding.projectIndicator, binding.projectEmptyState).forEach { view ->
-            if (view.visibility == View.VISIBLE) {
-                animators.add(ObjectAnimator.ofFloat(view, View.ALPHA, 0f, 1f).apply {
-                    this.duration = duration
-                    this.interpolator = interpolator
-                    startDelay = staggerDelay
-                })
-                animators.add(ObjectAnimator.ofFloat(view, View.TRANSLATION_Y, translationDistance, 0f).apply {
-                    this.duration = duration
-                    this.interpolator = interpolator
-                    startDelay = staggerDelay
-                })
+    private fun showSignOutConfirmation() {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Sign Out")
+            .setMessage("Are you sure you want to sign out?")
+            .setPositiveButton("Sign Out") { _, _ ->
+                lifecycleScope.launch {
+                    viewModel.signOut()
+                }
             }
-        }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
 
-        // Tasks zone (stagger 2)
-        listOf(binding.tasksSectionHeader, binding.tasksContainer, binding.tasksEmptyState).forEach { view ->
-            if (view.visibility == View.VISIBLE) {
-                animators.add(ObjectAnimator.ofFloat(view, View.ALPHA, 0f, 1f).apply {
-                    this.duration = duration
-                    this.interpolator = interpolator
-                    startDelay = staggerDelay * 2
-                })
-                animators.add(ObjectAnimator.ofFloat(view, View.TRANSLATION_Y, translationDistance, 0f).apply {
-                    this.duration = duration
-                    this.interpolator = interpolator
-                    startDelay = staggerDelay * 2
-                })
+    private fun setupTaskFiltering() {
+        val filterGroup = binding.root.findViewById<MaterialButtonToggleGroup>(R.id.taskFilterGroup) ?: return
+        
+        filterGroup.addOnButtonCheckedListener { group, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            
+            currentTaskFilter = when (checkedId) {
+                R.id.filterAll -> TaskStatusFilter.ALL
+                R.id.filterTodo -> TaskStatusFilter.TODO
+                R.id.filterInProgress -> TaskStatusFilter.IN_PROGRESS
+                R.id.filterDone -> TaskStatusFilter.DONE
+                else -> return@addOnButtonCheckedListener
             }
-        }
-
-        if (animators.isNotEmpty()) {
-            AnimatorSet().apply {
-                playTogether(animators as Collection<android.animation.Animator>)
-                start()
+            
+            viewModel.myTasks.value?.let { tasks ->
+                renderTasks(tasks)
             }
         }
     }
 
-    private var carouselAdapter: ProjectCarouselAdapter? = null
-    private var maxCarouselHeight = 0
-
-    private val prototypeCard: android.view.View by lazy {
-        layoutInflater.inflate(R.layout.item_project_carousel, null, false)
-    }
-
-    private fun measureCarouselHeight(projects: List<CurrentProjectData>) {
-        // Guard: if ViewPager2 hasn't been laid out yet, width will be 0
-        // Skip measurement and re-run once layout is known
-        if (binding.projectCarousel.width <= 0) {
-            binding.projectCarousel.doOnPreDraw {
-                measureCarouselHeight(projects)
-            }
-            return
-        }
-
-        val widthSpec = android.view.View.MeasureSpec.makeMeasureSpec(
-            binding.projectCarousel.width,
-            android.view.View.MeasureSpec.EXACTLY
-        )
-        val heightSpec = android.view.View.MeasureSpec.makeMeasureSpec(0, android.view.View.MeasureSpec.UNSPECIFIED)
-
-        var maxHeight = 0
-
-        for (projectData in projects) {
-            // Bind prototype card with project data
-            val projectNameView = prototypeCard.findViewById<android.widget.TextView>(R.id.projectName)
-            val teamNameView = prototypeCard.findViewById<android.widget.TextView>(R.id.teamName)
-            val progressPercentageView = prototypeCard.findViewById<android.widget.TextView>(R.id.progressPercentage)
-            val progressBarView = prototypeCard.findViewById<android.widget.ProgressBar>(R.id.progressBar)
-            val taskCountView = prototypeCard.findViewById<android.widget.TextView>(R.id.taskCount)
-            val deadlineChipView = prototypeCard.findViewById<com.google.android.material.chip.Chip>(R.id.deadlineChip)
-
-            projectNameView.text = projectData.project.name
-            teamNameView.text = projectData.team.teamName
-
-            val progressPercent = if (projectData.totalTasks > 0) {
-                (projectData.completedTasks * 100) / projectData.totalTasks
-            } else {
-                0
-            }
-
-            progressPercentageView.text = getString(R.string.progress_percentage, progressPercent)
-            progressBarView.progress = progressPercent
-            taskCountView.text = getString(
-                R.string.task_count_format,
-                projectData.completedTasks,
-                projectData.totalTasks
-            )
-
-            val (deadlineText, chipColor) = getDeadlineInfo(projectData.daysUntilDeadline)
-            deadlineChipView.text = deadlineText
-            deadlineChipView.setChipBackgroundColorResource(chipColor)
-
-            // Measure the prototype
-            prototypeCard.measure(widthSpec, heightSpec)
-
-            if (prototypeCard.measuredHeight > maxHeight) {
-                maxHeight = prototypeCard.measuredHeight
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.userSession.collectLatest { session ->
+                    Log.d("StudentHomeFragment", "userSession emission: ${if (session != null) "session for ${session.email}" else "null"}, sessionWasReceived=$sessionWasReceived")
+                    
+                    if (session != null) {
+                        // Session exists - update UI
+                        sessionWasReceived = true
+                        binding.greetingText.text = session.displayName ?: "Student"
+                        Log.d("StudentHomeFragment", "Session received: ${session.email}")
+                    } else if (sessionWasReceived) {
+                        // Session became null AFTER we already received a valid session
+                        // This means user explicitly signed out
+                        Log.d("StudentHomeFragment", "Session cleared - user signed out, navigating to SignIn")
+                        findNavController().navigate(R.id.action_studentHome_to_signIn)
+                    } else {
+                        // Session is null but we haven't received a valid session yet
+                        // This is likely initial load delay - do NOT navigate
+                        Log.d("StudentHomeFragment", "Session null during initial load - waiting for valid session")
+                    }
+                }
             }
         }
 
-        if (maxHeight > 0) {
-            val marginSize = resources.getDimensionPixelSize(R.dimen.spacing_md)
-            val totalHeight = maxHeight + (marginSize * 2)
-            val layoutParams = binding.projectCarousel.layoutParams
-            layoutParams.height = totalHeight
-            binding.projectCarousel.layoutParams = layoutParams
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.currentProjects.collectLatest { projects ->
+                    renderProjectCarousel(projects)
+                }
+            }
         }
-    }
 
-    private fun getDeadlineInfo(daysUntil: Int): Pair<String, Int> {
-        return when {
-            daysUntil < 0 -> {
-                val daysOverdue = -daysUntil
-                Pair(
-                    getString(R.string.overdue_days, daysOverdue),
-                    R.color.error
-                )
-            }
-            daysUntil == 0 -> {
-                Pair(
-                    getString(R.string.due_today),
-                    R.color.warning
-                )
-            }
-            daysUntil <= 3 -> {
-                Pair(
-                    getString(R.string.due_soon_days, daysUntil),
-                    R.color.warning
-                )
-            }
-            else -> {
-                Pair(
-                    getString(R.string.due_in_days, daysUntil),
-                    R.color.success
-                )
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.myTasks.collectLatest { tasks ->
+                    renderTasks(tasks)
+                }
             }
         }
     }
 
     private fun renderProjectCarousel(projects: List<CurrentProjectData>) {
-        val wasVisible = binding.projectCarousel.isVisible
-        val newVisible = projects.isNotEmpty()
-
         if (projects.isEmpty()) {
             crossFade(binding.projectCarousel, binding.projectEmptyState)
             binding.projectIndicator.isVisible = false
         } else {
             crossFade(binding.projectEmptyState, binding.projectCarousel)
             binding.projectIndicator.isVisible = projects.size > 1
-            binding.projectIndicator.alpha = 1f
 
-            // Measure carousel height against real project data
-            measureCarouselHeight(projects)
+            // Set fixed height for carousel
+            val targetHeight = resources.getDimensionPixelSize(R.dimen.project_carousel_height)
+            val layoutParams = binding.projectCarousel.layoutParams
+            layoutParams.height = targetHeight
+            binding.projectCarousel.layoutParams = layoutParams
 
             // Setup or update carousel adapter
             if (carouselAdapter == null) {
@@ -383,81 +184,87 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
                 }
                 binding.projectCarousel.adapter = carouselAdapter
 
-                // Connect indicator dots to carousel
+                // Create indicator dots
                 if (projects.size > 1) {
-                    TabLayoutMediator(binding.projectIndicator, binding.projectCarousel) { tab, position ->
-                        // Tab styling is handled by layout attributes
-                    }.attach()
+                    setupCustomCarouselIndicator(projects.size)
                 }
 
-                // Listen for page changes and update focused project
-                binding.projectCarousel.registerOnPageChangeCallback(
-                    object : ViewPager2.OnPageChangeCallback() {
-                        override fun onPageSelected(position: Int) {
-                            if (position < projects.size) {
-                                viewModel.setFocusedProject(projects[position].project.projectId)
-                            }
+                // Register callback ONCE
+                carouselPageChangeCallback = object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
+                    override fun onPageSelected(position: Int) {
+                        if (position < projects.size) {
+                            viewModel.setFocusedProject(projects[position].project.projectId)
                         }
+                        updateCarouselIndicator(position)
                     }
-                )
+                }
+                binding.projectCarousel.registerOnPageChangeCallback(carouselPageChangeCallback!!)
             } else {
                 carouselAdapter?.updateProjects(projects)
+                if (projects.size > 1) {
+                    setupCustomCarouselIndicator(projects.size)
+                } else {
+                    binding.projectIndicator.isVisible = false
+                }
             }
         }
     }
 
     private fun renderTasks(tasks: List<StudentTaskData>) {
-        val wasVisible = binding.tasksContainer.isVisible
-        val newVisible = tasks.isNotEmpty()
-
-        binding.tasksContainer.removeAllViews()
-
+        updateTaskCountBadge(tasks)
+        
         if (tasks.isEmpty()) {
-            crossFade(binding.tasksContainer, binding.tasksEmptyState)
+            showEmptyStateForFilter(TaskStatusFilter.ALL)
+            return
+        }
+        
+        // Update adapter with current filter
+        taskAdapter?.updateTasks(tasks, currentTaskFilter)
+        
+        // Show/hide appropriate empty state
+        val filteredCount = taskAdapter?.getFilteredCount(tasks, currentTaskFilter) ?: 0
+        if (filteredCount == 0) {
+            showEmptyStateForFilter(currentTaskFilter)
         } else {
-            crossFade(binding.tasksEmptyState, binding.tasksContainer)
-
-            // Show up to 5 tasks
-            tasks.take(5).forEach { taskData ->
-                val taskView = TaskItemView(requireContext()).apply {
-                    val dueDateText = when {
-                        taskData.daysUntilDue < 0 -> getString(R.string.overdue)
-                        taskData.daysUntilDue == 0 -> getString(R.string.due_today)
-                        else -> getString(R.string.due_in_days, taskData.daysUntilDue)
-                    }
-
-                    setTaskData(
-                        title = taskData.task.title,
-                        status = taskData.task.status,
-                        dueDate = dueDateText
-                    )
-
-                    // Make task tappable with subtle feedback
-                    isClickable = true
-                    isFocusable = true
-                    setOnClickListener {
-                        onTaskClicked(taskData.task)
-                    }
-                }
-
-                val layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_sm)
-                }
-
-                binding.tasksContainer.addView(taskView, layoutParams)
-            }
+            showTaskList()
         }
     }
 
+    private fun updateTaskCountBadge(tasks: List<StudentTaskData>) {
+        val totalCount = tasks.size
+        binding.taskCountBadge.isVisible = totalCount > 0
+        if (totalCount > 0) {
+            binding.taskCountBadge.text = totalCount.toString()
+        }
+    }
+
+    private fun showEmptyStateForFilter(filter: TaskStatusFilter) {
+        binding.tasksEmptyStateAll.isVisible = false
+        binding.tasksEmptyStateTodo.isVisible = false
+        binding.tasksEmptyStateInProgress.isVisible = false
+        binding.tasksEmptyStateDone.isVisible = false
+        binding.tasksRecyclerView.isVisible = false
+        
+        when (filter) {
+            TaskStatusFilter.ALL -> binding.tasksEmptyStateAll.isVisible = true
+            TaskStatusFilter.TODO -> binding.tasksEmptyStateTodo.isVisible = true
+            TaskStatusFilter.IN_PROGRESS -> binding.tasksEmptyStateInProgress.isVisible = true
+            TaskStatusFilter.DONE -> binding.tasksEmptyStateDone.isVisible = true
+        }
+    }
+
+    private fun showTaskList() {
+        binding.tasksEmptyStateAll.isVisible = false
+        binding.tasksEmptyStateTodo.isVisible = false
+        binding.tasksEmptyStateInProgress.isVisible = false
+        binding.tasksEmptyStateDone.isVisible = false
+        binding.tasksRecyclerView.isVisible = true
+    }
+
     private fun onTaskClicked(task: com.cutm.TeamPulse.domain.model.TaskAssignment) {
-        // Subtle scale feedback
-        val clickedView = (binding.tasksContainer.focusedChild as? TaskItemView)
+        val clickedView = binding.tasksRecyclerView.focusedChild
         clickedView?.let { animateTaskTap(it) }
 
-        // Show task detail bottom sheet
         val bottomSheet = TaskDetailBottomSheet.newInstance(
             taskId = task.taskId,
             title = task.title,
@@ -467,6 +274,10 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
             weight = task.weight
         )
         bottomSheet.show(childFragmentManager, "TaskDetailBottomSheet")
+    }
+
+    private fun onStatusAction(taskId: String, newStatus: TaskStatus) {
+        viewModel.updateTaskStatus(taskId, newStatus)
     }
 
     private fun animateTaskTap(view: View) {
@@ -485,7 +296,6 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
     }
 
     private fun crossFade(fromView: View, toView: View) {
-        // Check if animations are disabled
         val animationScale = Settings.Global.getFloat(
             requireContext().contentResolver,
             Settings.Global.ANIMATOR_DURATION_SCALE,
@@ -498,41 +308,73 @@ class StudentHomeFragment : BaseFragment<FragmentStudentHomeBinding>(FragmentStu
             return
         }
 
-        // Don't animate if already in correct state
-        if (fromView.isVisible && toView.isVisible) return
-        if (!fromView.isVisible && !toView.isVisible) return
+        // Determine current states
+        val fromCurrentlyVisible = fromView.isVisible
+        val toCurrentlyVisible = toView.isVisible
+
+        // If both same state, no crossfade needed
+        if (fromCurrentlyVisible == toCurrentlyVisible && fromCurrentlyVisible == toView.isVisible) {
+            return
+        }
 
         val duration = 200L
+        toView.alpha = 0f
+        toView.isVisible = true
 
-        if (fromView.isVisible) {
-            ObjectAnimator.ofFloat(fromView, View.ALPHA, 1f, 0f).apply {
-                this.duration = duration
-                start()
-                doOnEnd { fromView.isVisible = false }
+        toView.animate()
+            .alpha(1f)
+            .setDuration(duration)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
+
+        fromView.animate()
+            .alpha(0f)
+            .setDuration(duration)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction {
+                fromView.isVisible = false
+                fromView.alpha = 1f
             }
+            .start()
+    }
+
+    private fun setupCustomCarouselIndicator(count: Int) {
+        binding.projectIndicator.removeAllViews()
+        
+        val indicatorSize = resources.getDimensionPixelSize(R.dimen.indicator_size)
+        val indicatorMargin = resources.getDimensionPixelSize(R.dimen.indicator_margin)
+        
+        for (i in 0 until count) {
+            val indicator = View(requireContext()).apply {
+                layoutParams = ViewGroup.MarginLayoutParams(indicatorSize, indicatorSize).apply {
+                    setMargins(indicatorMargin, 0, indicatorMargin, 0)
+                }
+                background = androidx.core.content.ContextCompat.getDrawable(requireContext(), R.drawable.bg_indicator_inactive)
+            }
+            binding.projectIndicator.addView(indicator)
         }
+        
+        updateCarouselIndicator(0)
+    }
 
-        if (!toView.isVisible) {
-            toView.alpha = 0f
-            toView.isVisible = true
-            ObjectAnimator.ofFloat(toView, View.ALPHA, 0f, 1f).apply {
-                this.duration = duration
-                start()
-            }
+    private fun updateCarouselIndicator(position: Int) {
+        for (i in 0 until binding.projectIndicator.childCount) {
+            val indicator = binding.projectIndicator.getChildAt(i)
+            val drawableRes = if (i == position) R.drawable.bg_indicator_active else R.drawable.bg_indicator_inactive
+            indicator.background = androidx.core.content.ContextCompat.getDrawable(requireContext(), drawableRes)
         }
     }
 
-    private fun ObjectAnimator.doOnEnd(action: () -> Unit) {
-        addListener(object : android.animation.Animator.AnimatorListener {
-            override fun onAnimationStart(animation: android.animation.Animator) {}
-            override fun onAnimationEnd(animation: android.animation.Animator) {
-                action()
-            }
-            override fun onAnimationCancel(animation: android.animation.Animator) {}
-            override fun onAnimationRepeat(animation: android.animation.Animator) {}
-        })
+    override fun onDestroyView() {
+        super.onDestroyView()
+        Log.d("StudentHomeFragment", "onDestroyView()")
+        
+        // Unregister carousel callback to prevent leaks
+        if (carouselPageChangeCallback != null) {
+            binding.projectCarousel.unregisterOnPageChangeCallback(carouselPageChangeCallback!!)
+            carouselPageChangeCallback = null
+        }
+        
+        _binding = null
     }
 }
-
-
-

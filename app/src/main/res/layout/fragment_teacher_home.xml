@@ -3,178 +3,475 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <!-- App Bar with Toolbar -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="@string/teacher_home_toolbar_title" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- Existing ScrollView content -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:background="@color/background"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fitsSystemWindows="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false">
+
+    <!-- Premium header background with subtle gradient (EXACT SAME AS STUDENT) -->
+    <View
+        android:id="@+id/headerBackground"
+        android:layout_width="0dp"
+        android:layout_height="140dp"
+        android:background="@drawable/bg_header_atmosphere"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Time-based greeting (EXACT SAME POSITIONING AS STUDENT) -->
+    <TextView
+        android:id="@+id/greetingLabel"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingStart="@dimen/screen_padding_horizontal"
-        android:paddingEnd="@dimen/screen_padding_horizontal"
-        android:paddingTop="@dimen/spacing_xl"
-        android:paddingBottom="@dimen/spacing_xl"
-        tools:context=".ui.teacher.TeacherHomeFragment">
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="36dp"
+        android:textColor="@color/text_muted"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.03"
+        app:layout_constraintEnd_toStartOf="@id/accountMenuButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Good evening," />
 
-        <!-- Header -->
-        <TextView
-            android:id="@+id/greetingText"
-            style="@style/TextAppearance.TeamPulse.HeadlineMedium"
-            android:layout_width="0dp"
+    <!-- Premium account button (EXACT SAME AS STUDENT) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/accountMenuButton"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="28dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:padding="0dp"
+        app:backgroundTint="@color/surface_elevated"
+        app:icon="@drawable/ic_account_circle_24"
+        app:iconTint="@color/text_primary"
+        app:iconSize="22dp"
+        app:iconPadding="0dp"
+        app:iconGravity="textStart"
+        app:cornerRadius="22dp"
+        app:strokeColor="@color/border_accent"
+        app:strokeWidth="1dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Teacher name - same sizing and styling as Student (EXACT COPY) -->
+    <TextView
+        android:id="@+id/greetingText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="24dp"
+        android:textColor="@color/text_primary"
+        android:textSize="28sp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="-0.01"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintEnd_toStartOf="@id/accountMenuButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/greetingLabel"
+        tools:text="Akash" />
+
+    <!-- Role label - "Teacher Dashboard" instead of "Student Dashboard" -->
+    <TextView
+        android:id="@+id/contextLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="2dp"
+        android:text="Teacher Dashboard"
+        android:textColor="@color/text_muted"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif"
+        android:letterSpacing="0.02"
+        app:layout_constraintEnd_toStartOf="@id/accountMenuButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/greetingText"
+        tools:visibility="visible" />
+
+    <!-- Vertical scrolling content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerBackground">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/teacher_home_title"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Welcome, Prof. Smith" />
+            android:paddingBottom="80dp">
 
-        <!-- ZONE 1: Attention / Needs Review (Focal) -->
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/contentZone"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="attentionEmptyState,projectsSectionHeader,projectsContainer,projectsEmptyState,deadlinesSectionHeader,deadlinesContainer,deadlinesEmptyState" />
+            <!-- ============================================== -->
+            <!-- METRICS OVERVIEW SECTION -->
+            <!-- ============================================== -->
 
-        <com.cutm.TeamPulse.ui.common.EmptyStateView
-            android:id="@+id/attentionEmptyState"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_base"
-            android:background="@drawable/bg_empty_state"
-            android:padding="@dimen/spacing_xl"
-            app:emptyIcon="@drawable/ic_progress"
-            app:emptyMessage="@string/attention_all_on_track_message"
-            app:emptyTitle="@string/attention_all_on_track"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/greetingText" />
+            <!-- Section label - same style as Student -->
+            <TextView
+                android:id="@+id/metricsSectionLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="36dp"
+                android:layout_marginEnd="24dp"
+                android:text="DASHBOARD OVERVIEW"
+                android:textColor="@color/text_muted"
+                android:textSize="10sp"
+                android:fontFamily="sans-serif-medium"
+                android:textAllCaps="true"
+                android:letterSpacing="0.12"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- ZONE 2: Project Overview (Secondary) -->
-        <com.cutm.TeamPulse.ui.common.SectionHeaderView
-            android:id="@+id/projectsSectionHeader"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/section_spacing"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/attentionEmptyState"
-            app:sectionTitle="Projects" />
+            <!-- 2-Column Grid of Premium Metric Cards (Exact spacing and styling as Student cards) -->
+            <LinearLayout
+                android:id="@+id/metricsGrid"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/metricsSectionLabel">
 
-        <!-- Project List Container -->
-        <LinearLayout
-            android:id="@+id/projectsContainer"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:orientation="vertical"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/projectsSectionHeader"
-            tools:visibility="visible">
+                <!-- Row 1: Total Teams & Active Projects -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
 
-            <!-- Project cards will be added programmatically -->
+                    <!-- Total Teams Card - USES SAME bg_card_outlined AS STUDENT TASKS -->
+                    <LinearLayout
+                        android:id="@+id/teamsMetricCard"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_card_outlined"
+                        android:padding="16dp"
+                        android:orientation="vertical">
 
-        </LinearLayout>
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_people"
+                            android:contentDescription="@null"
+                            app:tint="@color/secondary" />
 
-        <!-- Projects Empty State -->
-        <com.cutm.TeamPulse.ui.common.EmptyStateView
-            android:id="@+id/projectsEmptyState"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:background="@drawable/bg_empty_state"
-            android:padding="@dimen/spacing_xl"
-            app:emptyIcon="@drawable/ic_empty_tasks"
-            app:emptyMessage="@string/no_projects_message"
-            app:emptyTitle="@string/empty_state_no_projects_title"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/projectsSectionHeader" />
+                        <TextView
+                            android:id="@+id/totalTeamsCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="@color/text_primary"
+                            android:textSize="24sp"
+                            android:fontFamily="sans-serif-medium" />
 
-        <!-- Barrier: Ensures deadlines section positions after whichever projects view is visible -->
-        <androidx.constraintlayout.widget.Barrier
-            android:id="@+id/projectsSectionBarrier"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:barrierDirection="bottom"
-            app:constraint_referenced_ids="projectsContainer,projectsEmptyState" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Total Teams"
+                            android:textColor="@color/text_muted"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif" />
 
-        <!-- ZONE 3: Upcoming Deadlines (Tertiary) -->
-        <com.cutm.TeamPulse.ui.common.SectionHeaderView
-            android:id="@+id/deadlinesSectionHeader"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/section_spacing_compact"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/projectsSectionBarrier"
-            app:sectionTitle="@string/upcoming_deadlines_section" />
+                    </LinearLayout>
 
-        <!-- Deadlines List Container -->
-        <LinearLayout
-            android:id="@+id/deadlinesContainer"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:orientation="vertical"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/deadlinesSectionHeader"
-            tools:visibility="visible">
+                    <View
+                        android:layout_width="12dp"
+                        android:layout_height="0dp" />
 
-            <!-- Deadline items will be added programmatically -->
+                    <!-- Active Projects Card -->
+                    <LinearLayout
+                        android:id="@+id/projectsMetricCard"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_card_outlined"
+                        android:padding="16dp"
+                        android:orientation="vertical">
 
-        </LinearLayout>
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_project"
+                            android:contentDescription="@null"
+                            app:tint="@color/primary" />
 
-        <!-- Deadlines Empty State -->
-        <com.cutm.TeamPulse.ui.common.EmptyStateView
-            android:id="@+id/deadlinesEmptyState"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:background="@drawable/bg_empty_state"
-            android:padding="@dimen/spacing_lg"
-            app:emptyIcon="@drawable/ic_progress"
-            app:emptyMessage=""
-            app:emptyTitle="@string/no_deadlines"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/deadlinesSectionHeader" />
+                        <TextView
+                            android:id="@+id/activeProjectsCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="@color/text_primary"
+                            android:textSize="24sp"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Active Projects"
+                            android:textColor="@color/text_muted"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="12dp" />
+
+                <!-- Row 2: Assigned Tasks & Pending Reviews -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <!-- Assigned Tasks Card -->
+                    <LinearLayout
+                        android:id="@+id/tasksMetricCard"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_card_outlined"
+                        android:padding="16dp"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_task"
+                            android:contentDescription="@null"
+                            app:tint="@color/tertiary" />
+
+                        <TextView
+                            android:id="@+id/assignedTasksCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="@color/text_primary"
+                            android:textSize="24sp"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Assigned Tasks"
+                            android:textColor="@color/text_muted"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="12dp"
+                        android:layout_height="0dp" />
+
+                    <!-- Pending Reviews Card -->
+                    <LinearLayout
+                        android:id="@+id/reviewsMetricCard"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_card_outlined"
+                        android:padding="16dp"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_badge"
+                            android:contentDescription="@null"
+                            app:tint="@color/warning" />
+
+                        <TextView
+                            android:id="@+id/pendingReviewsCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="@color/text_primary"
+                            android:textSize="24sp"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Pending Reviews"
+                            android:textColor="@color/text_muted"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Barrier for metrics section -->
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/metricsSectionBarrier"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="metricsGrid" />
+
+            <!-- ============================================== -->
+            <!-- PROJECTS SECTION -->
+            <!-- ============================================== -->
+
+            <!-- Section label -->
+            <TextView
+                android:id="@+id/projectsSectionHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="24dp"
+                android:text="ACTIVE PROJECTS"
+                android:textColor="@color/text_muted"
+                android:textSize="10sp"
+                android:fontFamily="sans-serif-medium"
+                android:textAllCaps="true"
+                android:letterSpacing="0.12"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/metricsSectionBarrier" />
+
+            <!-- Project List Container -->
+            <LinearLayout
+                android:id="@+id/projectsContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:orientation="vertical"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/projectsSectionHeader"
+                tools:visibility="visible" />
+
+            <!-- Projects Empty State -->
+            <com.cutm.TeamPulse.ui.common.EmptyStateView
+                android:id="@+id/projectsEmptyState"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:emptyIcon="@drawable/ic_aurora_workspace"
+                app:emptyTitle="@string/no_active_project"
+                app:emptyMessage="@string/no_active_project_message"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/projectsSectionHeader" />
+
+            <!-- Barrier: Ensures deadlines section positions after whichever projects view is visible -->
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/projectsSectionBarrier"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="projectsContainer,projectsEmptyState" />
+
+            <!-- ============================================== -->
+            <!-- UPCOMING DEADLINES SECTION -->
+            <!-- ============================================== -->
+
+            <!-- Section label -->
+            <TextView
+                android:id="@+id/deadlinesSectionHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="24dp"
+                android:text="UPCOMING DEADLINES"
+                android:textColor="@color/text_muted"
+                android:textSize="10sp"
+                android:fontFamily="sans-serif-medium"
+                android:textAllCaps="true"
+                android:letterSpacing="0.12"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/projectsSectionBarrier" />
+
+            <!-- Deadlines List Container -->
+            <LinearLayout
+                android:id="@+id/deadlinesContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:orientation="vertical"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/deadlinesSectionHeader"
+                tools:visibility="visible" />
+
+            <!-- Deadlines Empty State -->
+            <com.cutm.TeamPulse.ui.common.EmptyStateView
+                android:id="@+id/deadlinesEmptyState"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:emptyIcon="@drawable/ic_aurora_tasks"
+                app:emptyTitle="@string/no_deadlines"
+                app:emptyMessage="No deadlines scheduled for the upcoming week."
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/deadlinesSectionHeader" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- FAB stays at bottom -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/createProjectFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/spacing_lg"
+        android:contentDescription="@string/action_create_project"
+        app:srcCompat="@drawable/ic_add_24"
+        app:tint="@color/text_primary"
+        app:backgroundTint="@color/primary" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-</ScrollView>
-
-<!-- FAB stays at bottom -->
-<com.google.android.material.floatingactionbutton.FloatingActionButton
-    android:id="@+id/createProjectFab"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="bottom|end"
-    android:layout_margin="@dimen/spacing_lg"
-    android:contentDescription="@string/action_create_project"
-    app:srcCompat="@android:drawable/ic_input_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

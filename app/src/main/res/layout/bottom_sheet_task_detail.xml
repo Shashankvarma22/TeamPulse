@@ -1,185 +1,222 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/background"
-    android:elevation="16dp"
-    android:padding="@dimen/spacing_lg">
+    android:layout_height="wrap_content">
 
-    <!-- Drag Handle -->
-    <View
-        android:id="@+id/dragHandle"
-        android:layout_width="32dp"
-        android:layout_height="4dp"
-        android:layout_marginTop="@dimen/spacing_xs"
-        android:background="@drawable/bg_drag_handle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Title -->
-    <TextView
-        android:id="@+id/taskTitleText"
-        style="@style/TextAppearance.TeamPulse.TitleLarge"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/spacing_md"
-        android:textColor="@color/text_primary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dragHandle"
-        tools:text="Implement user authentication" />
-
-    <!-- Description Label -->
-    <TextView
-        android:id="@+id/descriptionLabel"
-        style="@style/TextAppearance.TeamPulse.LabelMedium"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/spacing_md"
-        android:text="Description"
-        android:textColor="@color/text_secondary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/taskTitleText" />
-
-    <!-- Description -->
-    <TextView
-        android:id="@+id/taskDescriptionText"
-        style="@style/TextAppearance.TeamPulse.BodyMedium"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/spacing_xs"
-        android:textColor="@color/text_primary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/descriptionLabel"
-        tools:text="Set up Google Sign-In with Firebase Authentication and handle user sessions" />
-
-    <!-- Details Grid -->
     <LinearLayout
-        android:id="@+id/detailsLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/spacing_md"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/taskDescriptionText">
+        android:orientation="vertical"
+        android:background="@drawable/bg_header_atmosphere"
+        android:padding="24dp">
 
+        <!-- Task Title -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:id="@+id/titleSection"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/bg_status_dot_todo" />
 
             <TextView
-                style="@style/TextAppearance.TeamPulse.LabelMedium"
-                android:layout_width="wrap_content"
+                android:id="@+id/taskTitleText"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Due Date"
-                android:textColor="@color/text_secondary" />
-
-            <TextView
-                android:id="@+id/taskDueDateText"
-                style="@style/TextAppearance.TeamPulse.BodyMedium"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_xxs"
+                android:layout_weight="1"
+                style="@style/TextAppearance.TeamPulse.HeadlineMedium"
                 android:textColor="@color/text_primary"
-                tools:text="Dec 15, 2024" />
+                android:textSize="20sp"
+                android:maxLines="3"
+                android:ellipsize="end"
+                tools:text="Implement user authentication" />
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="0dp"
+        <!-- Description Label -->
+        <TextView
+            android:id="@+id/descriptionLabel"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            style="@style/TextAppearance.TeamPulse.TitleSmall"
+            android:text="Description"
+            android:textColor="@color/secondary"
+            android:layout_marginBottom="8dp" />
 
-            <TextView
-                style="@style/TextAppearance.TeamPulse.LabelMedium"
-                android:layout_width="wrap_content"
+        <!-- Description Text -->
+        <TextView
+            android:id="@+id/taskDescriptionText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.TeamPulse.BodyLarge"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="24dp"
+            tools:text="Set up Google Sign-In with Firebase" />
+
+        <!-- Details Card with Fixed Height 72dp -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/detailsCard"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            style="@style/Widget.TeamPulse.Card.Outlined"
+            app:cardBackgroundColor="@color/surface_accent"
+            app:strokeColor="@color/border"
+            app:strokeWidth="1dp"
+            android:layout_marginBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <!-- Due Date -->
+                <LinearLayout
+                    android:id="@+id/dueDateSection"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/TextAppearance.TeamPulse.LabelSmall"
+                        android:text="Due Date"
+                        android:textColor="@color/text_muted"
+                        android:drawablePadding="4dp"
+                        android:drawableStart="@drawable/ic_calendar_today" />
+
+                    <TextView
+                        android:id="@+id/taskDueDateText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        style="@style/TextAppearance.TeamPulse.BodyMedium"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        tools:text="Dec 15, 2024" />
+
+                </LinearLayout>
+
+                <!-- Vertical Divider -->
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="16dp"
+                    android:background="@color/border" />
+
+                <!-- Weight -->
+                <LinearLayout
+                    android:id="@+id/weightSection"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/TextAppearance.TeamPulse.LabelSmall"
+                        android:text="Weight"
+                        android:textColor="@color/text_muted"
+                        android:drawablePadding="4dp"
+                        android:drawableStart="@drawable/ic_weight" />
+
+                    <TextView
+                        android:id="@+id/taskWeightText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        style="@style/TextAppearance.TeamPulse.BodyMedium"
+                        android:textColor="@color/secondary"
+                        android:textSize="14sp"
+                        tools:text="2.5 pts" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Status Label -->
+        <TextView
+            android:id="@+id/statusLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.TeamPulse.TitleSmall"
+            android:text="Update Status"
+            android:textColor="@color/secondary"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Status Toggle Group -->
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/statusToggleGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:checkedButton="@id/statusTodoButton"
+            app:selectionRequired="true"
+            app:singleSelection="true"
+            android:layout_marginBottom="24dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/statusTodoButton"
+                style="@style/Widget.TeamPulse.Button.Outlined.Status"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Weight"
-                android:textColor="@color/text_secondary" />
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="To Do"
+                app:icon="@drawable/ic_status_todo"
+                app:iconTint="@color/status_todo"
+                app:strokeColor="@color/status_todo" />
 
-            <TextView
-                android:id="@+id/taskWeightText"
-                style="@style/TextAppearance.TeamPulse.BodyMedium"
-                android:layout_width="wrap_content"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/statusInProgressButton"
+                style="@style/Widget.TeamPulse.Button.Outlined.Status"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_xxs"
-                android:textColor="@color/text_primary"
-                tools:text="2.5 pts" />
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="In Progress"
+                app:icon="@drawable/ic_status_in_progress"
+                app:iconTint="@color/status_in_progress"
+                app:strokeColor="@color/status_in_progress" />
 
-        </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/statusDoneButton"
+                style="@style/Widget.TeamPulse.Button.Outlined.Status"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Done"
+                app:icon="@drawable/ic_status_done"
+                app:iconTint="@color/status_done"
+                app:strokeColor="@color/status_done" />
+
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <!-- Close Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/closeButton"
+            style="@style/Widget.TeamPulse.Button.Outlined"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Close"
+            app:icon="@drawable/ic_close"
+            app:iconTint="@color/text_secondary" />
 
     </LinearLayout>
 
-    <!-- Status Section -->
-    <TextView
-        android:id="@+id/statusLabel"
-        style="@style/TextAppearance.TeamPulse.LabelMedium"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/spacing_lg"
-        android:text="Update Status"
-        android:textColor="@color/text_secondary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/detailsLayout" />
-
-    <!-- Status Toggle Group -->
-    <com.google.android.material.button.MaterialButtonToggleGroup
-        android:id="@+id/statusToggleGroup"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/spacing_sm"
-        app:checkedButton="@id/statusTodoButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/statusLabel"
-        app:selectionRequired="true"
-        app:singleSelection="true">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/statusTodoButton"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="To Do"
-            android:textSize="13sp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/statusInProgressButton"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="In Progress"
-            android:textSize="13sp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/statusDoneButton"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Done"
-            android:textSize="13sp" />
-
-    </com.google.android.material.button.MaterialButtonToggleGroup>
-
-    <!-- Bottom spacing -->
-    <Space
-        android:layout_width="0dp"
-        android:layout_height="@dimen/spacing_md"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/statusToggleGroup" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

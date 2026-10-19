@@ -5,6 +5,7 @@ import com.cutm.TeamPulse.core.network.ApiResult
 import com.cutm.TeamPulse.data.remote.UserRoleApiService
 import com.cutm.TeamPulse.data.remote.dto.UserRoleRequest
 import com.cutm.TeamPulse.domain.repository.UserRegistryRepository
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -44,6 +45,7 @@ class UserRegistryRepositoryImpl @Inject constructor(
 
                 ApiResult.Success(role)
             } catch (e: retrofit2.HttpException) {
+                Log.e("TEAM_PULSE_AUTH", "POST_ACCOUNT_SELECTION_FAILURE: HttpException in role lookup", e)
                 // Parse error response from Worker
                 val errorBody = e.response()?.errorBody()?.string()
                 val errorMessage = when (e.code()) {
@@ -54,9 +56,12 @@ class UserRegistryRepositoryImpl @Inject constructor(
                 }
                 ApiResult.Error(message = errorMessage)
             } catch (e: Exception) {
+                Log.e("TEAM_PULSE_AUTH", "POST_ACCOUNT_SELECTION_FAILURE: Exception in role lookup", e)
                 ApiResult.Error(
                     message = "Failed to lookup user role: ${e.message ?: "Unknown error"}",
                 )
             }
         }
 }
+
+

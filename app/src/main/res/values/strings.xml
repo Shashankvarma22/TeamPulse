@@ -8,8 +8,8 @@
     <string name="sign_in_loading">Signing in…</string>
     <string name="sign_in_success">Successfully signed in</string>
 
-    <!-- Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs
-         → the "Web application" client ID (NOT the Android client ID). -->
+    <!-- Google Cloud Console – APIs & Services – Credentials – OAuth 2.0 Client IDs
+         the "Web application" client ID (NOT the Android client ID). -->
     <string name="default_web_client_id">973824891796-i5gddskacq0gfsntsotn2pk41er301k4.apps.googleusercontent.com</string>
 
     <!-- Sign In Errors -->
@@ -64,10 +64,11 @@
     <string name="progress_percentage">%1$d%%</string>
     <string name="task_count_format">%1$d of %2$d tasks</string>
     <string name="tasks_completed">%1$d/%2$d tasks</string>
-    <string name="due_in_days">Due in %1$d days</string>
+    <string name="due_in_days">%1$d days left</string>
     <string name="overdue_days">%1$d day(s) overdue</string>
-    <string name="due_soon_days">Due in %1$d day(s)</string>
+    <string name="due_soon_days">%1$d day(s)</string>
     <string name="due_today">Due today</string>
+    <string name="due_tomorrow">Due Tomorrow</string>
     <string name="overdue">Overdue</string>
 
     <!-- Teacher Home -->
@@ -80,6 +81,10 @@
 
     <!-- Student Home -->
     <string name="student_home_greeting">Welcome, %1$s</string>
+    <string name="student_home_greeting_morning">Good morning,</string>
+    <string name="student_home_greeting_afternoon">Good afternoon,</string>
+    <string name="student_home_greeting_evening">Good evening,</string>
+    <string name="student_dashboard_label">Student Dashboard</string>
     <string name="no_active_project">No Active Project</string>
     <string name="no_active_project_message">You haven\'t been assigned to a project yet. Check back soon or contact your teacher.</string>
     <string name="your_tasks_section">Your Tasks</string>
@@ -208,6 +213,48 @@
     <string name="error_name_required">Display name is required</string>
     <string name="error_member_duplicate">Student already in this team</string>
     <string name="error_team_not_found">Team not found</string>
+
+
+    <!-- Welcome Screen -->
+    <string name="welcome_screen_title">Welcome</string>
+    <string name="welcome_get_started">Get Started</string>
+    <string name="cd_collaborate">Collaborate icon</string>
+    <string name="cd_track">Track icon</string>
+    <string name="cd_progress">Progress icon</string>
+
+
+    <!-- Welcome Screen – Premium Full-Screen Composition -->
+    <string name="brand_team_pulse">Team Pulse</string>
+    <string name="tagline_collaborate_track_deliver">Collaborate. Track. Deliver.</string>
+    <string name="cta_get_started">Get Started</string>
+    <string name="supporting_features">Projects • Tasks • Teamwork</string>
+    <string name="cd_team_pulse_hero">TeamPulse collaboration energy artwork</string>
+
+
+    <!-- Task Action Buttons -->
+    <string name="action_todo">To Do</string>
+    <string name="action_in_progress">In Progress</string>
+    <string name="action_complete">Complete</string>
+    <string name="action_loading">Updating…</string>
+    
+    <!-- Task Filter Labels -->
+    <string name="filter_all">ALL</string>
+    <string name="filter_todo">TODO</string>
+    <string name="filter_in_progress">IN PROGRESS</string>
+    <string name="filter_done">DONE</string>
+    
+    <!-- Task Section Labels -->
+    <string name="my_assigned_tasks">My Assigned Tasks</string>
+    <string name="tasks_update_status">Update task statuses as you complete project milestones.</string>
+    
+    <!-- Weight Display -->
+    <string name="weight_format">Weight %d</string>
+    
+    <!-- Empty States for Filters -->
+    <string name="empty_no_assigned_tasks">No assigned tasks yet</string>
+    <string name="empty_no_todo_tasks">No tasks to do</string>
+    <string name="empty_no_in_progress_tasks">No tasks in progress</string>
+    <string name="empty_no_completed_tasks">No completed tasks yet</string>
 
 </resources>
 

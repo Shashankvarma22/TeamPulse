@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/taskFilterContainer"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="24dp"
+    android:layout_marginTop="16dp"
+    android:layout_marginEnd="24dp"
+    android:orientation="vertical"
+    android:background="@drawable/bg_filter_container"
+    android:padding="4dp">
+
+    <!-- Filter tabs row -->
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/taskFilterGroup"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@android:color/transparent"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        app:checkedButton="@+id/filterAll">
+
+        <!-- ALL filter -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/filterAll"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/filter_all"
+            android:textSize="11sp"
+            android:maxLines="1"
+            android:ellipsize="none"
+            android:textColor="@color/filter_unselected_text"
+            app:icon="@drawable/ic_filter_all"
+            app:iconTint="@color/filter_unselected_text" />
+
+        <!-- TODO filter -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/filterTodo"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/filter_todo"
+            android:textSize="11sp"
+            android:maxLines="1"
+            android:ellipsize="none"
+            android:textColor="@color/filter_unselected_text"
+            app:icon="@drawable/ic_filter_todo"
+            app:iconTint="@color/filter_unselected_text" />
+
+        <!-- IN PROGRESS filter -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/filterInProgress"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/filter_in_progress"
+            android:textSize="11sp"
+            android:maxLines="1"
+            android:ellipsize="none"
+            android:textColor="@color/filter_unselected_text"
+            app:icon="@drawable/ic_filter_in_progress"
+            app:iconTint="@color/filter_unselected_text" />
+
+        <!-- DONE filter -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/filterDone"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/filter_done"
+            android:textSize="11sp"
+            android:maxLines="1"
+            android:ellipsize="none"
+            android:textColor="@color/filter_unselected_text"
+            app:icon="@drawable/ic_filter_done"
+            app:iconTint="@color/filter_unselected_text" />
+
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+</LinearLayout>

@@ -3,77 +3,118 @@
     <!-- Base colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
 
-    <!-- Primary palette - Deep Slate (grounded, academic, instrument panel) -->
-    <color name="primary">#3D5A80</color>
-    <color name="primary_dark">#293241</color>
-    <color name="primary_light">#5E7FA3</color>
+    <!-- ============================================== -->
+    <!-- TEAM PULSE PREMIUM DARK DESIGN SYSTEM -->
+    <!-- ============================================== -->
+
+    <!-- Foundation: Premium Dark Surfaces -->
+    <color name="background">#050609</color>          <!-- Near black midnight navy -->
+    <color name="background_secondary">#0A0D12</color> <!-- Deep navy -->
+    <color name="surface">#12151C</color>             <!-- Elevated dark surface -->
+    <color name="surface_variant">#181B24</color>     <!-- Higher elevated surface -->
+    <color name="surface_elevated">#1A1D27</color>    <!-- Highest surface level -->
+    <color name="surface_accent">#0F1325</color>      <!-- Indigo accent surface -->
+
+    <!-- Text Hierarchy -->
+    <color name="text_primary">#F5F7FF</color>        <!-- Soft white -->
+    <color name="text_secondary">#A8B1CC</color>      <!-- Cool gray -->
+    <color name="text_muted">#6B7280</color>          <!-- Muted slate -->
+    <color name="text_disabled">#4A4F5A</color>       <!-- Disabled text -->
+    <color name="text_tertiary">#6B7280</color>       <!-- Tertiary text (same as muted) -->
+
+    <!-- Primary Accents -->
+    <color name="primary">#3A5BFF</color>             <!-- Electric indigo -->
+    <color name="primary_light">#5A7BFF</color>       <!-- Lighter indigo -->
+    <color name="primary_dark">#1A3BD0</color>        <!-- Darker indigo -->
     <color name="on_primary">#FFFFFF</color>
 
-    <!-- Secondary palette - Vibrant Teal (collaboration, energy, gamification) -->
-    <color name="secondary">#00897B</color>
-    <color name="secondary_dark">#00695C</color>
-    <color name="secondary_light">#26A69A</color>
-    <color name="on_secondary">#FFFFFF</color>
+    <!-- Secondary Accents -->
+    <color name="secondary">#00E0FF</color>           <!-- Cyan/Aqua -->
+    <color name="secondary_light">#4DF2FF</color>     <!-- Light cyan -->
+    <color name="secondary_dark">#00A3CC</color>      <!-- Dark cyan -->
+    <color name="on_secondary">#000000</color>
 
-    <!-- Tertiary palette - Warm Amber (achievement, rewards) -->
-    <color name="tertiary">#F57C00</color>
-    <color name="tertiary_dark">#E65100</color>
-    <color name="tertiary_light">#FF9800</color>
+    <!-- Tertiary Accents -->
+    <color name="tertiary">#8B5CF6</color>            <!-- Violet/Purple -->
+    <color name="tertiary_light">#A78BFA</color>      <!-- Light violet -->
+    <color name="tertiary_dark">#7C3AED</color>       <!-- Dark violet -->
     <color name="on_tertiary">#FFFFFF</color>
 
-    <!-- Semantic colors -->
-    <color name="error">#D32F2F</color>
-    <color name="error_light">#EF5350</color>
-    <color name="on_error">#FFFFFF</color>
-
-    <color name="success">#388E3C</color>
-    <color name="success_light">#4CAF50</color>
+    <!-- Semantic Colors -->
+    <color name="success">#10B981</color>             <!-- Emerald -->
+    <color name="success_light">#34D399</color>       <!-- Light emerald -->
+    <color name="success_dark">#059669</color>        <!-- Dark emerald -->
     <color name="on_success">#FFFFFF</color>
 
-    <color name="warning">#F57C00</color>
-    <color name="warning_light">#FF9800</color>
-    <color name="on_warning">#FFFFFF</color>
+    <color name="warning">#F59E0B</color>             <!-- Amber -->
+    <color name="warning_light">#FBBF24</color>       <!-- Light amber -->
+    <color name="warning_dark">#D97706</color>        <!-- Dark amber -->
+    <color name="on_warning">#000000</color>
 
-    <!-- Surface and background colors -->
-    <color name="background">#F5F7FA</color>
-    <color name="surface">#FFFFFF</color>
-    <color name="surface_variant">#E8EEF4</color>
-    <color name="on_background">#1A1C1E</color>
-    <color name="on_surface">#1A1C1E</color>
-    <color name="on_surface_variant">#42474E</color>
+    <color name="error">#EF4444</color>               <!-- Coral red -->
+    <color name="error_light">#F87171</color>         <!-- Light coral -->
+    <color name="error_dark">#DC2626</color>          <!-- Dark coral -->
+    <color name="on_error">#FFFFFF</color>
 
-    <!-- Outline and divider colors -->
-    <color name="outline">#C4C7CC</color>
-    <color name="outline_variant">#E1E3E8</color>
+    <!-- Progress Colors -->
+    <color name="progress_start">#3A5BFF</color>      <!-- Indigo start -->
+    <color name="progress_mid">#00A3FF</color>        <!-- Blue mid -->
+    <color name="progress_end">#00E0FF</color>        <!-- Cyan end -->
+    <color name="progress_track">#1A2230</color>      <!-- Progress track -->
 
-    <!-- Specific UI element colors -->
-    <color name="card_background">#FFFFFF</color>
-    <color name="card_stroke">#E1E3E8</color>
-    
-    <!-- Status colors for tasks -->
-    <color name="status_todo">#757575</color>
-    <color name="status_in_progress">#1976D2</color>
-    <color name="status_done">#388E3C</color>
+    <!-- Borders -->
+    <color name="border">#1A2230</color>              <!-- Subtle border -->
+    <color name="border_accent">#2A3B5A</color>       <!-- Accent border -->
+    <color name="border_primary">#1E2639</color>      <!-- Primary border -->
 
-    <!-- Role-specific accents -->
-    <!-- Removed: teacher_accent and student_accent (unused) -->
+    <!-- Card Colors -->
+    <color name="card_background">#12151C</color>     <!-- Card background -->
+    <color name="card_stroke">#2A3B5A</color>         <!-- Card stroke -->
 
-    <!-- Shadow and overlay -->
+    <!-- Status Colors for Tasks -->
+    <color name="status_todo">#4A4F5A</color>         <!-- Neutral slate -->
+    <color name="status_in_progress">#3A5BFF</color>  <!-- Indigo -->
+    <color name="status_done">#10B981</color>         <!-- Emerald -->
+    <color name="status_overdue">#EF4444</color>      <!-- Coral red -->
+
+    <!-- Gradient Colors -->
+    <color name="gradient_dark">#050609</color>
+    <color name="gradient_mid">#0A0D12</color>
+    <color name="gradient_light">#12151C</color>
+    <color name="gradient_accent">#0F1325</color>
+
+    <!-- Animation Colors -->
+    <color name="animation_primary">#5D7BFF</color>   <!-- Bright indigo for animation highlights -->
+    <color name="animation_secondary">#00D4FF</color> <!-- Vibrant cyan for motion -->
+    <color name="animation_accent">#FF6BCB</color>    <!-- Magenta accent for energy -->
+    <color name="animation_glow_start">#3A5BFF</color> <!-- Glow effect start -->
+    <color name="animation_glow_end">#00E0FF</color>  <!-- Glow effect end -->
+
+    <!-- Shadow and Overlay -->
     <color name="scrim">#80000000</color>
     <color name="shadow">#1A000000</color>
 
-    <!-- Text colors -->
-    <color name="text_primary">#1A1C1E</color>
-    <color name="text_secondary">#42474E</color>
-    <color name="text_tertiary">#6B7178</color>
-    <color name="text_disabled">#9BA1A8</color>
-
-    <!-- Neutral colors for UI elements -->
+    <!-- Legacy Compatibility (for existing code) -->
+    <color name="on_background">@color/text_primary</color>
+    <color name="on_surface">@color/text_primary</color>
+    <color name="on_surface_variant">@color/text_secondary</color>
+    <color name="outline">@color/border</color>
+    <color name="outline_variant">@color/border_accent</color>
     <color name="neutral_200">#E8EEF4</color>
     <color name="neutral_300">#D0D4DB</color>
     <color name="neutral_400">#9BA1A8</color>
     <color name="neutral_500">#757575</color>
-    <color name="transparent">#00000000</color>
-    <color name="on_primary_variant">#E8EEF4</color>
+    <color name="on_primary_variant">@color/text_primary</color>
+
+    <!-- Premium Task Card Colors -->
+    <color name="surface_navy">#0F1523</color>
+    <color name="text_muted_blue">#8A94B8</color>
+    
+    <!-- Filter Tab Colors -->
+    <color name="filter_selected_pill">#3A5BFF</color>
+    <color name="filter_unselected_text">#8A94B8</color>
+    <color name="filter_background_dark">#141A2A</color>
+
 </resources>

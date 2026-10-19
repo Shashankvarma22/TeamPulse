@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.cutm.TeamPulse.R
@@ -57,24 +58,37 @@ class ProjectCarouselAdapter(
 
             progressPercentage.text = context.getString(R.string.progress_percentage, progressPercent)
             progressBar.progress = progressPercent
+            
+            // Apply progress-based color to progress bar
+            val progressBarDrawableId = getProgressBarDrawable(progressPercent)
+            val progressDrawable = ContextCompat.getDrawable(context, progressBarDrawableId)
+            progressBar.progressDrawable = progressDrawable
+            
             taskCount.text = context.getString(
                 R.string.task_count_format,
                 projectData.completedTasks,
                 projectData.totalTasks
             )
 
-            // Set deadline chip with urgency styling
+            // Set deadline chip with smart deadline formatting
             val (deadlineText, chipColor) = getDeadlineInfo(projectData.daysUntilDeadline)
             deadlineChip.text = deadlineText
             deadlineChip.setChipBackgroundColorResource(chipColor)
         }
 
+        private fun getProgressBarDrawable(progressPercent: Int): Int {
+            return when {
+                progressPercent >= 66 -> R.drawable.shape_progress_bar_emerald
+                progressPercent >= 33 -> R.drawable.shape_progress_bar_amber
+                else -> R.drawable.shape_progress_bar_coral
+            }
+        }
+
         private fun getDeadlineInfo(daysUntil: Int): Pair<String, Int> {
             return when {
                 daysUntil < 0 -> {
-                    val daysOverdue = -daysUntil
                     Pair(
-                        context.getString(R.string.overdue_days, daysOverdue),
+                        context.getString(R.string.overdue),
                         R.color.error
                     )
                 }
@@ -84,9 +98,9 @@ class ProjectCarouselAdapter(
                         R.color.warning
                     )
                 }
-                daysUntil <= 3 -> {
+                daysUntil == 1 -> {
                     Pair(
-                        context.getString(R.string.due_soon_days, daysUntil),
+                        context.getString(R.string.due_tomorrow),
                         R.color.warning
                     )
                 }

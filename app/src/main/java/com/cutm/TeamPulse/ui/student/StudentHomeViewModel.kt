@@ -1,5 +1,6 @@
-package com.cutm.TeamPulse.ui.student
+﻿package com.cutm.TeamPulse.ui.student
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cutm.TeamPulse.domain.model.Project
@@ -52,19 +53,13 @@ class StudentHomeViewModel @Inject constructor(
             initialValue = null
         )
 
-    /**
-     * Sign out: Clear session from Room and CredentialManager cache.
-     * Next sign-in will show Google account picker.
-     */
     suspend fun signOut() {
         authRepository.signOut()
     }
 
     fun updateTaskStatus(taskId: String, newStatus: TaskStatus) {
-        // Students can only set TODO or IN_PROGRESS, not DONE/COMPLETED
-        // (Prevents self-XP-farming exploit - only teachers can mark tasks complete)
         if (newStatus != TaskStatus.TODO && newStatus != TaskStatus.IN_PROGRESS) {
-            return  // Silently reject student attempt to set DONE
+            return
         }
         
         viewModelScope.launch {
@@ -72,47 +67,77 @@ class StudentHomeViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Focused project ID for carousel tracking.
-     * Updated when user swipes between project cards.
-     */
     private val _focusedProjectId = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
     val focusedProjectId: StateFlow<String?> = _focusedProjectId.asStateFlow()
 
     /**
-     * All projects the student is enrolled in (via team membership).
-     * Replaces single currentProject with list support for carousel.
+     * FIXED: Project discovery now uses student's assigned tasks as the source of truth.
+     * 
+     * PREVIOUS LOGIC (broken):
+     * - Filter all teams by: team.memberEmails.contains(session.email)
+     * - Map filtered teams to projects
+     * - Result: If student email not in memberEmails list, NO PROJECTS shown
+     * 
+     * NEW LOGIC (working):
+     * - Get all tasks assigned to student by email: taskRepository.observeTasksForStudent(session.email)
+     * - Extract unique (projectId, teamId) pairs from tasks
+     * - Load project and team info for those pairs
+     * - Combine with task count data
+     * - Result: Projects display correctly based on actual task assignments
+     * 
+     * RATIONALE: Tasks are the direct evidence of project membership. If a task exists
+     * for a student, they are part of that project's team, regardless of how memberEmails
+     * is stored. This bypasses the memberEmails list corruption issue.
      */
     val currentProjects: StateFlow<List<CurrentProjectData>> = userSession
         .flatMapLatest { session ->
+            Log.d("TEAM_PULSE_PROJECTS", "STUDENT_ID_RESOLVED: email=")
+            
             if (session == null) {
+                Log.d("TEAM_PULSE_PROJECTS", "currentProjects: session is null, returning empty")
                 return@flatMapLatest flowOf(emptyList())
             }
 
-            teamRepository.observeTeams().flatMapLatest { teams ->
-                val studentTeams = teams.filter { team ->
-                    team.memberEmails.contains(session.email)
+            // FIX: Use tasks as source of truth instead of team membership
+            taskRepository.observeTasksForStudent(session.email).flatMapLatest { studentTasks ->
+                Log.d("TEAM_PULSE_PROJECTS", "currentProjects: Student  has  assigned tasks")
+                studentTasks.forEach { task ->
+                    Log.d("TEAM_PULSE_PROJECTS", "  Task:  | Project:  | Team:  | Title: ")
                 }
-                
-                if (studentTeams.isEmpty()) {
+
+                if (studentTasks.isEmpty()) {
+                    Log.d("TEAM_PULSE_PROJECTS", "currentProjects: No tasks assigned, returning empty projects")
                     return@flatMapLatest flowOf(emptyList())
                 }
 
-                // Combine all project data for each student team
-                val projectFlows = studentTeams.map { team ->
+                // Extract unique project-team combinations from tasks
+                val projectTeamPairs = studentTasks.map { it.projectId to it.teamId }.distinct()
+                Log.d("TEAM_PULSE_PROJECTS", "PROJECT_IDS_RESOLVED:  unique project-team pairs")
+                projectTeamPairs.forEach { (projId, teamId) ->
+                    Log.d("TEAM_PULSE_PROJECTS", "  ProjectId:  | TeamId: ")
+                }
+
+                // Build flows to fetch project and team data
+                val projectDataFlows = projectTeamPairs.map { (projectId, teamId) ->
                     combine(
-                        projectRepository.observeProject(team.projectId),
-                        taskRepository.observeTasksForTeam(team.teamId)
-                    ) { project, tasks ->
-                        if (project == null) {
+                        projectRepository.observeProject(projectId),
+                        teamRepository.observeTeams().map { allTeams -> allTeams.find { it.teamId == teamId } }
+                    ) { project, team ->
+                        Log.d("TEAM_PULSE_PROJECTS", "Combining project  and team ")
+                        if (project == null || team == null) {
+                            Log.d("TEAM_PULSE_PROJECTS", "  Skipping: project=, team=")
                             return@combine null
                         }
 
-                        val completedTasks = tasks.count { it.status == TaskStatus.DONE }
-                        val totalTasks = tasks.size
+                        // Count tasks for this project
+                        val projectTasks = studentTasks.filter { it.projectId == projectId }
+                        val completedTasks = projectTasks.count { it.status == TaskStatus.DONE }
+                        val totalTasks = projectTasks.size
                         val currentTime = System.currentTimeMillis()
                         val daysUntil = ((project.dueDate - currentTime) / (1000 * 60 * 60 * 24)).toInt()
-                        
+
+                        Log.d("TEAM_PULSE_PROJECTS", "  Created CurrentProjectData:  | / tasks |  days")
+
                         CurrentProjectData(
                             project = project,
                             team = team,
@@ -123,19 +148,28 @@ class StudentHomeViewModel @Inject constructor(
                     }
                 }
 
-                // Combine all project flows into a single list
-                if (projectFlows.isEmpty()) {
+                if (projectDataFlows.isEmpty()) {
+                    Log.d("TEAM_PULSE_PROJECTS", "currentProjects: No project flows, returning empty")
                     flowOf(emptyList())
                 } else {
-                    combine(projectFlows) { projectArray ->
-                        projectArray.filterNotNull()
+                    Log.d("TEAM_PULSE_PROJECTS", "currentProjects: Combining  project flows")
+                    combine(projectDataFlows) { projectArray ->
+                        val filtered = projectArray.filterNotNull()
+                        Log.d("TEAM_PULSE_PROJECTS", "PROJECTS_FETCHED_COUNT:  projects retrieved")
+                        Log.d("TEAM_PULSE_PROJECTS", "ACTIVE_PROJECTS_COUNT:  projects (all tasks-derived)")
+                        filtered.forEach { proj ->
+                            Log.d("TEAM_PULSE_PROJECTS", "  Active: ")
+                        }
+                        filtered
                     }
                 }
             }
         }.map { projects ->
-            // Auto-focus first project on first emission if not already focused
+            Log.d("TEAM_PULSE_PROJECTS", "VIEWMODEL_PROJECTS_EMITTED:  projects to UI")
+            
             if (projects.isNotEmpty() && _focusedProjectId.value == null) {
                 _focusedProjectId.value = projects[0].project.projectId
+                Log.d("TEAM_PULSE_PROJECTS", "CAROUSEL_RENDERED: Set focused project to ")
             }
             projects
         }.stateIn(
@@ -144,32 +178,18 @@ class StudentHomeViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    /**
-     * Update focused project (called when carousel page changes).
-     */
     fun setFocusedProject(projectId: String) {
         _focusedProjectId.value = projectId
     }
 
-    val myTasks: StateFlow<List<StudentTaskData>> = combine(
-        userSession,
-        focusedProjectId,
-        currentProjects
-    ) { session: UserSession?, focusedId: String?, projects: List<CurrentProjectData> ->
-        Triple(session, focusedId, projects)
-    }
-        .flatMapLatest { (session, focusedId, projects) ->
-            if (session == null || focusedId == null) {
+    val myTasks: StateFlow<List<StudentTaskData>> = userSession
+        .flatMapLatest { session ->
+            if (session == null) {
                 flowOf(emptyList<TaskAssignment>())
             } else {
-                // Find the focused project to get its team ID
-                val focusedProject = projects.find { it.project.projectId == focusedId }
-                if (focusedProject == null) {
-                    flowOf(emptyList<TaskAssignment>())
-                } else {
-                    // Observe only tasks for the focused project's team
-                    taskRepository.observeTasksForTeam(focusedProject.team.teamId)
-                }
+                // FIX: Use observeTasksForStudent directly instead of deriving from currentProjects
+                // This ensures tasks display correctly even if project carousel has issues
+                taskRepository.observeTasksForStudent(session.email)
             }
         }
         .map { tasks: List<TaskAssignment> ->

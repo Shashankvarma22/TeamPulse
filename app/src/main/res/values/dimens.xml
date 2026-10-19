@@ -61,8 +61,39 @@
     <!-- Badge and indicator -->
     <dimen name="badge_size">8dp</dimen>
     <dimen name="badge_size_with_text">20dp</dimen>
+    
+    <!-- Indicator dots for carousel -->
+    <dimen name="indicator_dot_size">8dp</dimen>
+    <dimen name="indicator_dot_margin">4dp</dimen>
 
     <!-- Content density -->
     <dimen name="section_spacing">24dp</dimen>
     <dimen name="section_spacing_compact">20dp</dimen>
+
+    <!-- Premium Task Card Dimensions -->
+    <dimen name="card_corner_radius_premium">18dp</dimen>
+    <dimen name="card_elevation_premium">4dp</dimen>
+    <dimen name="card_padding_premium">18dp</dimen>
+    
+    <!-- Filter Tab Dimensions -->
+    <dimen name="filter_container_radius">24dp</dimen>
+    <dimen name="filter_button_height">44dp</dimen>
+    <dimen name="filter_pill_radius">20dp</dimen>
+    
+    <!-- Elevation levels -->
+    <dimen name="elevation_none">0dp</dimen>
+    <dimen name="elevation_xs">1dp</dimen>
+    <dimen name="elevation_sm">2dp</dimen>
+    <dimen name="elevation_md">4dp</dimen>
+    <dimen name="elevation_lg">8dp</dimen>
+    <dimen name="elevation_xl">12dp</dimen>
+    
+    <!-- Carousel indicator -->
+    <dimen name="indicator_size">8dp</dimen>
+    <dimen name="indicator_margin">4dp</dimen>
+    
+    <!-- Project carousel height -->
+    <dimen name="project_carousel_height">260dp</dimen>
+
 </resources>
+

@@ -48,3 +48,109 @@ Thumbs.db
 
 # Android Studio / IntelliJ IDE files
 /.idea/
+
+# TeamPulse local and generated files
+.gradle/
+**/build/
+local.properties
+*.apk
+*.aab
+*.log
+*.tmp
+*.bak
+*.bak2
+*.original
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+*.key
+
+# Credentials and private configuration
+.env
+.env.*
+!.env.example
+secrets.properties
+keystore.properties
+key.properties
+**/google-services.json
+**/credentials.json
+**/service-account*.json
+
+# IDE local files
+.vscode/
+.idea/workspace.xml
+.idea/caches/
+.idea/shelf/
+
+# Agent planning and temporary outputs
+.agents/
+tasks.md
+build_error.txt
+build_output.txt
+full_output.txt
+*_REPORT.md
+welcome_strings.txt
+
+# Temporary repair scripts in project root
+/*.py
+/*.ps1
+
+# Duplicate/backup layouts
+fragment_project_detail_backup.xml
+fragment_student_home_updated.xml
+# Local settings and credentials
+local.properties
+.env
+.env.*
+!.env.example
+**/google-services.json
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+keystore.properties
+key.properties
+secrets.properties
+**/secrets.xml
+credentials.json
+service-account*.json
+
+# Build and IDE outputs
+.gradle/
+**/build/
+.idea/workspace.xml
+.idea/caches/
+.idea/shelf/
+.vscode/
+*.iml
+*.apk
+*.aab
+
+# Temporary scripts, backups and logs
+*.bak
+*.bak2
+*.original
+*.log
+build_error.txt
+build_output.txt
+full_output.txt
+clean_layout.py
+fix_*.py
+redesign_*.py
+restore_original_structure.py
+simple_fix_project.py
+modify_*.ps1
+update_*.ps1
+welcome_strings.txt
+
+# Temporary duplicate layouts
+app/src/main/res/layout/fragment_project_detail_backup.xml
+app/src/main/res/layout/fragment_student_home_updated.xml
+
+# Agent planning files
+.agents/tasks/
+tasks.md

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Pressed state -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#E86B3D"
+                android:centerColor="#F27F4A"
+                android:endColor="#FF9366"
+                android:type="linear" />
+            <corners android:radius="29dp" />
+        </shape>
+    </item>
+    
+    <!-- Disabled state -->
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <solid android:color="#33A8B1CC" />
+            <corners android:radius="29dp" />
+        </shape>
+    </item>
+    
+    <!-- Normal state - warm orange to coral gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#FF6B3D"
+                android:centerColor="#FF8556"
+                android:endColor="#FFA076"
+                android:type="linear" />
+            <corners android:radius="29dp" />
+        </shape>
+    </item>
+    
+</selector>

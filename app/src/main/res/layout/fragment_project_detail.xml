@@ -6,19 +6,29 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
+    <!-- Premium Atmospheric Gradient Header -->
+    <View
+        android:id="@+id/headerBackground"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:background="@drawable/bg_header_atmosphere" />
+
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/surface">
+        android:background="@android:color/transparent"
+        android:fitsSystemWindows="true">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="@color/text_primary"
             app:title="@string/project_detail_title"
-            app:titleTextAppearance="@style/TextAppearance.TeamPulse.TitleLarge" />
+            app:titleTextAppearance="@style/TextAppearance.TeamPulse.TitleLarge"
+            app:titleTextColor="@color/text_primary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -39,6 +49,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_md"
+                app:cardBackgroundColor="@color/surface_elevated"
+                app:strokeColor="@color/border_accent"
+                app:strokeWidth="1dp"
                 app:cardElevation="2dp"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:contentPadding="@dimen/spacing_base">
@@ -53,43 +66,115 @@
                         style="@style/TextAppearance.TeamPulse.TitleMedium"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/text_primary"
+                        android:letterSpacing="-0.01"
                         tools:text="Mobile App Development" />
 
-                    <TextView
-                        android:id="@+id/projectDueDateText"
-                        style="@style/TextAppearance.TeamPulse.BodyMedium"
+                    <!-- Status indicator with icon -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="@dimen/spacing_sm"
+                            android:tint="@color/secondary"
+                            app:srcCompat="@drawable/ic_status_in_progress" />
+
+                        <TextView
+                            android:id="@+id/projectStatusText"
+                            style="@style/TextAppearance.TeamPulse.BodyMedium"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_secondary"
+                            android:letterSpacing="0.02"
+                            tools:text="Active" />
+
+                    </LinearLayout>
+
+                    <!-- Due date with icon -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
                         android:layout_marginTop="@dimen/spacing_sm"
-                        android:textColor="@color/on_surface_variant"
-                        tools:text="Due: Mar 15, 2027" />
+                        android:gravity="center_vertical">
 
-                    <TextView
-                        android:id="@+id/projectStatusText"
-                        style="@style/TextAppearance.TeamPulse.BodyMedium"
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="@dimen/spacing_sm"
+                            android:tint="@color/tertiary"
+                            app:srcCompat="@drawable/ic_calendar_today" />
+
+                        <TextView
+                            android:id="@+id/projectDueDateText"
+                            style="@style/TextAppearance.TeamPulse.BodyMedium"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_secondary"
+                            android:letterSpacing="0.02"
+                            tools:text="Due: Mar 15, 2027" />
+
+                    </LinearLayout>
+
+                    <!-- Created date with icon -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_xs"
-                        android:textColor="@color/on_surface_variant"
-                        tools:text="Status: Active" />
+                        android:orientation="horizontal"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:gravity="center_vertical">
 
-                    <TextView
-                        android:id="@+id/projectCreatedText"
-                        style="@style/TextAppearance.TeamPulse.BodyMedium"
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="@dimen/spacing_sm"
+                            android:tint="@color/primary"
+                            app:srcCompat="@drawable/ic_calendar_today" />
+
+                        <TextView
+                            android:id="@+id/projectCreatedText"
+                            style="@style/TextAppearance.TeamPulse.BodyMedium"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_secondary"
+                            android:letterSpacing="0.02"
+                            tools:text="Created: Jan 10, 2027" />
+
+                    </LinearLayout>
+
+                    <!-- GitHub with icon (show only if has value) -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_xs"
-                        android:textColor="@color/on_surface_variant"
-                        tools:text="Created: Jan 10, 2027" />
+                        android:orientation="horizontal"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:gravity="center_vertical"
+                        android:visibility="gone"
+                        tools:visibility="visible">
 
-                    <TextView
-                        android:id="@+id/projectGithubText"
-                        style="@style/TextAppearance.TeamPulse.BodyMedium"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_xs"
-                        android:textColor="@color/on_surface_variant"
-                        tools:text="GitHub: [placeholder]" />
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="@dimen/spacing_sm"
+                            android:tint="@color/text_muted"
+                            app:srcCompat="@drawable/ic_badge" />
+
+                        <TextView
+                            android:id="@+id/projectGithubText"
+                            style="@style/TextAppearance.TeamPulse.BodyMedium"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_secondary"
+                            android:letterSpacing="0.02"
+                            tools:text="github.com/team/project" />
+
+                    </LinearLayout>
 
                     <!-- Manage Tasks Button -->
                     <com.google.android.material.button.MaterialButton
@@ -97,16 +182,17 @@
                         style="@style/Widget.Material3.Button.TonalButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_md"
+                        android:layout_marginTop="@dimen/spacing_xl"
                         android:text="@string/project_detail_manage_tasks"
                         app:icon="@drawable/ic_task"
+                        app:iconTint="@color/on_secondary"
                         app:iconGravity="textStart" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Teams Section -->
+            <!-- Teams Section Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -114,14 +200,20 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
+                <!-- Section title with caption styling -->
                 <TextView
                     android:id="@+id/teamsSectionHeader"
-                    style="@style/TextAppearance.TeamPulse.TitleMedium"
+                    style="@style/TextAppearance.TeamPulse.LabelMedium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    tools:text="Teams (3)" />
+                    android:text="@string/project_detail_teams_header"
+                    android:textColor="@color/text_muted"
+                    android:letterSpacing="0.12"
+                    android:textAllCaps="true"
+                    tools:text="TEAMS (3)" />
 
+                <!-- Create Team Button -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/createTeamButton"
                     style="@style/Widget.Material3.Button"
@@ -129,6 +221,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/project_detail_create_team"
                     app:icon="@drawable/ic_add"
+                    app:iconTint="@color/on_primary"
                     app:iconGravity="textStart" />
 
             </LinearLayout>
@@ -154,6 +247,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_md"
                 android:visibility="gone"
+                app:cardBackgroundColor="@color/surface_elevated"
+                app:strokeColor="@color/border_accent"
+                app:strokeWidth="1dp"
                 app:cardElevation="2dp"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:contentPadding="@dimen/spacing_xl">
@@ -169,7 +265,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/project_detail_empty_teams"
-                        android:textColor="@color/on_surface_variant" />
+                        android:textColor="@color/text_secondary" />
 
                     <TextView
                         style="@style/TextAppearance.TeamPulse.BodyMedium"
@@ -177,7 +273,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_xs"
                         android:text="@string/project_detail_empty_teams_hint"
-                        android:textColor="@color/on_surface_variant"
+                        android:textColor="@color/text_secondary"
                         android:gravity="center" />
 
                 </LinearLayout>

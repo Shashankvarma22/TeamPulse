@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Base: Deep navy to near-black gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#0A0D1A"
+                android:centerColor="#050814"
+                android:endColor="#020408"
+                android:type="linear" />
+        </shape>
+    </item>
+    
+    <!-- Layer 1: PRIMARY WARM ORANGE GLOW (top-left origin - hero light source) -->
+    <item
+        android:top="-120dp"
+        android:left="-100dp">
+        <rotate
+            android:fromDegrees="25"
+            android:pivotX="50%"
+            android:pivotY="50%">
+            <shape android:shape="oval">
+                <gradient
+                    android:angle="45"
+                    android:startColor="#40FF6B3D"
+                    android:centerColor="#33FF7F4A"
+                    android:endColor="#00000000"
+                    android:type="linear" />
+                <size
+                    android:width="480dp"
+                    android:height="680dp" />
+            </shape>
+        </rotate>
+    </item>
+    
+    <!-- Layer 2: CORAL ATMOSPHERIC GLOW (top-center spread) -->
+    <item
+        android:top="-80dp"
+        android:gravity="center_horizontal">
+        <shape android:shape="oval">
+            <gradient
+                android:angle="90"
+                android:startColor="#35FF9366"
+                android:centerColor="#28FFA576"
+                android:endColor="#00000000"
+                android:type="radial"
+                android:gradientRadius="280dp" />
+            <size
+                android:width="520dp"
+                android:height="520dp" />
+        </shape>
+    </item>
+    
+    <!-- Layer 3: AMBER WARM ACCENT (top-right) -->
+    <item
+        android:top="-60dp"
+        android:right="-140dp">
+        <rotate
+            android:fromDegrees="-30"
+            android:pivotX="50%"
+            android:pivotY="50%">
+            <shape android:shape="oval">
+                <gradient
+                    android:angle="225"
+                    android:startColor="#30FFA500"
+                    android:centerColor="#20FFB629"
+                    android:endColor="#00000000"
+                    android:type="linear" />
+                <size
+                    android:width="420dp"
+                    android:height="600dp" />
+            </shape>
+        </rotate>
+    </item>
+    
+    <!-- Layer 4: DEEP NAVY OVERLAY (provides depth and contrast) -->
+    <item
+        android:top="100dp"
+        android:left="-70dp">
+        <rotate
+            android:fromDegrees="15"
+            android:pivotX="50%"
+            android:pivotY="50%">
+            <shape android:shape="oval">
+                <gradient
+                    android:angle="90"
+                    android:startColor="#40101828"
+                    android:centerColor="#33081220"
+                    android:endColor="#00000000"
+                    android:type="linear" />
+                <size
+                    android:width="380dp"
+                    android:height="540dp" />
+            </shape>
+        </rotate>
+    </item>
+    
+    <!-- Layer 5: SUBTLE CRIMSON ACCENT (warmth depth) -->
+    <item
+        android:top="140dp"
+        android:right="-80dp">
+        <rotate
+            android:fromDegrees="-20"
+            android:pivotX="50%"
+            android:pivotY="50%">
+            <shape android:shape="oval">
+                <gradient
+                    android:angle="180"
+                    android:startColor="#18DC2626"
+                    android:centerColor="#12EF4444"
+                    android:endColor="#00000000"
+                    android:type="linear" />
+                <size
+                    android:width="340dp"
+                    android:height="500dp" />
+            </shape>
+        </rotate>
+    </item>
+    
+    <!-- Layer 6: RESTRAINED CYAN CONNECTION (subtle bridge to app palette) -->
+    <item
+        android:top="180dp"
+        android:gravity="center_horizontal">
+        <shape android:shape="oval">
+            <gradient
+                android:angle="270"
+                android:startColor="#1200A3CC"
+                android:centerColor="#0C00E0FF"
+                android:endColor="#00000000"
+                android:type="linear" />
+            <size
+                android:width="300dp"
+                android:height="420dp" />
+        </shape>
+    </item>
+    
+    <!-- Seamless fade to dark (bottom transition) -->
+    <item
+        android:top="360dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:startColor="#00020408"
+                android:centerColor="#66020408"
+                android:endColor="#FF020408"
+                android:type="linear" />
+        </shape>
+    </item>
+    
+</layer-list>

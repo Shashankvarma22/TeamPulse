@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fitsSystemWindows="true"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- PREMIUM HERO ARTWORK CONTAINER (38% screen height) -->
+        <FrameLayout
+            android:id="@+id/heroContainer"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintDimensionRatio="H,10:7">
+
+            <!-- Hero artwork background -->
+            <ImageView
+                android:id="@+id/heroArtwork"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/cd_team_pulse_hero"
+                android:scaleType="centerCrop"
+                android:src="@drawable/bg_welcome_hero_premium" />
+
+            <!-- Hero branding overlay - CENTERED COMPOSITION -->
+            <LinearLayout
+                android:id="@+id/heroBrandingOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="24dp">
+
+                <!-- Pulse motif - centered above wordmark -->
+                <ImageView
+                    android:id="@+id/pulseMotif"
+                    android:layout_width="80dp"
+                    android:layout_height="24dp"
+                    android:layout_marginBottom="24dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_pulse_motif"
+                    android:alpha="0.9" />
+
+                <!-- TEAM PULSE - premium attractive wordmark -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <!-- TEAM line -->
+                    <TextView
+                        android:id="@+id/brandTextTeam"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TEAM"
+                        android:textColor="#F5F7FF"
+                        android:textSize="36sp"
+                        android:fontFamily="sans-serif-black"
+                        android:letterSpacing="0.25"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:textAllCaps="true"
+                        tools:ignore="HardcodedText" />
+
+                    <!-- PULSE line -->
+                    <TextView
+                        android:id="@+id/brandTextPulse"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="-4dp"
+                        android:text="PULSE"
+                        android:textColor="#FF9366"
+                        android:textSize="36sp"
+                        android:fontFamily="sans-serif-black"
+                        android:letterSpacing="0.20"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:textAllCaps="true"
+                        tools:ignore="HardcodedText" />
+
+                </LinearLayout>
+
+                <!-- Hero tagline - centered below wordmark -->
+                <TextView
+                    android:id="@+id/heroTagline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:text="BUILD • COLLABORATE • DELIVER"
+                    android:textColor="#A8B1CC"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.24"
+                    android:gravity="center"
+                    android:textAllCaps="true"
+                    android:alpha="0.85"
+                    tools:ignore="HardcodedText" />
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+        <!-- LIGHT EDITORIAL CONTENT SECTION - LEFT ALIGNED -->
+        <LinearLayout
+            android:id="@+id/contentSection"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#FAFAF7"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="36dp"
+            android:paddingBottom="40dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/heroContainer">
+
+            <!-- Eyebrow - small left-aligned editorial label -->
+            <TextView
+                android:id="@+id/eyebrow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WELCOME TO TEAM PULSE"
+                android:textColor="#4A4F5A"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.14"
+                android:textAllCaps="true"
+                android:layout_gravity="start"
+                tools:ignore="HardcodedText" />
+
+            <!-- Editorial headline - large left-aligned serif -->
+            <TextView
+                android:id="@+id/headline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Where teams\nmove together."
+                android:textColor="#050609"
+                android:textSize="44sp"
+                android:fontFamily="serif"
+                android:textStyle="bold"
+                android:lineSpacingMultiplier="0.92"
+                android:letterSpacing="-0.02"
+                android:layout_gravity="start"
+                android:gravity="start"
+                tools:ignore="HardcodedText" />
+
+            <!-- Accent line - left-aligned warm accent -->
+            <View
+                android:id="@+id/accentLine"
+                android:layout_width="52dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="12dp"
+                android:background="#FF9366"
+                android:layout_gravity="start" />
+
+            <!-- Feature row 1 - left-aligned -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:orientation="horizontal"
+                android:gravity="start|center_vertical">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_people_outline"
+                    app:tint="#3A5BFF" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="Create and collaborate with your team"
+                    android:textColor="#1A1D27"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif"
+                    android:lineSpacingExtra="2dp"
+                    tools:ignore="HardcodedText" />
+
+            </LinearLayout>
+
+            <!-- Feature row 2 - left-aligned -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal"
+                android:gravity="start|center_vertical">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_task_outline"
+                    app:tint="#3A5BFF" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="Plan tasks and track every milestone"
+                    android:textColor="#1A1D27"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif"
+                    android:lineSpacingExtra="2dp"
+                    tools:ignore="HardcodedText" />
+
+            </LinearLayout>
+
+            <!-- Feature row 3 - left-aligned -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal"
+                android:gravity="start|center_vertical">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_progress_chart"
+                    app:tint="#3A5BFF" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="See progress and contribution clearly"
+                    android:textColor="#1A1D27"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif"
+                    android:lineSpacingExtra="2dp"
+                    tools:ignore="HardcodedText" />
+
+            </LinearLayout>
+
+            <!-- GET STARTED CTA - spans content width -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/ctaGetStarted"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginTop="36dp"
+                android:text="Get Started"
+                android:textColor="#FAFAF7"
+                android:textSize="16sp"
+                android:textAllCaps="false"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0"
+                app:backgroundTint="#050609"
+                app:cornerRadius="29dp"
+                tools:ignore="HardcodedText" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>

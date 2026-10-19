@@ -16,6 +16,8 @@
         android:theme="@style/Theme.TeamPulse"
         tools:targetApi="31">
 
+        
+
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
@@ -40,3 +42,4 @@
     </application>
 
 </manifest>
+
